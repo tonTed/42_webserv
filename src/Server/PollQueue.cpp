@@ -7,7 +7,7 @@ PollQueue::~PollQueue(){}
    Pour nbServer: Ajoute les serverFds a pollfd.fd et set events a POLLIN
    Pour maxClient, set fd, events et revents a 0
 */
-pollfd*		PollQueue::pollFdInit(const int* serverFds, const int& nbServer, const int& maxClient)
+pollfd*		PollQueue::pollFdInit(const int* serverFds, const unsigned int& nbServer, const unsigned int& maxClient)
 {
 	pollfd*	pollFds = new pollfd[nbServer + maxClient];
 	
@@ -26,7 +26,7 @@ pollfd*		PollQueue::pollFdInit(const int* serverFds, const int& nbServer, const 
    Recherche le premier fd = 0 et l'insere a cet endroit
    Throw une exception si l'ajout a echouer (pas de fd a 0)
 */
-const bool	PollQueue::pollFdAddClient(pollfd* pollFds, const int& clientFd)
+const bool	PollQueue::pollFdAddClient(pollfd* pollFds, const unsigned int& clientFd)
 {
 	int i = 0;
 	
@@ -42,7 +42,7 @@ const bool	PollQueue::pollFdAddClient(pollfd* pollFds, const int& clientFd)
 /* Set a 0 le pollFd ayant etant fd = clientFd
    Throw une exception si le fd n'a pas ete trouver
 */ 
-void	PollQueue::pollFdRemoveClient(pollfd* pollFds, const int& clientFd)
+void	PollQueue::pollFdRemoveClient(pollfd* pollFds, const unsigned int& clientFd)
 {
 	int i = 0;
 
@@ -54,9 +54,9 @@ void	PollQueue::pollFdRemoveClient(pollfd* pollFds, const int& clientFd)
 }
 
 /* Ajoute a un index de pollfd* un fd donner a un index donner et 
-	set events a POLLIN
+   set events a POLLIN
 */
-void	PollQueue::pollFdSetFd(pollfd* pollFds, const int& setToFd, const int& index)
+void	PollQueue::pollFdSetFd(pollfd* pollFds, const unsigned int& setToFd, const unsigned int& index)
 {
 	pollFds[index].fd = setToFd;
 	pollFds[index].events = POLLIN;
@@ -65,7 +65,7 @@ void	PollQueue::pollFdSetFd(pollfd* pollFds, const int& setToFd, const int& inde
 
 /* Set a 0 un index donner de pollfd*
 */
-void	PollQueue::pollFdResetFd(pollfd* pollFds, const int& index)
+void	PollQueue::pollFdResetFd(pollfd* pollFds, const unsigned int& index)
 {
 	pollFds[index].fd = 0;
 	pollFds[index].events = 0;
