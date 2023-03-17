@@ -4,25 +4,28 @@
 # include "../Server/Server.hpp"
 # include "../global.hpp"
 
-typedef std::vector<Server> serVec;
 
 class ConfigServer
 {
   private:
-	serVec _servers;
+	std::vector<Server> _servers;
+	bool _useDefault;
 
   public:
 	ConfigServer();
 	ConfigServer(const std::string file);
+	ConfigServer(const ConfigServer &Config);
 	virtual ~ConfigServer();
 
 	ConfigServer &operator=(const ConfigServer &Config);
 
-	void readFile(const std::string &file);
-	bool fileExists(const std::string &file);
-	serVec getServs(void) const;
+	bool notNeeded(const std::string line);
+	std::string removeSpaceComments(std::string line);
+	bool readFile(const std::string inFile, std::string &stringLine);
+
 };
 
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
+std::string getFile(int argc, const char **argv);
 
 #endif

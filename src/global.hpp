@@ -1,8 +1,7 @@
 #ifndef GLOBAL_HPP
 #define GLOBAL_HPP
 
-#include "../doctest.hpp"
-
+#include "../test/doctest.h"
 # include <fstream>
 #include <iostream>
 #include <vector>

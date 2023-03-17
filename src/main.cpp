@@ -1,7 +1,8 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 
 #include "global.hpp"
-#include <iostream>
+#include "ConfigServer/ConfigServer.hpp"
+
 
 // TEST_CASE("Test Int Span")
 // {
@@ -9,20 +10,21 @@
 
 // }
 
-int	main(int argc, char **argv)
+int	main(int argc, const char **argv)
 {
-	int	res;
+	// int	res;
 
-	doctest::Context context;
-	context.applyCommandLine(argc, argv);
-	context.setOption("abort-after", 5);
-	context.setOption("no-breaks", true);
-	res = context.run();
-	if (context.shouldExit())
-		return (res);
-	std::cout << std::endl;
+	// doctest::Context context;
+	// context.applyCommandLine(argc, argv);
+	// context.setOption("abort-after", 5);
+	// context.setOption("no-breaks", true);
+	// res = context.run();
+	// if (context.shouldExit())
+	// 	return (res);
+	// std::cout << std::endl;
 	std::cout << "Launching webserver 42!" << std::endl;
+	ConfigServer		ConfigServer(getFile(argc, argv));
 	// Run your program here, after the tests have finished
 	// ...
-	return (res);
+	// return (res);
 }
