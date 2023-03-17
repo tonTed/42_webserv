@@ -37,6 +37,6 @@ TEST_CASE("test ConfFIle param ") {
      /* Check If file could be open // Should fail */
     CHECK(config.fileExists("configFiles/default.configur") == 1);
 
-    // ConfigServer Config("configFiles/default.config");
-    // ConfigServer Config1("configFiles/default.configur");
+    ConfigServer Config("configFiles/default.config");
+    ConfigServer Config1("configFiles/default.configur");
 }
