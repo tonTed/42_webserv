@@ -9,14 +9,15 @@ class PollQueue
 protected:
 	unsigned int	pollFdSize;
 	unsigned int	nbServer;
-					
+	
+
 public:
 					PollQueue();
 	virtual			~PollQueue();
 
 	//init
-	pollfd*			pollFdInit(const int* serverFds, const unsigned int& nbServer, const unsigned int& maxClient);
-	
+	pollfd*			pollFdInit(const unsigned int* serverFds, const unsigned int& nbServer, const unsigned int& maxClient);
+
 	//ClientFd
 	const bool		pollFdAddClient(pollfd* pollFds, const unsigned int& clientFd);
 	void			pollFdRemoveClient(pollfd* pollFds, const unsigned int& clientFd);
@@ -24,6 +25,10 @@ public:
 	// Set/reset
 	void			pollFdSetFd(pollfd* pollFds, const unsigned int& setToFd, const unsigned int& index);
 	void			pollFdResetFd(pollfd* pollFds, const unsigned int& index);
+
+	//getter
+	const unsigned int	getNbServer() const;
+	const unsigned int	getPollFdSize() const;
 
 	//Exception de pollFdRemoveClient
 	class			FdNotFoundException: public std::exception

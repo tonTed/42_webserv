@@ -7,7 +7,7 @@ PollQueue::~PollQueue(){}
    Pour nbServer: Ajoute les serverFds a pollfd.fd et set events a POLLIN
    Pour maxClient, set fd, events et revents a 0
 */
-pollfd*		PollQueue::pollFdInit(const int* serverFds, const unsigned int& nbServer, const unsigned int& maxClient)
+pollfd*		PollQueue::pollFdInit(const unsigned int* serverFds, const unsigned int& nbServer, const unsigned int& maxClient)
 {
 	pollfd*	pollFds = new pollfd[nbServer + maxClient];
 	
@@ -24,7 +24,7 @@ pollfd*		PollQueue::pollFdInit(const int* serverFds, const unsigned int& nbServe
 
 /* Pour ajouter un fd client a l'array pollFd
    Recherche le premier fd = 0 et l'insere a cet endroit
-   Throw une exception si l'ajout a echouer (pas de fd a 0)
+   Renvoie true si aucun erreur / false si une erreur (selon pourra etre changer)
 */
 const bool	PollQueue::pollFdAddClient(pollfd* pollFds, const unsigned int& clientFd)
 {
@@ -71,6 +71,13 @@ void	PollQueue::pollFdResetFd(pollfd* pollFds, const unsigned int& index)
 	pollFds[index].events = 0;
 	pollFds[index].revents = 0;
 }
+
+//Getters--------------
+
+const unsigned int	PollQueue::getNbServer() const {return this->nbServer;}
+const unsigned int	PollQueue::getPollFdSize() const {return this->pollFdSize;}
+
+//Exception---------------
 
 const char*	PollQueue::FdNotFoundException::what() const throw()
 {
