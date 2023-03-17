@@ -58,6 +58,9 @@ print		:
 run			: all
 	./$(NAME)
 
+mock		: all
+	./$(NAME) -m
+
 # Create  repo of objects!
 buildrepo	:
 	$(HIDE)$(call make-repo)

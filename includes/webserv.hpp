@@ -5,6 +5,8 @@
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
+# include <iostream>
+
 # include "server_limits.hpp"
 # include "exception_messages.hpp"
 
