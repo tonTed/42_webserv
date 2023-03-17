@@ -9,6 +9,7 @@ class PollQueue
 protected:
 	unsigned int	pollFdSize;
 	unsigned int	nbServer;
+	unsigned int	nbServerFd;
 
 public:
 					PollQueue();
