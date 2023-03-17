@@ -9,18 +9,17 @@ class PollQueue
 protected:
 	unsigned int	pollFdSize;
 	unsigned int	nbServer;
-	
 
 public:
 					PollQueue();
 	virtual			~PollQueue();
 
 	//init
-	pollfd*			pollFdInit(const unsigned int* serverFds);
+	pollfd*			pollFdInit();
 
 	//ClientFd
-	const bool		pollFdAddClient(pollfd* pollFds, const unsigned int& clientFd);
-	void			pollFdRemoveClient(pollfd* pollFds, const unsigned int& clientFd);
+	const bool		pollFdAdd(pollfd* pollFds, const unsigned int& fd);
+	void			pollFdRemove(pollfd* pollFds, const unsigned int& fd);
 	
 	// Set/reset
 	void			pollFdSetFd(pollfd* pollFds, const unsigned int& setToFd, const unsigned int& index);

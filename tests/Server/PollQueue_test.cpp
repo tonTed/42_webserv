@@ -10,17 +10,20 @@ TEST_CASE("PoolQueue::pollFdInit")
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
-	unsigned int maxClient = 10;
+	unsigned int maxClient = 2;
 	PollQueue	pollTested;
 	pollTested.setNbServer(nbServer);
-	pollTested.setPollFdSize(pollTested.getNbServer() + maxClient);
-	pollfd* pollFds = pollTested.pollFdInit(serverFds);
+	pollTested.setPollFdSize(nbServer + maxClient);
+	pollfd* pollFds = pollTested.pollFdInit();
+
 
 //test
     try
     {
-        CHECK(pollTested.getNbServer() == nbServer);
+		CHECK(pollTested.getNbServer() == nbServer);
 		CHECK(pollTested.getPollFdSize() == nbServer + maxClient);
+        CHECK(pollTested.pollFdAdd(pollFds, serverFds[0]) == true);
+        CHECK(pollTested.pollFdAdd(pollFds, serverFds[1]) == true);
 		for (int i = 0; i < nbServer + maxClient; i++)
 		{
 			if (i < nbServer)
@@ -45,9 +48,9 @@ TEST_CASE("PoolQueue::pollFdInit")
 
 }
 
-TEST_CASE("PoolQueue::pollFdAddClient")
+TEST_CASE("PoolQueue::pollFdAdd")
 {
-    std::cout << std::setw(30) << " ============ Test PoolQueue::pollFdAddClient ============ " << std::endl;
+    std::cout << std::setw(30) << " ============ Test PoolQueue::pollFdAdd ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
@@ -55,14 +58,16 @@ TEST_CASE("PoolQueue::pollFdAddClient")
 	PollQueue	pollTested;
 	pollTested.setNbServer(nbServer);
 	pollTested.setPollFdSize(pollTested.getNbServer() + maxClient);
-	pollfd* pollFds = pollTested.pollFdInit(serverFds);
+	pollfd* pollFds = pollTested.pollFdInit();
+	pollTested.pollFdAdd(pollFds, serverFds[0]);
+	pollTested.pollFdAdd(pollFds, serverFds[1]);
 
 //test
     try
     {
 		CHECK(pollTested.getNbServer() == nbServer);
 		CHECK(pollTested.getPollFdSize() == nbServer + maxClient);
-		CHECK(pollTested.pollFdAddClient(pollFds, 5) == true);
+		CHECK(pollTested.pollFdAdd(pollFds, 5) == true);
         for (int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
@@ -76,7 +81,7 @@ TEST_CASE("PoolQueue::pollFdAddClient")
 		CHECK(pollFds[3].events == 0);
 		CHECK(pollFds[3].revents == 0);
 
-		CHECK(pollTested.pollFdAddClient(pollFds, 6) == true);
+		CHECK(pollTested.pollFdAdd(pollFds, 6) == true);
 		for (int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
@@ -90,7 +95,7 @@ TEST_CASE("PoolQueue::pollFdAddClient")
 		CHECK(pollFds[3].events == POLLIN);
 		CHECK(pollFds[3].revents == 0);
 
-		CHECK(pollTested.pollFdAddClient(pollFds, 7) == false);
+		CHECK(pollTested.pollFdAdd(pollFds, 7) == false);
     }
     catch (const std::runtime_error &e)
     {
@@ -103,7 +108,7 @@ TEST_CASE("PoolQueue::pollFdAddClient")
 
 TEST_CASE("PoolQueue::pollFdRemoveClient")
 {
-    std::cout << std::setw(30) << " ============ Test PoolQueue::pollFdRemoveClient ============ " << std::endl;
+    std::cout << std::setw(30) << " ============ Test PoolQueue::pollFdRemove ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
@@ -111,15 +116,17 @@ TEST_CASE("PoolQueue::pollFdRemoveClient")
 	PollQueue	pollTested;
 	pollTested.setNbServer(nbServer);
 	pollTested.setPollFdSize(pollTested.getNbServer() + maxClient);
-	pollfd* pollFds = pollTested.pollFdInit(serverFds);
-	pollTested.pollFdAddClient(pollFds, 5);
-	pollTested.pollFdAddClient(pollFds, 6);
+	pollfd* pollFds = pollTested.pollFdInit();
+	pollTested.pollFdAdd(pollFds, serverFds[0]);
+	pollTested.pollFdAdd(pollFds, serverFds[1]);
+	pollTested.pollFdAdd(pollFds, 5);
+	pollTested.pollFdAdd(pollFds, 6);
 
 
 //test
     try
     {
-		pollTested.pollFdRemoveClient(pollFds, 5);
+		pollTested.pollFdRemove(pollFds, 5);
 		for (int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
@@ -133,7 +140,7 @@ TEST_CASE("PoolQueue::pollFdRemoveClient")
 		CHECK(pollFds[3].events == POLLIN);
 		CHECK(pollFds[3].revents == 0);
 
-		pollTested.pollFdRemoveClient(pollFds, 6);
+		pollTested.pollFdRemove(pollFds, 6);
 		for (int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
@@ -159,7 +166,7 @@ TEST_CASE("PoolQueue::pollFdRemoveClient")
 
 	try
 	{
-		pollTested.pollFdRemoveClient(pollFds, 7);
+		pollTested.pollFdRemove(pollFds, 7);
 		CHECK("PollQueue::FdNotFoundException" == "NO EXCEPTION THRO");
 	}
     catch (const PollQueue::FdNotFoundException &e)

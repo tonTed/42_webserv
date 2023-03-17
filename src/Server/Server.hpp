@@ -1,7 +1,11 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include <vector>
+# include <iostream>
+# include <sys/socket.h> //socket
+# include <poll.h> //pollfd
+# include <netdb.h> //struct sockaddr_in
+# include <arpa/inet.h> //htons
 
 # include "PollQueue.hpp"
 # include "../ConfigServer/ConfigServer.hpp"

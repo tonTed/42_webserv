@@ -4,17 +4,13 @@ PollQueue::PollQueue(){}
 PollQueue::~PollQueue(){}
 
 /*Initiation de pollFds avec le size requis
-   Pour nbServer: Ajoute les serverFds a pollfd.fd et set events a POLLIN
-   Pour maxClient, set fd, events et revents a 0
+   set fd, events et revents a 0
 */
-pollfd*		PollQueue::pollFdInit(const unsigned int* serverFds)
+pollfd*		PollQueue::pollFdInit()
 {
 	pollfd*	pollFds = new pollfd[pollFdSize];
 	
-	for (int i = 0; i < nbServer; i++)
-		this->pollFdSetFd(pollFds, serverFds[i], i);
-
-	for (int i = nbServer; i < pollFdSize; i++)
+	for (int i = 0; i < pollFdSize; i++)
 		this->pollFdResetFd(pollFds, i);
 
 	return pollFds;
@@ -24,14 +20,14 @@ pollfd*		PollQueue::pollFdInit(const unsigned int* serverFds)
    Recherche le premier fd = 0 et l'insere a cet endroit
    Renvoie true si aucun erreur / false si une erreur (selon pourra etre changer)
 */
-const bool	PollQueue::pollFdAddClient(pollfd* pollFds, const unsigned int& clientFd)
+const bool	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
 {
-	int i = 0;
+	int i = -1;
 	
 	while (++i < this->pollFdSize && pollFds[i].fd != 0){}
 	if (i < this->pollFdSize)
 	{
-		this->pollFdSetFd(pollFds, clientFd, i);
+		this->pollFdSetFd(pollFds, fd, i);
 		return true;
 	}
 	return false;
@@ -40,11 +36,11 @@ const bool	PollQueue::pollFdAddClient(pollfd* pollFds, const unsigned int& clien
 /* Set a 0 le pollFd ayant etant fd = clientFd
    Throw une exception si le fd n'a pas ete trouver
 */ 
-void	PollQueue::pollFdRemoveClient(pollfd* pollFds, const unsigned int& clientFd)
+void	PollQueue::pollFdRemove(pollfd* pollFds, const unsigned int& fd)
 {
-	int i = 0;
+	int i = -1;
 
-	while (++i < this->pollFdSize && pollFds[i].fd != clientFd){}
+	while (++i < this->pollFdSize && pollFds[i].fd != fd){}
 	if (i < this->pollFdSize)
 		this->pollFdResetFd(pollFds, i);
 	else

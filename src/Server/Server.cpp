@@ -1,7 +1,7 @@
 #include "Server.hpp"
 
 Server::Server(){}
-virtual			Server::~Server()
+Server::~Server()
 {
 	delete this->_pollFds;
 	delete this->_nbPortServer;
@@ -9,7 +9,7 @@ virtual			Server::~Server()
 	delete this->_ports;
 }
 
-void			Server::configToServer(const ConfigServer& config)
+void	Server::configToServer(const ConfigServer& config)
 {
 	//this->nbServer = CONFIG_NB_SERVER;
 	//this->pollFdSize = CONFIG_NB_SERVER + CONFIG_MAX_CLIENT;
