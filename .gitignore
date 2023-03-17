@@ -1,6 +1,9 @@
 obj
 
 webserv
+a.out
+utest
+utest.d
 
 .idea
 .vscode
