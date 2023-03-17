@@ -12,12 +12,16 @@ TEST_CASE("PoolQueue::pollFdInit")
 	unsigned int serverFds[2] = {3, 4};
 	unsigned int maxClient = 10;
 	PollQueue	pollTested;
-	pollfd* pollFds = pollTested.pollFdInit(serverFds, nbServer, maxClient);
+	pollTested.setNbServer(nbServer);
+	pollTested.setPollFdSize(pollTested.getNbServer() + maxClient);
+	pollfd* pollFds = pollTested.pollFdInit(serverFds);
 
 //test
     try
     {
-        for (int i = 0; i < nbServer + maxClient; i++)
+        CHECK(pollTested.getNbServer() == nbServer);
+		CHECK(pollTested.getPollFdSize() == nbServer + maxClient);
+		for (int i = 0; i < nbServer + maxClient; i++)
 		{
 			if (i < nbServer)
 			{
@@ -49,7 +53,9 @@ TEST_CASE("PoolQueue::pollFdAddClient")
 	unsigned int serverFds[2] = {3, 4};
 	unsigned int maxClient = 2;
 	PollQueue	pollTested;
-	pollfd* pollFds = pollTested.pollFdInit(serverFds, nbServer, maxClient);
+	pollTested.setNbServer(nbServer);
+	pollTested.setPollFdSize(pollTested.getNbServer() + maxClient);
+	pollfd* pollFds = pollTested.pollFdInit(serverFds);
 
 //test
     try
@@ -103,7 +109,9 @@ TEST_CASE("PoolQueue::pollFdRemoveClient")
 	unsigned int serverFds[2] = {3, 4};
 	unsigned int maxClient = 2;
 	PollQueue	pollTested;
-	pollfd* pollFds = pollTested.pollFdInit(serverFds, nbServer, maxClient);
+	pollTested.setNbServer(nbServer);
+	pollTested.setPollFdSize(pollTested.getNbServer() + maxClient);
+	pollfd* pollFds = pollTested.pollFdInit(serverFds);
 	pollTested.pollFdAddClient(pollFds, 5);
 	pollTested.pollFdAddClient(pollFds, 6);
 

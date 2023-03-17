@@ -6,30 +6,25 @@
 # include "PollQueue.hpp"
 # include "../ConfigServer/ConfigServer.hpp"
 
-typedef struct serverData_t
-{
-	std::vector<uint16_t>	ports;
-	
-}
-
 
 class Server: public PollQueue
 {
 private:
-	pollfd*			pollFds;
-	std::vector<std::vector<uint16_t>> _port;
-	unsigned int	pollTimeOut;
+	pollfd*			_pollFds;
+	uint16_t**		_ports;
+	unsigned int*	_nbPortServer;
+	unsigned int	_pollTimeOut;
+	unsigned_int*	_serverFds;
 
-					Server();
-					Server(const Server& rhs);
-	Server&			operator=(const Server& rhs);
 public:
 					Server();
-					Server(const ConfigServer& config);
 	virtual			~Server();
 
-	int				setServer(const ConfigServer& config);
+	//pont entre config et server
 	void			configToServer(const ConfigServer& config);
+
+
+	int				setServer();
 
 
 };

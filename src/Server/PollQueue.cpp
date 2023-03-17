@@ -7,16 +7,14 @@ PollQueue::~PollQueue(){}
    Pour nbServer: Ajoute les serverFds a pollfd.fd et set events a POLLIN
    Pour maxClient, set fd, events et revents a 0
 */
-pollfd*		PollQueue::pollFdInit(const unsigned int* serverFds, const unsigned int& nbServer, const unsigned int& maxClient)
+pollfd*		PollQueue::pollFdInit(const unsigned int* serverFds)
 {
-	pollfd*	pollFds = new pollfd[nbServer + maxClient];
+	pollfd*	pollFds = new pollfd[pollFdSize];
 	
-	this->pollFdSize = nbServer + maxClient;
-	this->nbServer = nbServer;
 	for (int i = 0; i < nbServer; i++)
 		this->pollFdSetFd(pollFds, serverFds[i], i);
 
-	for (int i = nbServer; i < nbServer + maxClient; i++)
+	for (int i = nbServer; i < pollFdSize; i++)
 		this->pollFdResetFd(pollFds, i);
 
 	return pollFds;
@@ -76,6 +74,11 @@ void	PollQueue::pollFdResetFd(pollfd* pollFds, const unsigned int& index)
 
 const unsigned int	PollQueue::getNbServer() const {return this->nbServer;}
 const unsigned int	PollQueue::getPollFdSize() const {return this->pollFdSize;}
+
+//setters
+
+void	PollQueue::setNbServer(const unsigned int& nbServer) {this->nbServer = nbServer;}
+void	PollQueue::setPollFdSize(const unsigned int& pollFdSize) {this->pollFdSize = pollFdSize;}
 
 //Exception---------------
 
