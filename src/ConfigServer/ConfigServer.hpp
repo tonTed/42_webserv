@@ -4,12 +4,11 @@
 # include "../Server/Server.hpp"
 # include "../global.hpp"
 
-
 class ConfigServer
 {
   private:
 	std::vector<Server> _servers;
-	bool _useDefault;
+	bool _goodFile;
 
   public:
 	ConfigServer();
@@ -19,10 +18,12 @@ class ConfigServer
 
 	ConfigServer &operator=(const ConfigServer &Config);
 
-	bool notNeeded(const std::string line);
-	std::string removeSpaceComments(std::string line);
+	bool needed(const std::string line);
+	std::string cleanedLine(std::string line);
 	bool readFile(const std::string inFile, std::string &stringLine);
-
+	// std::vector<std::string> getServerBlocks(std::string input);
+	std::vector<std::string> getServerBlocks(const std::string& configStr);
+	std::vector<std::string> getLocationBlocks(const std::string& configStr);
 };
 
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);

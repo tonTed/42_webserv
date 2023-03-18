@@ -24,6 +24,7 @@ int	main(int argc, const char **argv)
 	// std::cout << std::endl;
 	std::cout << "Launching webserver 42!" << std::endl;
 	ConfigServer		ConfigServer(getFile(argc, argv));
+	
 	// Run your program here, after the tests have finished
 	// ...
 	// return (res);

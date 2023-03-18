@@ -1,19 +1,43 @@
 #include "ConfigServer.hpp"
 
 ConfigServer::ConfigServer()
-	: _useDefault(true)
+	: _goodFile(true)
 {
 }
 
 ConfigServer::ConfigServer(const ConfigServer &config)
-	: _useDefault(true)
+	: _goodFile(true)
 {
 	*this = config;
 }
 
 ConfigServer::ConfigServer(const std::string file)
 {
+	std::string stringFile = "";
 	std::cout << "File: " << file << std::endl;
+	if (!readFile(file, stringFile))
+	{
+		_goodFile = false;
+		throw std::runtime_error("Couldn't read!");
+	}
+	else
+	{
+		// for (int i = 0; i < (int)stringFile.length(); i++)
+		// 	std::cout << stringFile[i];
+		_goodFile = true;
+		std::vector<std::string> serverBlocks = getServerBlocks(stringFile);
+		for (std::vector<std::string>::const_iterator it = serverBlocks.begin(); it != serverBlocks.end(); ++it)
+		{
+			//     // Process each server block here
+			std::cout << "Server block: " << *it << std::endl << std::endl;
+		}
+		std::vector<std::string> locationBlocks = getLocationBlocks(serverBlocks[0]);
+		for (std::vector<std::string>::const_iterator it = locationBlocks.begin(); it != locationBlocks.end(); ++it)
+		{
+			//     // Process each server block here
+			// std::cout << "Location block: " << *it << std::endl;
+		}
+	}
 }
 
 ConfigServer::~ConfigServer()
@@ -25,7 +49,7 @@ ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 	if (this != &config)
 	{
 		// _servers = config._servers;
-		_useDefault = config._useDefault;
+		_goodFile = config._goodFile;
 	}
 	return (*this);
 }
@@ -34,7 +58,8 @@ ConfigServer &ConfigServer::operator=(const ConfigServer &config)
  * @brief Check if the file exists
  * 
  * @param file The path to the file
- * @return return the givent file Path if it works otherwise return the default one.
+
+	* @return return the givent file Path if it works otherwise throw an error.
  */
 std::string getFile(int argc, const char **argv)
 {
@@ -43,7 +68,14 @@ std::string getFile(int argc, const char **argv)
 	{
 		configFile = argv[1];
 		std::ifstream f(configFile.c_str());
-		return ((f.good()) ? configFile : "configFiles/default.config");
+		if (!f.good())
+			throw std::runtime_error("File not found!");
+	}
+	else
+	{
+		std::ifstream f(configFile.c_str());
+		if (!f.good())
+			throw std::runtime_error("Default config file not found!");
 	}
 	return (configFile);
 }
@@ -55,12 +87,12 @@ std::string getFile(int argc, const char **argv)
  * @return true if just a comment or just spaces
  * @return false otherwise
  */
-bool ConfigServer::notNeeded(const std::string line)
+bool ConfigServer::needed(const std::string line)
 {
 	size_t	i;
 
 	i = line.find_first_not_of(" \t");
-	return (i == std::string::npos || line[i] == '#');
+	return (i != std::string::npos || line[i] != '#');
 }
 
 /**
@@ -69,7 +101,7 @@ bool ConfigServer::notNeeded(const std::string line)
  * @param line The line to be modified
  * @return std::string The modified line
  */
-std::string ConfigServer::removeSpaceComments(std::string line)
+std::string ConfigServer::cleanedLine(std::string line)
 {
 	int			i;
 	int			j;
@@ -85,9 +117,7 @@ std::string ConfigServer::removeSpaceComments(std::string line)
 	while (j > i && std::isspace(static_cast<int>(str[j])))
 		j--;
 	if (commentPos != std::string::npos && commentPos > static_cast<size_t>(i))
-	{
 		j = static_cast<int>(commentPos - 1);
-	}
 	return (line.substr(i, j - i + 1) + "\n");
 }
 
@@ -103,17 +133,70 @@ bool ConfigServer::readFile(const std::string inFile, std::string &stringLine)
 {
 	std::ifstream file(inFile.c_str());
 	std::string line = "";
-	if (!file.is_open())
-		return (false);
 	while (std::getline(file, line))
 	{
-		if (!notNeeded(line))
-			stringLine += removeSpaceComments(line);
+		if (needed(line))
+			stringLine += cleanedLine(line);
 	}
 	file.close();
 	return (true);
 }
 
+/**
+ * @brief Split configStr where all file is stored into blocks of servers
+ * 
+ * @param configStr the string where readfile() stored the file it read.
+ * @return std::vector<std::string>  A vector of strings one by server
+ */
+std::vector<std::string> ConfigServer::getServerBlocks(const std::string &configStr)
+{
+	int	braceCount;
+
+	std::vector<std::string> serverBlocks;
+	std::string::size_type pos = 0;
+	braceCount = 0;
+	while ((pos = configStr.find("server {", pos)) != std::string::npos)
+	{
+		std::string::size_type endPos = pos + 8;
+		braceCount = 1;
+		while (braceCount > 0 && endPos < configStr.length())
+		{
+			if (configStr[endPos] == '{')
+				braceCount++;
+			else if (configStr[endPos] == '}')
+				braceCount--;
+			endPos++;
+		}
+		if (braceCount > 0)
+			break ; // Handle error: closing brace not found
+		std::string serverBlock = configStr.substr(pos, endPos - pos);
+		serverBlocks.push_back(serverBlock);
+		pos = endPos;
+	}
+	return (serverBlocks);
+}
+
+/**
+ * @brief Split the server block into a string of location
+ * 
+ * @param configStr the input, should be the sting server block
+ * @return std::vector<std::string> the vector of locations.
+ */
+std::vector<std::string> ConfigServer::getLocationBlocks(const std::string &configStr)
+{
+	std::vector<std::string> locationBlocks;
+	std::string::size_type pos = 0;
+	while ((pos = configStr.find("location ", pos)) != std::string::npos)
+	{
+		std::string::size_type endPos = configStr.find("}", pos);
+		if (endPos == std::string::npos)
+			break ; // Handle error: closing brace not found
+		std::string locationBlock = configStr.substr(pos, endPos - pos + 1);
+		locationBlocks.push_back(locationBlock);
+		pos = endPos + 1;
+	}
+	return (locationBlocks);
+}
 
 // TEST_CASE("test ConfFIle param ")
 // {
