@@ -35,5 +35,7 @@ void Request::_getRawRequest() {
 	if (read(_client, buffer, MAX_REQUEST_SIZE + 2) <= MAX_REQUEST_SIZE)
 		_rawRequest = buffer;
 	else
-		throw std::runtime_error(ERR_REQUEST_SIZE);
+		throw RequestException::MaxSize();
 }
+
+Request::~Request() {}
