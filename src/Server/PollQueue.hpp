@@ -9,6 +9,7 @@ class PollQueue
 protected:
 	unsigned int	pollFdSize;
 	unsigned int	nbServer;
+	unsigned int	maxClient;
 	unsigned int	nbServerFd;
 
 public:
@@ -19,7 +20,7 @@ public:
 	pollfd*			pollFdInit();
 
 	//ClientFd
-	const bool		pollFdAdd(pollfd* pollFds, const unsigned int& fd);
+	const int		pollFdAdd(pollfd* pollFds, const unsigned int& fd);
 	void			pollFdRemove(pollfd* pollFds, const unsigned int& fd);
 	
 	// Set/reset

@@ -20,7 +20,7 @@ pollfd*		PollQueue::pollFdInit()
    Recherche le premier fd = 0 et l'insere a cet endroit
    Renvoie true si aucun erreur / false si une erreur (selon pourra etre changer)
 */
-const bool	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
+const int	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
 {
 	int i = -1;
 	
@@ -28,9 +28,9 @@ const bool	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
 	if (i < this->pollFdSize)
 	{
 		this->pollFdSetFd(pollFds, fd, i);
-		return true;
+		return i;
 	}
-	return false;
+	return -1;
 }
 
 /* Set a 0 le pollFd ayant etant fd = clientFd

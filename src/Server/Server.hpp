@@ -14,11 +14,14 @@
 typedef struct indexInfo_s
 {
 	int					serverNo; 		//0 >= serverNo <0 = client
-	struct sockaddr_in	addr;			//Structure pour bind et accept
+	bool				isServer;		//true if its a socket from socket/bind/listen
+	uint16_t			port;			//Structure pour bind et accept
 	unsigned int		maxHeaderSize;	//Pour le buffer de lecture sur fd (via config)
 	unsigned int		portBacklog;	//Pour la function listen, le nombre de backlog par port (config?)
 	unsigned int		fd;				//le fd qui sera inserer dans pollFds
 }						indexInfo_t;
+
+typedef std::map<unsigned int, indexInfo_t*>::iterator indexInfo_it;
 
 class Server: public PollQueue
 {
@@ -29,15 +32,24 @@ private:
 	unsigned int							_nbFdServer;	//Nombre total de fd pour les servers (si index au dessus = client)
 
 public:
-					Server();
-	virtual			~Server();
+						Server();
+	virtual				~Server();
 
 	//pont entre config et server
-	void			configToServer(const ConfigServer& config);
+	void				configToServer(const ConfigServer& config);
 
 
-	void			setUpServer();
-	void			AddFdIndexInfo();
+	void				setUpServer();
+	void				routine();
+
+	int					addNewClient(const indexInfo_it indexInfoServer);
+
+	const int			pollIndexSignal() const;
+	indexInfo_it		indexInfoIt(const unsigned int pollIndex);
+
+	const struct sockaddr*	addrServer(uint16_t port);
+
+	void				AddFdIndexInfo();
 
 	//todo faire fonction ajout et remove de indexInfo
 
