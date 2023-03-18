@@ -310,9 +310,3 @@ int  Context::run() { return 0; }
   </tr>
 </tbody>
 </table>
-
--?,   --help -h        ,              prints this message
--v,   --version         ,              prints the version
--c,   --count           ,              prints the number of matching tests
--ltc, --list-test-cases ,              lists all matching tests by name
--lts, --list-test-suites,              lists all matching test suites
