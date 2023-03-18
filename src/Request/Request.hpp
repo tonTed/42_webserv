@@ -31,7 +31,7 @@ public:
 public:
 	void _init();
 
-	void _getRawRequest();
+	void _readSocketData();
 
 
 private:
