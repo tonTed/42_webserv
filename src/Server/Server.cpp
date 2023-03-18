@@ -4,75 +4,73 @@ Server::Server(){}
 Server::~Server()
 {
 	delete this->_pollFds;
-	delete this->_nbPortServer;
+	//todo delete all indexInfo_t* dans _indexInfo
 
 }
 
 void	Server::configToServer(const ConfigServer& config)
 {
-	//this->nbServer = CONFIG_NB_SERVER;
-	//this->pollFdSize = nbServer + CONFIG_MAX_CLIENT;
-	//this->_nbPortServer = new unsigned int[nbServer];
-	//this->_nbFdServer = 0
-	//PORT COPY
-	//for (int i = 0; i < nbServer; i++)
-	//{
-		//this->_nbPortServer[i] = CONFIG_NB_PORT_IN_SERVER[i];
-		//this->_ports[i] = new uint16_t[this->_nbPortServer[i]];
-		//for (int i2 = 0; i2 < this->_nbPortServer[i]; i2++)
-		//	this->_ports[i][i2] = CONFIG_PORT_OF_SERVER[i][i2];
-	//}
-
-	this->_pollTimeOut = 5000;
-}
-
-
-//TODO Initialiser _nbFdServer & _indexInfo dans configToServer et non dans setUpServer
-
-
-void	Server::setUpServer()
-{
-
-	int opt = 1;
+	this->nbServer = CONFIG_SERVER_NB;
+	this->pollFdSize = nbServer + CONFIG_MAX_CLIENT;
+	this->_pollTimeOut = CONFIG_POLLTIMEOUT;
 	this->_nbFdServer = 0;
-	
-	for (int iServer = 0; iServer < nbServer; iServer++)
+	//PORT COPY
+	for (int serverNo = 0; serverNo < nbServer; serverNo++)
 	{
-		for (int iPort = 0; iPort < _nbPortServer[iServer]; iPort++)
+		for (int iPort2 = 0; iPort < CONFIG_SERVER_NBPORT[serverNo]; iPort++)
 		{
 			this->_indexInfo.insert(std::pair<int, indexInfo_t*>(_nbFdServer, new indexInfo_t));
-			
-			if (this->_indexInfo.find(_nbFdServer)->second->fd == socket(AF_INET, SOCK_STREAM, 0) < 0)
-				std::cout << "THROWING PERSONALIZE EXCEPTION" << std::endl;
-
-
-
-
+			this->_indexInfo.find(this->_nbFdServer)->second->serverNo = serverNo;
+			this->_indexInfo.find(this->_nbFdServer)->second->maxHeaderSize = CONFIG_SERVER_MAXHEADERSIZE;
+			this->_indexInfo.find(this->_nbFdServer)->second->portBacklog = CONFIG_SERVER_PORTS_BACKLOG[iPort];
+			this->_indexInfo.find(this->_nbFdServer)->second->addr.sin_port = htons(CONFIG_SERVER_PORTS[iPort]);
+			this->_indexInfo.find(this->_nbFdServer)->second->addr.sin_family = AF_INET; 
+			this->_indexInfo.find(this->_nbFdServer)->second->addr.sin_addr.s_addr = htonl(INADDR_ANY); 
 			this->_nbFdServer++;
 		}
 	}
 }
-	
-	if (serverSocket == socket(AF_INET, SOCK_STREAM, 0) < 0)
-	{
-		perror("socket");
-		exit(EXIT_FAILURE);
-	}
-	// Forcefully attaching socket to the port 80
-	if (setsockopt(serverSocket, SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
-	{
-		perror("setsockopt");
-		exit(EXIT_FAILURE);
-	}
-	
-	if (bind(serverSocket, this->addr(), sizeof(addr)) < 0)
-	{
-		perror("bindResult");
-		exit(EXIT_FAILURE);
-	}
-	if (listen(serverSocket, 3) < 0) {
-		perror("listen");
-		exit(EXIT_FAILURE);
-	}
-	this->fds.push_back(this->newPollFD(serverSocket));
 
+void	Server::setUpServer()
+{
+	int opt = 1;
+	
+	for (int iSocket = 0; iSocket < this->_nbFdServer; iSocket++)
+	{
+		if (this->_indexInfo.find(iSocket)->second->fd == socket(AF_INET, SOCK_STREAM, 0) < 0)
+			throw Server::FctSocketException();
+		if (setsockopt(this->_indexInfo.find(_nbFdServer)->second->fd,
+				SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+			throw Server::FctSetsockoptException();
+		if (bind(this->_indexInfo.find(_nbFdServer)->second->fd,
+				reinterpret_cast<const sockaddr*>(&(this->_indexInfo.find(_nbFdServer)->second->addr)),
+				sizeof(&(this->_indexInfo.find(_nbFdServer)->second->addr))) < 0)
+			throw Server::FctBindException();
+		if (listen(this->_indexInfo.find(_nbFdServer)->second->fd,
+				this->_indexInfo.find(_nbFdServer)->second->portBacklog) < 0)
+			throw Server::FctBindException();
+	}
+}
+	
+
+//Exception---------------
+
+const char*	Server::FctSocketException::what() const throw()
+{
+	return ("Error: Server::SetUpServer: socket function fail*");
+}
+
+const char*	Server::FctSetsockoptException::what() const throw()
+{
+	return ("Error: Server::SetUpServer: setsockopt function fail*");
+}
+
+const char*	Server::FctBindException::what() const throw()
+{
+	return ("Error: Server::SetUpServer: bind function fail*");
+}
+
+const char*	Server::FctListenException::what() const throw()
+{
+	return ("Error: Server::SetUpServer: listen function fail*");
+}

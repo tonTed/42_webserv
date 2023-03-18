@@ -4,9 +4,9 @@
 #include "../doctest.hpp"
 #include "../../src/Server/PollQueue.hpp"
 
-TEST_CASE("PoolQueue::pollFdInit")
+TEST_CASE("PollQueue::pollFdInit")
 {
-    std::cout << std::setw(30) << " ============ Test PoolQueue::pollFdInit ============ " << std::endl;
+    std::cout << std::setw(30) << " ============ Test PollQueue::pollFdInit ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
@@ -48,9 +48,9 @@ TEST_CASE("PoolQueue::pollFdInit")
 
 }
 
-TEST_CASE("PoolQueue::pollFdAdd")
+TEST_CASE("PollQueue::pollFdAdd")
 {
-    std::cout << std::setw(30) << " ============ Test PoolQueue::pollFdAdd ============ " << std::endl;
+    std::cout << std::setw(30) << " ============ Test PollQueue::pollFdAdd ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
@@ -106,9 +106,9 @@ TEST_CASE("PoolQueue::pollFdAdd")
 
 }
 
-TEST_CASE("PoolQueue::pollFdRemoveClient")
+TEST_CASE("PollQueue::pollFdRemoveClient")
 {
-    std::cout << std::setw(30) << " ============ Test PoolQueue::pollFdRemove ============ " << std::endl;
+    std::cout << std::setw(30) << " ============ Test PollQueue::pollFdRemove ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
