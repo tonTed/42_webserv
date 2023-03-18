@@ -11,6 +11,7 @@
 
 //Exception messages
 # define ERR_REQUEST_SIZE "Request size is too big"
+# define ERR_SOCKET_READ "Error reading socket"
 
 enum eRequestType
 {

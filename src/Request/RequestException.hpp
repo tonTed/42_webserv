@@ -10,6 +10,12 @@
 class RequestException {
 
 public:
+	class ReadError : public std::exception {
+		const char * what() const throw() {
+			return ERR_SOCKET_READ;
+		}
+	};
+
 	class MaxSize : public std::exception {
 		const char * what() const throw() {
 			return ERR_REQUEST_SIZE;

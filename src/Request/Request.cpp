@@ -13,13 +13,14 @@ Request::Request(const int client) : _client(client) {
 
 void	Request::_init() {
 	try {
-		try {
-			_readSocketData();
-		} catch (std::runtime_error &e) {
-			throw e;
-			//TODO: send error to client
-		}
-	} catch (...) {}
+		_readSocketData();
+	} catch (RequestException::ReadError &e) {
+		throw e;
+		//TODO: send error to client
+	} catch (RequestException::MaxSize &e) {
+		throw e;
+		//TODO: send error to client
+	}
 }
 
 
@@ -31,11 +32,15 @@ void	Request::_init() {
  */
 void Request::_readSocketData() {
 	char	buffer[MAX_REQUEST_SIZE + 1];
+	int 	ret;
 
-	if (read(_client, buffer, MAX_REQUEST_SIZE + 1) <= MAX_REQUEST_SIZE)
-		_rawRequest << buffer;
-	else
+	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
+	if (ret == -1)
+		throw RequestException::ReadError();
+	if (ret > MAX_REQUEST_SIZE)
 		throw RequestException::MaxSize();
+
+	_rawRequest << buffer;
 }
 
 Request::~Request() {}
