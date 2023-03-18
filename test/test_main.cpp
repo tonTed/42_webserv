@@ -2,6 +2,7 @@
 // Created by Teddy BLANCO on 2023-03-16.
 //
 #define DOCTEST_CONFIG_IMPLEMENT
+#define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
 
 #include "test_header.hpp"
 
