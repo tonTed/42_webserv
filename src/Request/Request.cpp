@@ -8,6 +8,10 @@
  * @param client The client that sent the resources
  */
 Request::Request(const int client) : _client(client) {
+
+}
+
+void	Request::_init() {
 	try {
 		try {
 			_getRawRequest();
