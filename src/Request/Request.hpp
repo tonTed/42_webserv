@@ -39,7 +39,7 @@ private:
 
 	const int 							_client;
 
-	std::string							_rawRequest;
+	std::stringstream 					_rawRequest;
 	RequestLine							_requestLine;
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;

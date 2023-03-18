@@ -33,7 +33,7 @@ void Request::_getRawRequest() {
 	char	buffer[MAX_REQUEST_SIZE + 2];
 
 	if (read(_client, buffer, MAX_REQUEST_SIZE + 2) <= MAX_REQUEST_SIZE)
-		_rawRequest = buffer;
+		_rawRequest << buffer;
 	else
 		throw RequestException::MaxSize();
 }
