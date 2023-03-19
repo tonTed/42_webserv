@@ -12,6 +12,9 @@ int main(int argc, char** argv) {
 	context.applyCommandLine(argc, argv);
 	context.setOption("no-breaks", true);
 
+	// Show all successful tests
+	// context.setOption("success", true);
+
 
 	int res = context.run();
 	if (context.shouldExit())
