@@ -21,6 +21,16 @@ public:
 			return ERR_REQUEST_SIZE;
 		}
 	};
+
+	class FirstLine {
+	public:
+		class NoCRLF : public std::exception {
+			const char * what() const throw() {
+				return ERR_START_LINE_NO_CRLF;
+			}
+		};
+
+	};
 };
 
 

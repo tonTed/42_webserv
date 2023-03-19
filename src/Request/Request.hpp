@@ -9,7 +9,7 @@
 #include "../../includes/webserv.hpp"
 #include "RequestException.hpp"
 
-struct RequestLine {
+struct startLine {
 	eRequestType	_type;
 	std::string		_path;
 	std::string 	_version;
@@ -32,17 +32,17 @@ public:
 	void _init();
 
 	void _readSocketData();
+	void _parseStartLine();
 
 	std::stringstream 					_rawRequest;
+	startLine							_startLine;
+	std::map<std::string, std::string>	_headers;
+	std::string							_body;
 
 private:
 	Request();
 
 	const int 							_client;
-
-	RequestLine							_requestLine;
-	std::map<std::string, std::string>	_headers;
-	std::string							_body;
 
 };
 

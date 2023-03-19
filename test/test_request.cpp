@@ -57,5 +57,61 @@ TEST_CASE("_readSocketData() / valid client") {
 		CHECK(request._rawRequest.str() == std::string(buffer));
 		close(client);
 	}
-	remove("test/resources/test_data_file");
 }
+
+TEST_CASE("_parseStartLine() / CRLF check") {
+
+	int client;
+	remove("test/resources/test_data_file");
+	client = creat("test/resources/test_data_file", 0666);
+
+	SUBCASE("No CRLF") {
+		char buffer[] = "GET / HTTP/1.1";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::NoCRLF);
+		close(client);
+	}
+
+	SUBCASE("With LF") {
+		char buffer[] = "GET / HTTP/1.1\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::NoCRLF);
+		close(client);
+	}
+
+	SUBCASE("With CRLF") {
+		char buffer[] = "GET / HTTP/1.1\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_NOTHROW(request._parseStartLine());
+		close(client);
+	}
+
+	SUBCASE("With CR") {
+		char buffer[] = "GET / HTTP/1.1\r";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::NoCRLF);
+		close(client);
+	}
+}
+
+TEST_CASE("clean") { remove("test/resources/test_data_file");}

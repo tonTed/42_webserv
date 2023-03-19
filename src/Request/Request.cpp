@@ -12,11 +12,12 @@ Request::Request(const int client) : _client(client) {}
 void	Request::_init() {
 	try {
 		_readSocketData();
+		_parseStartLine();
 	} catch (RequestException::ReadError &e) {
-		throw e;
 		//TODO: send error to client
 	} catch (RequestException::MaxSize &e) {
-		throw e;
+		//TODO: send error to client
+	} catch (RequestException::FirstLine::NoCRLF &e) {
 		//TODO: send error to client
 	}
 }
@@ -39,6 +40,14 @@ void Request::_readSocketData() {
 	buffer[ret] = '\0';
 
 	_rawRequest << buffer;
+}
+
+void Request::_parseStartLine() {
+	std::string line;
+	std::getline(_rawRequest, line);
+
+	if (line.find('\r') == std::string::npos || _rawRequest.eof())
+		throw RequestException::FirstLine::NoCRLF();
 }
 
 Request::~Request() {}
