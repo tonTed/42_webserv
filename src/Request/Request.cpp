@@ -14,11 +14,11 @@ void	Request::_init() {
 		_readSocketData();
 		_parseStartLine();
 	} catch (RequestException::ReadError &e) {
-		//TODO: send error to client
+		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
-		//TODO: send error to client
+		//TODO: send[494] error to client
 	} catch (RequestException::FirstLine::NoCRLF &e) {
-		//TODO: send error to client
+		//TODO: send[400] error to client
 	}
 }
 
