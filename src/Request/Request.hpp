@@ -33,13 +33,13 @@ public:
 
 	void _readSocketData();
 
+	std::stringstream 					_rawRequest;
 
 private:
 	Request();
 
 	const int 							_client;
 
-	std::stringstream 					_rawRequest;
 	RequestLine							_requestLine;
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;

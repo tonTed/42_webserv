@@ -7,9 +7,7 @@
  *
  * @param client The client that sent the resources
  */
-Request::Request(const int client) : _client(client) {
-
-}
+Request::Request(const int client) : _client(client) {}
 
 void	Request::_init() {
 	try {
@@ -25,10 +23,9 @@ void	Request::_init() {
 
 
 /**
- * @brief Get the raw resources from the client
- * @details Read the client socket and store the resources in _rawRequest
+ * @brief	Get the raw resources from the client.
+ * 			Read the client socket and store the resources in _rawRequest.
  *
- * @question: can we have an error reading the socket?
  */
 void Request::_readSocketData() {
 	char	buffer[MAX_REQUEST_SIZE + 1];
@@ -39,6 +36,7 @@ void Request::_readSocketData() {
 		throw RequestException::ReadError();
 	if (ret > MAX_REQUEST_SIZE)
 		throw RequestException::MaxSize();
+	buffer[ret] = '\0';
 
 	_rawRequest << buffer;
 }

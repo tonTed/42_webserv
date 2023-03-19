@@ -5,30 +5,57 @@
 #include <string.h>
 
 
-TEST_CASE("_readSocketData()") {
+TEST_CASE("_readSocketData() / invalid client") {
 
-	int client;
-
-	{
+	SUBCASE("Invalid client") {
 		Request request(-1);
 		CHECK_THROWS_AS(request._readSocketData(), RequestException::ReadError);
 	}
+}
 
-	client = open("test/resources/request_err_size.http", O_RDONLY);
-	CHECK_MESSAGE(client != -1, "Failed to open test/resources/request_err_size");
-	if (client != -1)
-	{
+TEST_CASE("_readSocketData() / valid client") {
+
+	int client;
+	remove("test/resources/test_data_file");
+	client = creat("test/resources/test_data_file", 0666);
+
+	SUBCASE("Size is bigger than MAX_REQUEST_SIZE") {
+
+		char buffer[MAX_REQUEST_SIZE + 12];
+		memset(buffer, 'a', MAX_REQUEST_SIZE + 1);
+		write(client, buffer, MAX_REQUEST_SIZE + 1);
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
 		Request request(client);
 		CHECK_THROWS_AS(request._readSocketData(), RequestException::MaxSize);
+		close(client);
 	}
-	close(client);
 
-	client = open("test/resources/request_validSize_errFirstLine.http", O_RDONLY);
-	CHECK_MESSAGE(client != -1, "Failed to open test/resources/request_validSize_errFirstLine");
-	if (client != -1)
-	{
+	SUBCASE("Size is smaller than MAX_REQUEST_SIZE") {
+
+		char buffer[MAX_REQUEST_SIZE];
+		memset(buffer, 'a', MAX_REQUEST_SIZE);
+		write(client, buffer, MAX_REQUEST_SIZE);
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
 		Request request(client);
 		CHECK_NOTHROW(request._readSocketData());
+		close(client);
 	}
-	close(client);
+
+	SUBCASE("Buffer is equal to input") {
+
+		char buffer[] = "GET / HTTP/1.1\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK(request._rawRequest.str() == std::string(buffer));
+		close(client);
+	}
+	remove("test/resources/test_data_file");
 }
