@@ -38,6 +38,8 @@ public:
 		void _setPath(std::string &path);
 		void _setVersion(std::string &version);
 
+	void _parseHeaders();
+
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;
 	std::map<std::string, std::string>	_headers;

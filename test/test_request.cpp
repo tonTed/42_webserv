@@ -169,7 +169,6 @@ TEST_CASE("_set<functions> / amount of arguments"){
 		CHECK_NOTHROW(request._setType(token));
 
 		ss >> token;
-		std::cout << "token: " << token << std::endl;
 		CHECK_THROWS_AS(request._setPath(token), RequestException::FirstLine::InvalidLine);
 
 		ss >> token;
@@ -257,6 +256,43 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 		CHECK_NOTHROW(request._parseStartLine());
 		close(client);
 	}
+}
+
+TEST_CASE("_parseHeader")
+{
+	int client;
+	remove("test/resources/test_data_file");
+	client = creat("test/resources/test_data_file", 0666);
+
+	SUBCASE("No Headers") {
+		char buffer[] = "GET / HTTP/1.1\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_NOTHROW(request._parseHeaders());
+		close(client);
+	}
+
+	SUBCASE("One Header") {
+		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_NOTHROW(request._parseHeaders());
+		CHECK_MESSAGE(request._headers.size() == 1, "One header should be parsed");
+		CHECK_MESSAGE(request._headers.count("HOST") == 1, "Host header should be parsed");
+		CHECK_MESSAGE(request._headers["HOST"] == "localhost", "Host header should be parsed");
+		close(client);
+	}
+
 }
 
 TEST_CASE("clean") { remove("test/resources/test_data_file");}

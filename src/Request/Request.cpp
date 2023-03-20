@@ -9,11 +9,11 @@
  */
 Request::Request(const int client) : _client(client) {}
 
-//TODO: remove all the `throw`
 void	Request::_init() {
 	try {
 		_readSocketData();
 		_parseStartLine();
+		_parseHeaders();
 	} catch (RequestException::ReadError &e) {
 		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
@@ -35,7 +35,7 @@ void	Request::_init() {
  * 			Read the client socket and store the resources in _rawRequest.
  *
  */
-void Request::_readSocketData() {
+void	Request::_readSocketData() {
 	char	buffer[MAX_REQUEST_SIZE + 1];
 	int 	ret;
 
@@ -57,7 +57,7 @@ void Request::_readSocketData() {
  * @note	request-line = method SP request-target SP HTTP-version CRLF
  *
  */
-void Request::_parseStartLine() {
+void	Request::_parseStartLine() {
 
 	// Check if the line ends with CRLF
 	std::string line;
@@ -95,7 +95,7 @@ void Request::_parseStartLine() {
 
 }
 
-void Request::_setType(std::string &type) {
+void	Request::_setType(std::string &type) {
 	if (type.empty())
 		throw RequestException::FirstLine::InvalidLine();
 	else if (type == "GET")
@@ -121,20 +121,54 @@ void Request::_setType(std::string &type) {
 	type.clear();
 }
 
-void Request::_setPath(std::string &path) {
+void	Request::_setPath(std::string &path) {
 	if (path.empty())
 		throw RequestException::FirstLine::InvalidLine();
 	_startLine.path = path;
 	path.clear();
 }
 
-void Request::_setVersion(std::string &version) {
+void	Request::_setVersion(std::string &version) {
 	if (version.empty())
 		throw RequestException::FirstLine::InvalidLine();
 	_startLine.version = version;
 	if (_startLine.version.compare(HTTP_VERSION))
 		throw RequestException::FirstLine::InvalidVersion();
 	version.clear();
+}
+
+
+/**
+ * @brief	Parse the headers of the request.
+ * 			Store the headers in _headers.
+ *
+ * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
+ * @note	header-field = field-name ":" OWS field-value OWS
+ * @note	case-insensitive
+ *
+ */
+void	Request::_parseHeaders() {
+	std::string line;
+	std::string key;
+	std::string value;
+	int i;
+
+	while (std::getline(_rawRequest, line)) {
+		if ((i = line.find(CR)) == std::string::npos || _rawRequest.eof())
+			throw RequestException::FirstLine::NoCRLF();
+		line.erase(i, 1);
+
+		if (line.empty())
+			break;
+
+		i = line.find(':');
+		key = line.substr(0, i);
+		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+		value = line.substr(i + 1, line.size() - i - 1);
+		_headers[key] = value;
+		key.clear();
+		value.clear();
+	}
 }
 
 Request::~Request() {}
