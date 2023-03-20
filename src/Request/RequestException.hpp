@@ -30,6 +30,12 @@ public:
 			}
 		};
 
+		class InvalidLine : public std::exception {
+			const char * what() const throw() {
+				return ERR_START_LINE_INVALID_LINE;
+			}
+		};
+
 		class InvalidMethod : public std::exception {
 			const char * what() const throw() {
 				return ERR_START_LINE_INVALID_METHOD;

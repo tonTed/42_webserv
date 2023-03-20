@@ -117,21 +117,93 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 TEST_CASE(" _setType()"){
 
 	Request request(-1);
+	std::string token;
 
-	CHECK_THROWS_AS(request._setType("GGET"), RequestException::FirstLine::InvalidMethod);
-	CHECK_THROWS_AS(request._setType("gET"), RequestException::FirstLine::InvalidMethod);
-	CHECK_NOTHROW(request._setType("GET"));
+	token = "GGET";
+	CHECK_THROWS_AS(request._setType(token), RequestException::FirstLine::InvalidMethod);
+
+	token = "gET";
+	CHECK_THROWS_AS(request._setType(token), RequestException::FirstLine::InvalidMethod);
+
+	token = "GET";
+	CHECK_NOTHROW(request._setType(token));
 }
 
 TEST_CASE("_setVersion")
 {
 	Request request(-1);
+	std::string token;
 
-	CHECK_THROWS_AS(request._setVersion("HTTP/1.2"), RequestException::FirstLine::InvalidVersion);
-	CHECK_THROWS_AS(request._setVersion("HTTP/1.0"), RequestException::FirstLine::InvalidVersion);
-	CHECK_THROWS_AS(request._setVersion("HTTP/2.0"), RequestException::FirstLine::InvalidVersion);
-	CHECK_NOTHROW(request._setVersion("HTTP/1.1"));
+	token = "HTTP/1.0";
+	CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidVersion);
+	token = "HTTP/2.0";
+	CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidVersion);
+	token = "HTTP/1.1";
+	CHECK_NOTHROW(request._setVersion(token));
 
+}
+
+TEST_CASE("_set<functions> / amount of arguments"){
+
+	Request				request(-1);
+	std::string 		token;
+
+	SUBCASE("No arguments") {
+		char buffer[] = "";
+		std::stringstream ss(buffer);
+
+		ss >> token;
+		CHECK_THROWS_AS(request._setType(token), RequestException::FirstLine::InvalidLine);
+
+		ss >> token;
+		CHECK_THROWS_AS(request._setPath(token), RequestException::FirstLine::InvalidLine);
+
+		ss >> token;
+		CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidLine);
+	}
+
+	SUBCASE("One argument") {
+		char buffer[] = "GET";
+		std::stringstream ss(buffer);
+
+		ss >> token;
+		CHECK_NOTHROW(request._setType(token));
+
+		ss >> token;
+		std::cout << "token: " << token << std::endl;
+		CHECK_THROWS_AS(request._setPath(token), RequestException::FirstLine::InvalidLine);
+
+		ss >> token;
+		CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidLine);
+	}
+
+	SUBCASE("Two arguments") {
+		char buffer[] = "GET /";
+		std::stringstream ss(buffer);
+
+		ss >> token;
+		CHECK_NOTHROW(request._setType(token));
+
+		ss >> token;
+		CHECK_NOTHROW(request._setPath(token));
+
+		ss >> token;
+		CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidLine);
+	}
+
+	SUBCASE("Three arguments") {
+		char buffer[] = "GET / HTTP/1.1";
+		std::stringstream ss(buffer);
+
+		ss >> token;
+		CHECK_NOTHROW(request._setType(token));
+
+		ss >> token;
+		CHECK_NOTHROW(request._setPath(token));
+
+		ss >> token;
+		CHECK_NOTHROW(request._setVersion(token));
+	}
 }
 
 TEST_CASE("clean") { remove("test/resources/test_data_file");}

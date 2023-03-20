@@ -34,9 +34,9 @@ public:
 	void _readSocketData();
 
 	void _parseStartLine();
-		void _setType(const std::string &type);
-		void _setPath(const std::string &path);
-		void _setVersion(const std::string &version);
+		void _setType(std::string &type);
+		void _setPath(std::string &path);
+		void _setVersion(std::string &version);
 
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;

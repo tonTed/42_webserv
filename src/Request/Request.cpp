@@ -92,8 +92,10 @@ void Request::_parseStartLine() {
 
 }
 
-void Request::_setType(const std::string &type) {
-	if (type == "GET")
+void Request::_setType(std::string &type) {
+	if (type.empty())
+		throw RequestException::FirstLine::InvalidLine();
+	else if (type == "GET")
 		_startLine.type = GET;
 	else if (type == "POST")
 		_startLine.type = POST;
@@ -113,16 +115,23 @@ void Request::_setType(const std::string &type) {
 		_startLine.type = PATCH;
 	else
 		throw RequestException::FirstLine::InvalidMethod();
+	type.clear();
 }
 
-void Request::_setPath(const std::string &path) {
+void Request::_setPath(std::string &path) {
+	if (path.empty())
+		throw RequestException::FirstLine::InvalidLine();
 	_startLine.path = path;
+	path.clear();
 }
 
-void Request::_setVersion(const std::string &version) {
+void Request::_setVersion(std::string &version) {
+	if (version.empty())
+		throw RequestException::FirstLine::InvalidLine();
 	_startLine.version = version;
 	if (_startLine.version.compare(HTTP_VERSION))
 		throw RequestException::FirstLine::InvalidVersion();
+	version.clear();
 }
 
 Request::~Request() {}
