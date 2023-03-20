@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-TEST_CASE("_readSocketData() / invalid client") {
+TEST_CASE("Request::_readSocketData() / invalid client") {
 
 	SUBCASE("Invalid client") {
 		Request request(-1);
@@ -13,7 +13,7 @@ TEST_CASE("_readSocketData() / invalid client") {
 	}
 }
 
-TEST_CASE("_readSocketData() / valid client") {
+TEST_CASE("Request::_readSocketData() / valid client") {
 
 	int client;
 	remove("test/test_data_file");
@@ -59,7 +59,7 @@ TEST_CASE("_readSocketData() / valid client") {
 	}
 }
 
-TEST_CASE("_parseStartLine() / CRLF check") {
+TEST_CASE("Request::_parseStartLine() / CRLF check") {
 
 	int client;
 	remove("test/test_data_file");
@@ -114,7 +114,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 	}
 }
 
-TEST_CASE("_setType() / method check"){
+TEST_CASE("Request::_setType() / method check"){
 
 	Request request(-1);
 	std::string token;
@@ -129,7 +129,7 @@ TEST_CASE("_setType() / method check"){
 	CHECK_NOTHROW(request._setType(token));
 }
 
-TEST_CASE("_setVersion / version check"){
+TEST_CASE("Request::_setVersion / version check"){
 	Request request(-1);
 	std::string token;
 
@@ -142,7 +142,7 @@ TEST_CASE("_setVersion / version check"){
 
 }
 
-TEST_CASE("_set<functions> / amount of arguments"){
+TEST_CASE("Request::_set<functions> / amount of arguments"){
 
 	Request				request(-1);
 	std::string 		token;
@@ -204,7 +204,7 @@ TEST_CASE("_set<functions> / amount of arguments"){
 	}
 }
 
-TEST_CASE("_parseStartLine / amount of arguments"){
+TEST_CASE("Request::_parseStartLine / amount of arguments"){
 	int client;
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
@@ -258,7 +258,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 	}
 }
 
-TEST_CASE("_parseHeader"){
+TEST_CASE("Request::_parseHeader"){
 	int client;
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
@@ -307,4 +307,4 @@ TEST_CASE("_parseHeader"){
 	}
 }
 
-TEST_CASE("clean") { remove("test/test_data_file");}
+TEST_CASE("Request::clean") { remove("test/test_data_file");}
