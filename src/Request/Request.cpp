@@ -1,14 +1,22 @@
 #include "Request.hpp"
 #include "unistd.h"
 
-/**
- * @brief Construct a new Request object
- * @details Get the raw resources from the client
- *
- * @param client The client that sent the resources
- */
 Request::Request(const int client) : _client(client) {}
 
+/**
+ * @brief	Initialise the request.
+ * 			- Read the client socket and store the resources in _rawRequest.
+ * 			- Parse the first line of the request.
+ * 			- Parse the headers of the request.
+ * 			- Parse the body of the request.
+ *
+ * 	@note if an error occurs, the server will send an error to the client.
+ *
+ * 	@throw RequestException::ReadError if the client socket is invalid.
+ * 			RequestException::MaxSize if the request size is bigger than MAX_REQUEST_SIZE.
+ *
+ *
+ */
 void	Request::_init() {
 	try {
 		_readSocketData();
@@ -121,6 +129,17 @@ void	Request::_setType(std::string &type) {
 	type.clear();
 }
 
+
+/**
+ * @brief	Set the path of the request.
+ * 			Store the path in _startLine.
+ *
+ * @param path The path of the request
+ *
+ * @throw RequestException::InvalidLine if the path is empty
+ *
+ * @todo	Check here if the path is valid?
+ */
 void	Request::_setPath(std::string &path) {
 	if (path.empty())
 		throw RequestException::InvalidLine();
@@ -128,6 +147,17 @@ void	Request::_setPath(std::string &path) {
 	path.clear();
 }
 
+
+/**
+ * @brief	Set the version of the request.
+ * 			Store the version in _startLine.
+ *
+ * @param version The version of the request
+ *
+ * @throw RequestException::InvalidLine if the version is empty
+ * @throw RequestException::FirstLine::InvalidVersion if the version is not HTTP/1.1
+ *
+ */
 void	Request::_setVersion(std::string &version) {
 	if (version.empty())
 		throw RequestException::InvalidLine();
@@ -145,6 +175,8 @@ void	Request::_setVersion(std::string &version) {
  * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
  * @note	header-field = field-name ":" OWS field-value OWS
  * @note	case-insensitive
+ *
+ * @throw RequestException::NoCRLF if the line doesn't end with CRLF
  *
  * @todo	Spaces in the header value are not allowed?
  * @todo	What if the header value is empty?
