@@ -262,7 +262,6 @@ TEST_CASE("Request::_parseHeader"){
 	int client;
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
-		std::cout << "client: " << client << std::endl;
 
 	SUBCASE("No Headers") {
 		char buffer[] = "GET / HTTP/1.1\r\n";
@@ -305,6 +304,46 @@ TEST_CASE("Request::_parseHeader"){
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::DuplicateKey);
 		close(client);
 	}
+
+	SUBCASE("Space in key before") {
+		char buffer[] = "GET / HTTP/1.1\r\n Host :localhost\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidKey);
+		close(client);
+	}
+
+	SUBCASE("Space in key after") {
+		char buffer[] = "GET / HTTP/1.1\r\nHost :localhost\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidKey);
+		close(client);
+	}
+
+	SUBCASE("Valid no throw") {
+		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_NOTHROW(request._parseHeaders());
+		close(client);
+	}
+
 }
 
 TEST_CASE("Request::clean") { remove("test/test_data_file");}

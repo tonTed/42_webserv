@@ -27,6 +27,7 @@
 # define ERR_HEADER_DUPLICATE "Invalid header: duplicate header"
 # define ERR_HEADER_MISSING_HEADER "Invalid header: missing header"
 # define ERR_HEADER_INVALID_VALUE "Invalid header: invalid value"
+# define ERR_HEADER_INVALID_KEY "Invalid header: invalid key"
 
 /**
  * @brief	Enum of all the possible request types.

@@ -70,6 +70,12 @@ public:
 				return ERR_HEADER_INVALID_VALUE;
 			}
 		};
+
+		class InvalidKey : public std::exception {
+			const char * what() const throw() {
+				return ERR_HEADER_INVALID_KEY;
+			}
+		};
 	};
 };
 

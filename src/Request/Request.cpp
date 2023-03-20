@@ -211,6 +211,10 @@ void	Request::_parseHeaders() {
 		// Get the key
 		key = line.substr(0, i);
 
+		// Check if the key as white spaces
+		if (std::any_of(key.begin(), key.end(), ::isspace))
+			throw RequestException::Header::InvalidKey();
+
 		// Uppercase the key
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
 
