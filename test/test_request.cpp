@@ -16,8 +16,8 @@ TEST_CASE("_readSocketData() / invalid client") {
 TEST_CASE("_readSocketData() / valid client") {
 
 	int client;
-	remove("test/resources/test_data_file");
-	client = creat("test/resources/test_data_file", 0666);
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
 
 	SUBCASE("Size is bigger than MAX_REQUEST_SIZE") {
 
@@ -25,7 +25,7 @@ TEST_CASE("_readSocketData() / valid client") {
 		memset(buffer, 'a', MAX_REQUEST_SIZE + 1);
 		write(client, buffer, MAX_REQUEST_SIZE + 1);
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		CHECK_THROWS_AS(request._readSocketData(), RequestException::MaxSize);
@@ -38,7 +38,7 @@ TEST_CASE("_readSocketData() / valid client") {
 		memset(buffer, 'a', MAX_REQUEST_SIZE);
 		write(client, buffer, MAX_REQUEST_SIZE);
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		CHECK_NOTHROW(request._readSocketData());
@@ -50,7 +50,7 @@ TEST_CASE("_readSocketData() / valid client") {
 		char buffer[] = "GET / HTTP/1.1\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -62,14 +62,14 @@ TEST_CASE("_readSocketData() / valid client") {
 TEST_CASE("_parseStartLine() / CRLF check") {
 
 	int client;
-	remove("test/resources/test_data_file");
-	client = creat("test/resources/test_data_file", 0666);
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
 
 	SUBCASE("No CRLF") {
 		char buffer[] = "GET / HTTP/1.1";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -81,7 +81,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 		char buffer[] = "GET / HTTP/1.1\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -93,7 +93,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 		char buffer[] = "GET / HTTP/1.1\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -105,7 +105,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 		char buffer[] = "GET / HTTP/1.1\r";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -206,14 +206,14 @@ TEST_CASE("_set<functions> / amount of arguments"){
 
 TEST_CASE("_parseStartLine / amount of arguments"){
 	int client;
-	remove("test/resources/test_data_file");
-	client = creat("test/resources/test_data_file", 0666);
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
 
 	SUBCASE("No arguments") {
 		char buffer[] = "\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -225,7 +225,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 		char buffer[] = "GET\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -237,7 +237,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 		char buffer[] = "GET /\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -249,7 +249,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 		char buffer[] = "GET / HTTP/1.1\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -260,14 +260,15 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 
 TEST_CASE("_parseHeader"){
 	int client;
-	remove("test/resources/test_data_file");
-	client = creat("test/resources/test_data_file", 0666);
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+		std::cout << "client: " << client << std::endl;
 
 	SUBCASE("No Headers") {
 		char buffer[] = "GET / HTTP/1.1\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY, 0666);
 
 		Request request(client);
 		request._readSocketData();
@@ -280,7 +281,7 @@ TEST_CASE("_parseHeader"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -296,7 +297,7 @@ TEST_CASE("_parseHeader"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\nHost:localhost\r\n";
 		write(client, buffer, strlen(buffer));
 		close(client);
-		client = open("test/resources/test_data_file", O_RDONLY);
+		client = open("test/test_data_file", O_RDONLY);
 
 		Request request(client);
 		request._readSocketData();
@@ -306,4 +307,4 @@ TEST_CASE("_parseHeader"){
 	}
 }
 
-TEST_CASE("clean") { remove("test/resources/test_data_file");}
+TEST_CASE("clean") { remove("test/test_data_file");}
