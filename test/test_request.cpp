@@ -114,7 +114,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 	}
 }
 
-TEST_CASE(" _setType()"){
+TEST_CASE("_setType() / method check"){
 
 	Request request(-1);
 	std::string token;
@@ -129,7 +129,7 @@ TEST_CASE(" _setType()"){
 	CHECK_NOTHROW(request._setType(token));
 }
 
-TEST_CASE("_setVersion"){
+TEST_CASE("_setVersion / version check"){
 	Request request(-1);
 	std::string token;
 
