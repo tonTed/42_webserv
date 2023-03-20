@@ -19,7 +19,7 @@ TEST_CASE("PollQueue::pollFdInit")
 		CHECK(pollTested.getPollFdSize() == nbServer + maxClient);
         CHECK(pollTested.pollFdAdd(pollFds, serverFds[0]) >= 0);
         CHECK(pollTested.pollFdAdd(pollFds, serverFds[1]) >= 0);
-		for (int i = 0; i < nbServer + maxClient; i++)
+		for (unsigned int i = 0; i < nbServer + maxClient; i++)
 		{
 			if (i < nbServer)
 			{
@@ -62,7 +62,7 @@ TEST_CASE("PollQueue::pollFdAdd")
 		CHECK(pollTested.getNbServer() == nbServer);
 		CHECK(pollTested.getPollFdSize() == nbServer + maxClient);
 		CHECK(pollTested.pollFdAdd(pollFds, 5) >= 0);
-        for (int i = 0; i < nbServer; i++)
+        for (unsigned int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
 			CHECK(pollFds[i].events == POLLIN);
@@ -76,7 +76,7 @@ TEST_CASE("PollQueue::pollFdAdd")
 		CHECK(pollFds[3].revents == 0);
 
 		CHECK(pollTested.pollFdAdd(pollFds, 6) >= 0);
-		for (int i = 0; i < nbServer; i++)
+		for (unsigned int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
 			CHECK(pollFds[i].events == POLLIN);
@@ -120,7 +120,7 @@ TEST_CASE("PollQueue::pollFdRemoveClient")
     try
     {
 		pollTested.pollFdRemove(pollFds, 5);
-		for (int i = 0; i < nbServer; i++)
+		for (unsigned int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
 			CHECK(pollFds[i].events == POLLIN);
@@ -134,7 +134,7 @@ TEST_CASE("PollQueue::pollFdRemoveClient")
 		CHECK(pollFds[3].revents == 0);
 
 		pollTested.pollFdRemove(pollFds, 6);
-		for (int i = 0; i < nbServer; i++)
+		for (unsigned int i = 0; i < nbServer; i++)
 		{
 			CHECK(pollFds[i].fd == serverFds[i]);
 			CHECK(pollFds[i].events == POLLIN);
