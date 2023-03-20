@@ -34,9 +34,14 @@ void	Request::_init() {
 		//TODO: send[505] error to client
 	} catch (RequestException::InvalidLine &e) {
 		//TODO: send[400] error to client
+	} catch (RequestException::Header::DuplicateKey &e) {
+		//TODO: send[400] error to client
+	} catch (RequestException::Header::InvalidKey &e) {
+		//TODO: send[400] error to client
+	} catch (RequestException::Header::InvalidValue &e) {
+		//TODO: send[400] error to client
 	}
 }
-
 
 /**
  * @brief	Get the raw resources from the client.
@@ -173,12 +178,30 @@ void	Request::_setVersion(std::string &version) {
  * 			Store the headers in _headers.
  *
  * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
- * @note	header-field = field-name ":" OWS field-value OWS
+ * @source	https://www.rfc-editor.org/rfc/rfc7230#section-3.2
+ *
+ * @note	header-field	= field-name ":" OWS field-value OWS
+ *     		field-name     = token
+ *     		field-value    = *( field-content / obs-fold )
+ *     		field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
+ *     		field-vchar    = VCHAR / obs-text
+ *     		obs-fold       = CRLF 1*( SP / HTAB )
+ *     						; obsolete line folding
+ *
+ *     		OWS     : *( SP / HTAB ) ; optional whitespace
+ *			RWS     :1*( SP / HTAB ) ; required whitespace
+ *			BWS		: OWS ; bad whitespace
+ *     		OWS		: Optional whitespace
+ *     		RWS		: Required whitespace
+ *     		BWS		: Bad whitespace
+ *     		SP		: Space
+ *     		HTAB	: Horizontal tab
+ *     		VCHAR	: Visible characters
+ *
  * @note	case-insensitive
  *
  * @throw RequestException::NoCRLF if the line doesn't end with CRLF
  *
- * @todo	Spaces in the header value are not allowed?
  * @todo	What if the header value is empty?
  * @todo	length of the header value?
  * @todo	key or value can't be empty?
@@ -224,6 +247,12 @@ void	Request::_parseHeaders() {
 
 		// Get the value
 		value = line.substr(i + 1, line.size() - i - 1);
+
+		//remove OWS before and after the value if any
+		value.erase(0, value.find_first_not_of(OWS));
+		value.erase(value.find_last_not_of(OWS) + 1);
+		if (value.empty())
+			throw RequestException::Header::InvalidValue();
 
 		// Add the key and value to the map
 		_headers[key] = value;

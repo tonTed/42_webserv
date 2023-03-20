@@ -7,6 +7,10 @@
 
 # define CRLF "\r\n"
 # define CR '\r'
+# define OWS " \t"
+# define SP ' '
+# define HTAB '\t'
+# define VCHAR "\x21-\x7E"
 
 # define HTTP_VERSION "HTTP/1.1"
 

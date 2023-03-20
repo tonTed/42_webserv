@@ -258,7 +258,7 @@ TEST_CASE("Request::_parseStartLine / amount of arguments"){
 	}
 }
 
-TEST_CASE("Request::_parseHeader"){
+TEST_CASE("Request::_parseHeader / Key check"){
 	int client;
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
@@ -343,6 +343,127 @@ TEST_CASE("Request::_parseHeader"){
 		CHECK_NOTHROW(request._parseHeaders());
 		close(client);
 	}
+
+}
+
+TEST_CASE("Request::_parseHeader / value check") {
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+
+	SUBCASE("Remove OWS before"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost: localhost\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		CHECK_MESSAGE(request._headers["HOST"] == "localhost", "Host header value should be 'localhost'");
+	}
+
+	SUBCASE("Remove OWS after"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\t\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		CHECK_MESSAGE(request._headers["HOST"] == "localhost", "Host header value should be 'localhost'");
+	}
+
+	SUBCASE("Remove OWS before & after"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost: localhost\t\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		CHECK_MESSAGE(request._headers["HOST"] == "localhost", "Host header value should be 'localhost'");
+	}
+
+	SUBCASE("Without OWS"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\t\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		CHECK_MESSAGE(request._headers["HOST"] == "localhost", "Host header value should be 'localhost'");
+	}
+
+	SUBCASE("Empty value"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost:\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
+	}
+
+	SUBCASE("Just one OWS"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost: \r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
+	}
+
+	SUBCASE("Just two OWS"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost:\t \r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
+	}
+
+	SUBCASE("Just tree OWS"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost:\t \t\t\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
+	}
+
+	SUBCASE("Just a letter between OWS"){
+		char buffer[] = "GET / HTTP/1.1\r\nHost:\t a\t\t\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_NOTHROW_MESSAGE(request._parseHeaders(), "Host header value should be 'a'");
+		CHECK_MESSAGE(request._headers["HOST"] == "a", "Host header value should be 'a'");
+	}
+
 
 }
 
