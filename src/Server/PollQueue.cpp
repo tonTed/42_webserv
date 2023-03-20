@@ -18,7 +18,7 @@ pollfd*		PollQueue::pollFdInit()
 
 /* Pour ajouter un fd client a l'array pollFd
    Recherche le premier fd = 0 et l'insere a cet endroit
-   Renvoie true si aucun erreur / false si une erreur (selon pourra etre changer)
+   Renvoie index si aucun erreur / -1 si non inséré
 */
 const int	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
 {
