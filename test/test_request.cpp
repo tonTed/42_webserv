@@ -73,7 +73,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 
 		Request request(client);
 		request._readSocketData();
-		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::NoCRLF);
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::NoCRLF);
 		close(client);
 	}
 
@@ -85,7 +85,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 
 		Request request(client);
 		request._readSocketData();
-		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::NoCRLF);
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::NoCRLF);
 		close(client);
 	}
 
@@ -109,7 +109,7 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 
 		Request request(client);
 		request._readSocketData();
-		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::NoCRLF);
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::NoCRLF);
 		close(client);
 	}
 }

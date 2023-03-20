@@ -18,7 +18,7 @@ void	Request::_init() {
 		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
 		//TODO: send[494] error to client
-	} catch (RequestException::FirstLine::NoCRLF &e) {
+	} catch (RequestException::NoCRLF &e) {
 		//TODO: send[400] error to client
 	} catch (RequestException::FirstLine::InvalidMethod &e) {
 		//TODO: send[400] error to client
@@ -65,7 +65,7 @@ void	Request::_parseStartLine() {
 	int i;
 
 	if ((i = line.find('\r')) == std::string::npos || _rawRequest.eof())
-		throw RequestException::FirstLine::NoCRLF();
+		throw RequestException::NoCRLF();
 	line.erase(i, 1);
 
 	// Split the line into 3 parts
@@ -91,7 +91,7 @@ void	Request::_parseStartLine() {
 
 	// Check if there is no more data in the
 	if (!ss.eof())
-		throw RequestException::FirstLine::NoCRLF();
+		throw RequestException::NoCRLF();
 
 }
 
@@ -155,7 +155,7 @@ void	Request::_parseHeaders() {
 
 	while (std::getline(_rawRequest, line)) {
 		if ((i = line.find(CR)) == std::string::npos || _rawRequest.eof())
-			throw RequestException::FirstLine::NoCRLF();
+			throw RequestException::NoCRLF();
 		line.erase(i, 1);
 
 		if (line.empty())
