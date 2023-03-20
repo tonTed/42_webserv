@@ -17,10 +17,13 @@
 //Exception messages
 # define ERR_REQUEST_SIZE "Request size is too big"
 # define ERR_SOCKET_READ "Error reading socket"
-# define ERR_START_LINE_NO_CRLF "Invalid start line: no CRLF"
+
+# define ERR_NO_CRLF "Invalid line: no CRLF"
+# define ERR_INVALID_LINE "Invalid line: Invalid line"
+
 # define ERR_START_LINE_INVALID_METHOD "Invalid start line: invalid method"
 # define ERR_START_LINE_INVALID_VERSION "Invalid start line: invalid version"
-# define ERR_START_LINE_INVALID_LINE "Invalid start line: invalid line"
+
 # define ERR_HEADER_DUPLICATE "Invalid header: duplicate header"
 # define ERR_HEADER_MISSING_HEADER "Invalid header: missing header"
 # define ERR_HEADER_INVALID_VALUE "Invalid header: invalid value"
@@ -44,7 +47,6 @@ enum eRequestType
 	OPTIONS,
 	TRACE,
 	PATCH,
-	UNKNOWN
 };
 
 #endif

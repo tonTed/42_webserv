@@ -24,13 +24,13 @@ public:
 
 	class NoCRLF : public std::exception {
 		const char * what() const throw() {
-			return ERR_START_LINE_NO_CRLF;
+			return ERR_NO_CRLF;
 		}
 	};
 
 	class InvalidLine : public std::exception {
 		const char * what() const throw() {
-			return ERR_START_LINE_INVALID_LINE;
+			return ERR_INVALID_LINE;
 		}
 	};
 
