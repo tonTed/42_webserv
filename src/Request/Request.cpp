@@ -70,9 +70,9 @@ void	Request::_parseStartLine() {
 	// Check if the line ends with CRLF
 	std::string line;
 	std::getline(_rawRequest, line);
-	int i;
+	unsigned long i;
 
-	if ((i = line.find('\r')) == std::string::npos || _rawRequest.eof())
+	if ((i = line.find('\r')) == static_cast<unsigned long>(std::string::npos) || _rawRequest.eof())
 		throw RequestException::NoCRLF();
 	line.erase(i, 1);
 
@@ -188,12 +188,12 @@ void	Request::_parseHeaders() {
 	std::string line;
 	std::string key;
 	std::string value;
-	int i;
+	unsigned long i;
 
 	while (std::getline(_rawRequest, line)) {
 
 		// Check if the line ends with CRLF
-		if ((i = line.find(CR)) == std::string::npos || _rawRequest.eof())
+		if ((i = line.find(CR)) == static_cast<unsigned long>(std::string::npos) || _rawRequest.eof())
 			throw RequestException::NoCRLF();
 		line.erase(i, 1);
 
@@ -258,10 +258,12 @@ void	Request::_parseHeaders() {
 	// Get the Content-Length
 		// check if the value is a number
 	if (std::for_each(_headers["CONTENT-LENGTH"].begin(), _headers["CONTENT-LENGTH"].end(), ::isdigit))
+	{
 		int contentLength = std::stoi(_headers["CONTENT-LENGTH"]);
+		(void)contentLength;
+	}
 	else
 		throw RequestException::Header::InvalidValue();
-
 
 
  }
