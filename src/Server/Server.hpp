@@ -44,10 +44,10 @@ public:
 
 	int					addNewClient(const indexInfo_it indexInfoServer);
 
-	const int			pollIndexSignal() const;
+	int					pollIndexSignal() const;
 	indexInfo_it		indexInfoIt(const unsigned int pollIndex);
 
-	const struct sockaddr*	addrServer(uint16_t port);
+	void				setAddrServer(sockaddr_in& addr, uint16_t port);
 
 	void				AddFdIndexInfo();
 

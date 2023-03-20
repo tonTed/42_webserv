@@ -4,7 +4,7 @@ Server::Server(){}
 Server::~Server()
 {
 	delete this->_pollFds;
-	//todo delete all indexInfo_t* dans _indexInfo
+	//TODO delete all indexInfo_t* dans _indexInfo
 
 }
 
@@ -39,17 +39,28 @@ void	Server::setUpServer()
 
 	for (int iSocket = 0; iSocket < this->_nbFdServer; iSocket++)
 	{
+		//SET SERVER SOCKET (FD)
 		if (this->_indexInfo.find(iSocket)->second->fd == socket(AF_INET, SOCK_STREAM, 0) < 0)
 			throw Server::FctSocketException();
+
+		//OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
 		if (setsockopt(indexInfoIt(_nbFdServer)->second->fd,
 				SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
 			throw Server::FctSetsockoptException();
-		const sockaddr* addr = addrServer(indexInfoIt(_nbFdServer)->second->port);
-		if (bind(indexInfoIt(_nbFdServer)->second->fd, addr, sizeof(addr) < 0))
+
+		//BINDING PORT AND SOCKET
+		sockaddr_in addr;
+		setAddrServer(addr, indexInfoIt(_nbFdServer)->second->port);
+		if (bind(indexInfoIt(_nbFdServer)->second->fd,
+				reinterpret_cast<const sockaddr*>(&addr), sizeof(addr) < 0))
 			throw Server::FctBindException();
+
+		//LISTENING
 		if (listen(indexInfoIt(_nbFdServer)->second->fd,
 				indexInfoIt(_nbFdServer)->second->portBacklog) < 0)
 			throw Server::FctBindException();
+
+		//ADDING SOCKET TO pollFds
 		this->pollFdSetFd(this->_pollFds, this->_indexInfo.find(iSocket)->second->fd, iSocket);
 	}
 }
@@ -58,7 +69,7 @@ void	Server::routine()
 {
 	int	activeClient = 0;
 	int signalIndex;
-	//todo set a signal to change value that will stop the server properly
+	//TODO set a signal to change value that will stop the server properly
 	while (1)
 	{
 		if (poll(_pollFds, _nbFdServer, _pollTimeOut) < 0)
@@ -69,7 +80,7 @@ void	Server::routine()
 			{
 				//REQUEST FROM SERVER
 				addNewClient(indexInfoIt(signalIndex));
-				//todo gestion retour fail
+				//TODO gestion retour fail
 			}
 			else
 			{
@@ -84,7 +95,7 @@ void	Server::routine()
 //set pollfd et add new indexInfo
 int	Server::addNewClient(const indexInfo_it indexInfoServer)
 {
-	struct sockaddr_in addr;
+	sockaddr_in addr;
 	socklen_t addrLen = sizeof(addr);
 	
 	int clientFd = accept(indexInfoServer->second->fd,
@@ -95,7 +106,11 @@ int	Server::addNewClient(const indexInfo_it indexInfoServer)
 	//todo return if fail
 }
 
-const int	Server::pollIndexSignal() const
+/*Return the first index of pollFds that have revents = POLLIN
+	Return -1 if no fd found
+	//TODO faire des vérifications de signaux si peut avoir d'autres. Si oui, changer la fonction revents != 0
+*/
+int	Server::pollIndexSignal() const
 {
 	for (int index = 0; index < pollFdSize; index++)
 	{
@@ -109,18 +124,16 @@ indexInfo_it	Server::indexInfoIt(const unsigned int pollIndex)
 {
 	if (_indexInfo.find(pollIndex) == _indexInfo.end())
 		std::cout << "throw an exception" << std::endl;
-		//todo faire une exception pour indexInfoIt (pas suposer arriver)
+		//TODO faire une exception pour indexInfoIt (pas suposer arriver)
 	return _indexInfo.find(pollIndex);
 }
 
 
-const struct sockaddr*	Server::addrServer(uint16_t port)
+void	Server::setAddrServer(sockaddr_in& addr, uint16_t port)
 {
-	struct sockaddr_in addr; 
 	addr.sin_family = AF_INET; 
 	addr.sin_port = htons(port); 
 	addr.sin_addr.s_addr = htonl(INADDR_ANY); 
-	return reinterpret_cast<const struct sockaddr*>(&addr);
 }
 
 
