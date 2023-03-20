@@ -98,7 +98,7 @@ std::string getFile(int argc, const char **argv)
  * @return true if not just a comment or just spaces
  * @return false otherwise
  */
-bool ConfigServer::needed(const std::string line)
+bool ConfigServer::lineNeeded(const std::string line)
 {
 	size_t i = line.find_first_not_of(" \t");
 	bool val = (i != std::string::npos && line[i] != '#');
@@ -145,7 +145,7 @@ bool ConfigServer::readFile(const std::string inFile, std::string &stringLine)
 	std::string line = "";
 	while (std::getline(file, line))
 	{
-		if (needed(line))
+		if (lineNeeded(line))
 			stringLine += cleanedLine(line);
 	}
 	file.close();
@@ -288,33 +288,33 @@ std::string ConfigServer::getKeywordValue(const std::string &configStr,
 	return (server_name);
 }
 
-TEST_CASE("ConfigServer::needed")
+TEST_CASE("ConfigServer::lineNeeded")
 {
 	ConfigServer cs;
 	SUBCASE("Returns false for an empty line")
 	{
 		std::string line = "";
-		CHECK_FALSE(cs.needed(line));
+		CHECK_FALSE(cs.lineNeeded(line));
 	}
 	SUBCASE("Returns false for a line with only whitespace")
 	{
 		std::string line = "   \t\t ";
-		CHECK_FALSE(cs.needed(line));
+		CHECK_FALSE(cs.lineNeeded(line));
 	}
 	SUBCASE("Returns false for a commented line")
 	{
 		std::string line = "# this is a comment";
-		CHECK_FALSE(cs.needed(line));
+		CHECK_FALSE(cs.lineNeeded(line));
 	}
 	SUBCASE("Returns true for a line with non-whitespace characters")
 	{
 		std::string line = "listen 127.0.0.1:8080";
-		CHECK(cs.needed(line));
+		CHECK(cs.lineNeeded(line));
 	}
 	SUBCASE("Returns true for a line with leading whitespace")
 	{
 		std::string line = "\t    listen 127.0.0.1:8080";
-		CHECK(cs.needed(line));
+		CHECK(cs.lineNeeded(line));
 	}
 }
 

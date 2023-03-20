@@ -21,7 +21,7 @@ class ConfigServer
 
 	ConfigServer &operator=(const ConfigServer &Config);
 
-	bool needed(const std::string line);
+	bool lineNeeded(const std::string line);
 	std::string cleanedLine(std::string line);
 	bool readFile(const std::string inFile, std::string &stringLine);
 	std::vector<std::string> getServerBlocks(const std::string& configStr);
