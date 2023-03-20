@@ -24,7 +24,7 @@ void	Request::_init() {
 		//TODO: send[400] error to client
 	} catch (RequestException::FirstLine::InvalidVersion &e) {
 		//TODO: send[505] error to client
-	} catch (RequestException::FirstLine::InvalidLine &e) {
+	} catch (RequestException::InvalidLine &e) {
 		//TODO: send[400] error to client
 	}
 }
@@ -97,7 +97,7 @@ void	Request::_parseStartLine() {
 
 void	Request::_setType(std::string &type) {
 	if (type.empty())
-		throw RequestException::FirstLine::InvalidLine();
+		throw RequestException::InvalidLine();
 	else if (type == "GET")
 		_startLine.type = GET;
 	else if (type == "POST")
@@ -123,14 +123,14 @@ void	Request::_setType(std::string &type) {
 
 void	Request::_setPath(std::string &path) {
 	if (path.empty())
-		throw RequestException::FirstLine::InvalidLine();
+		throw RequestException::InvalidLine();
 	_startLine.path = path;
 	path.clear();
 }
 
 void	Request::_setVersion(std::string &version) {
 	if (version.empty())
-		throw RequestException::FirstLine::InvalidLine();
+		throw RequestException::InvalidLine();
 	_startLine.version = version;
 	if (_startLine.version.compare(HTTP_VERSION))
 		throw RequestException::FirstLine::InvalidVersion();
@@ -145,6 +145,10 @@ void	Request::_setVersion(std::string &version) {
  * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
  * @note	header-field = field-name ":" OWS field-value OWS
  * @note	case-insensitive
+ *
+ * @todo	Spaces in the header value are not allowed?
+ * @todo	What if the header value is empty?
+ * @todo	length of the header value?
  *
  */
 void	Request::_parseHeaders() {
@@ -162,6 +166,8 @@ void	Request::_parseHeaders() {
 			break;
 
 		i = line.find(':');
+		if (i == std::string::npos)
+			throw RequestException::InvalidLine();
 		key = line.substr(0, i);
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
 		if (_headers.find(key) != _headers.end())

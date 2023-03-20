@@ -152,13 +152,13 @@ TEST_CASE("_set<functions> / amount of arguments"){
 		std::stringstream ss(buffer);
 
 		ss >> token;
-		CHECK_THROWS_AS(request._setType(token), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._setType(token), RequestException::InvalidLine);
 
 		ss >> token;
-		CHECK_THROWS_AS(request._setPath(token), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._setPath(token), RequestException::InvalidLine);
 
 		ss >> token;
-		CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._setVersion(token), RequestException::InvalidLine);
 	}
 
 	SUBCASE("One argument") {
@@ -169,10 +169,10 @@ TEST_CASE("_set<functions> / amount of arguments"){
 		CHECK_NOTHROW(request._setType(token));
 
 		ss >> token;
-		CHECK_THROWS_AS(request._setPath(token), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._setPath(token), RequestException::InvalidLine);
 
 		ss >> token;
-		CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._setVersion(token), RequestException::InvalidLine);
 	}
 
 	SUBCASE("Two arguments") {
@@ -186,7 +186,7 @@ TEST_CASE("_set<functions> / amount of arguments"){
 		CHECK_NOTHROW(request._setPath(token));
 
 		ss >> token;
-		CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._setVersion(token), RequestException::InvalidLine);
 	}
 
 	SUBCASE("Three arguments") {
@@ -217,7 +217,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 
 		Request request(client);
 		request._readSocketData();
-		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::InvalidLine);
 		close(client);
 	}
 
@@ -229,7 +229,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 
 		Request request(client);
 		request._readSocketData();
-		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::InvalidLine);
 		close(client);
 	}
 
@@ -241,7 +241,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 
 		Request request(client);
 		request._readSocketData();
-		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::InvalidLine);
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::InvalidLine);
 		close(client);
 	}
 
@@ -258,8 +258,7 @@ TEST_CASE("_parseStartLine / amount of arguments"){
 	}
 }
 
-TEST_CASE("_parseHeader")
-{
+TEST_CASE("_parseHeader"){
 	int client;
 	remove("test/resources/test_data_file");
 	client = creat("test/resources/test_data_file", 0666);
@@ -288,8 +287,8 @@ TEST_CASE("_parseHeader")
 		request._parseStartLine();
 		CHECK_NOTHROW(request._parseHeaders());
 		CHECK_MESSAGE(request._headers.size() == 1, "One header should be parsed");
-		CHECK_MESSAGE(request._headers.count("HOST") == 1, "Host header should be parsed");
-		CHECK_MESSAGE(request._headers["HOST"] == "localhost", "Host header should be parsed");
+		CHECK_MESSAGE(request._headers.count("HOST") == 1, "Host header should be converted to uppercase");
+		CHECK_MESSAGE(request._headers["HOST"] == "localhost", "Host header value should be 'localhost'");
 		close(client);
 	}
 
