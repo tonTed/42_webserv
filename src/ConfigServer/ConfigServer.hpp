@@ -36,4 +36,42 @@ class ConfigServer
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
 std::string getFile(int argc, const char **argv);
 
+//#include <map>
+//
+//struct ServerConfig {
+//
+//	//Server port and name
+//	std::vector<std::string>	_serverPorts;
+//	std::vector<std::string>	_serverNames;
+//
+//	//Client size by ports
+//	int 						_clientSize;
+//
+//	//Methods accepted by the server
+//	std::vector<eRequestType>			_methods;
+//
+//	//The key is the location, the value is the path to the file
+//	std::vector<std::string>			_root;
+//
+//	//The key is the location, the value is the path to the file
+//	std::map<std::string, std::string>	_locations;
+//
+//	//The key is the error code, the value is the path to the file
+//	//Create data structure for error pages default before
+//	std::map<int, std::string>			_errorPages;
+//
+//};
+//
+//class ConfigServer {
+//
+//public:
+//	std::vector<ServerConfig> _servers;
+//
+//	void test()
+//	{
+//		_servers[0]._methods.push_back(GET);
+//	};
+//};
 #endif
+
+
