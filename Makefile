@@ -14,6 +14,10 @@ OBJDIRS = $(foreach dir, $(DIRS), $(addprefix $(OBJDIR)/, $(dir)))
 SRCS = $(wildcard $(SRCDIR)/*.cpp)
 SRCS += $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
 
+SRC_TEST = $(wildcard test/*.cpp)
+SRC_TEST += $(SRCS)
+SRC_TEST := $(filter-out $(SRCDIR)/main.cpp, $(SRC_TEST))
+
 # Define objects for all sources
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
 
@@ -41,11 +45,21 @@ fclean		: clean
 
 re			: fclean all
 
+utest		: buildrepo
+	$(CC) -std=c++98 $(SRC_TEST) -o utest
+	@printf $(GREEN)"[$@] program created\n"$(RESET)
+	./utest
+	rm -f utest
+
 print		:
-	@echo $(SRCS)
+	@#echo $(SRCS)
+	@echo $(SRC_TEST)
 
 run			: all
 	./$(NAME)
+
+mock		: all
+	./$(NAME) -m
 
 # Create  repo of objects!
 buildrepo	:
