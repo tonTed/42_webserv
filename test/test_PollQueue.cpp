@@ -1,12 +1,7 @@
-#define DOCTEST_CONFIG_IMPLEMENT
-
-#include <iostream>
-#include "../doctest.hpp"
-#include "../../src/Server/PollQueue.hpp"
+#include "test_header.hpp"
 
 TEST_CASE("PollQueue::pollFdInit")
 {
-    std::cout << std::setw(30) << " ============ Test PollQueue::pollFdInit ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
@@ -50,7 +45,6 @@ TEST_CASE("PollQueue::pollFdInit")
 
 TEST_CASE("PollQueue::pollFdAdd")
 {
-    std::cout << std::setw(30) << " ============ Test PollQueue::pollFdAdd ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
@@ -108,7 +102,6 @@ TEST_CASE("PollQueue::pollFdAdd")
 
 TEST_CASE("PollQueue::pollFdRemoveClient")
 {
-    std::cout << std::setw(30) << " ============ Test PollQueue::pollFdRemove ============ " << std::endl;
     //declare variables test and set
 	unsigned int nbServer = 2;
 	unsigned int serverFds[2] = {3, 4};
@@ -181,20 +174,4 @@ TEST_CASE("PollQueue::pollFdRemoveClient")
 	//clean data
 	delete [] pollFds;
 
-}
-
-
-int main(int argc, char **argv)
-{
-    // Including
-    doctest::Context ctx;
-    ctx.setOption("abort-after", 5);  // default - stop after 5 failed asserts
-    ctx.applyCommandLine(argc, argv); // apply command line - argc / argv
-    ctx.setOption("no-breaks", true); // override - don't break in the debugger
-    int res = ctx.run();              // run test cases unless with --no-run
-    if (ctx.shouldExit())             // query flags (and --exit) rely on this
-        return res;                   // propagate the result of the tests
-
-
-    return res; // + your_program_res
 }
