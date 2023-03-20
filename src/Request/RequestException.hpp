@@ -58,6 +58,18 @@ public:
 				return ERR_HEADER_DUPLICATE;
 			}
 		};
+
+		class MissingHeader : public std::exception {
+			const char * what() const throw() {
+				return ERR_HEADER_MISSING_HEADER;
+			}
+		};
+
+		class InvalidValue : public std::exception {
+			const char * what() const throw() {
+				return ERR_HEADER_INVALID_VALUE;
+			}
+		};
 	};
 };
 

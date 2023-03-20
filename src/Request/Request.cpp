@@ -149,6 +149,7 @@ void	Request::_setVersion(std::string &version) {
  * @todo	Spaces in the header value are not allowed?
  * @todo	What if the header value is empty?
  * @todo	length of the header value?
+ * @todo	key or value can't be empty?
  *
  */
 void	Request::_parseHeaders() {
@@ -158,22 +159,40 @@ void	Request::_parseHeaders() {
 	int i;
 
 	while (std::getline(_rawRequest, line)) {
+
+		// Check if the line ends with CRLF
 		if ((i = line.find(CR)) == std::string::npos || _rawRequest.eof())
 			throw RequestException::NoCRLF();
 		line.erase(i, 1);
 
+		// Check if the line is empty
 		if (line.empty())
 			break;
 
+		// Split the line into 2 parts
 		i = line.find(':');
+
+		// Check if the line as a : separator
 		if (i == std::string::npos)
 			throw RequestException::InvalidLine();
+
+		// Get the key
 		key = line.substr(0, i);
+
+		// Uppercase the key
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+
+		// Check if the key is already in the map
 		if (_headers.find(key) != _headers.end())
 			throw RequestException::Header::DuplicateKey();
+
+		// Get the value
 		value = line.substr(i + 1, line.size() - i - 1);
+
+		// Add the key and value to the map
 		_headers[key] = value;
+
+		// Clear the key and value
 		key.clear();
 		value.clear();
 	}
