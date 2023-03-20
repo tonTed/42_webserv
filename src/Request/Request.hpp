@@ -40,6 +40,8 @@ public:
 
 	void _parseHeaders();
 
+	void _parseBody();
+
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;
 	std::map<std::string, std::string>	_headers;

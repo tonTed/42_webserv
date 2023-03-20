@@ -198,4 +198,40 @@ void	Request::_parseHeaders() {
 	}
 }
 
+/**
+ * @brief	Parse the body of the request.
+ * 			Store the body in _body.
+ *
+ * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
+ * @note	Content-Length is mandatory
+ * @note	Content-Type is mandatory
+ * @note	Transfer-Encoding is not supported
+ *
+ */
+ void	Request::_parseBody() {
+	std::string line;
+
+	// Check if the Content-Length header is present
+	if (_headers.find("CONTENT-LENGTH") == _headers.end())
+		throw RequestException::Header::MissingHeader();
+
+	// Check if the Content-Type header is present
+	if (_headers.find("CONTENT-TYPE") == _headers.end())
+		throw RequestException::Header::MissingHeader();
+
+	// Check if the Transfer-Encoding header is present
+	if (_headers.find("TRANSFER-ENCODING") != _headers.end())
+		throw RequestException::Header::MissingHeader();
+
+	// Get the Content-Length
+		// check if the value is a number
+	if (std::for_each(_headers["CONTENT-LENGTH"].begin(), _headers["CONTENT-LENGTH"].end(), ::isdigit))
+		int contentLength = std::stoi(_headers["CONTENT-LENGTH"]);
+	else
+		throw RequestException::Header::InvalidValue();
+
+
+
+ }
+
 Request::~Request() {}
