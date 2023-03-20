@@ -129,8 +129,7 @@ TEST_CASE(" _setType()"){
 	CHECK_NOTHROW(request._setType(token));
 }
 
-TEST_CASE("_setVersion")
-{
+TEST_CASE("_setVersion"){
 	Request request(-1);
 	std::string token;
 
@@ -203,6 +202,60 @@ TEST_CASE("_set<functions> / amount of arguments"){
 
 		ss >> token;
 		CHECK_NOTHROW(request._setVersion(token));
+	}
+}
+
+TEST_CASE("_parseStartLine / amount of arguments"){
+	int client;
+	remove("test/resources/test_data_file");
+	client = creat("test/resources/test_data_file", 0666);
+
+	SUBCASE("No arguments") {
+		char buffer[] = "\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::InvalidLine);
+		close(client);
+	}
+
+	SUBCASE("One argument") {
+		char buffer[] = "GET\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::InvalidLine);
+		close(client);
+	}
+
+	SUBCASE("Two arguments") {
+		char buffer[] = "GET /\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::FirstLine::InvalidLine);
+		close(client);
+	}
+
+	SUBCASE("Three arguments") {
+		char buffer[] = "GET / HTTP/1.1\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_NOTHROW(request._parseStartLine());
+		close(client);
 	}
 }
 
