@@ -9,6 +9,7 @@
  */
 Request::Request(const int client) : _client(client) {}
 
+//TODO: remove all the `throw`
 void	Request::_init() {
 	try {
 		_readSocketData();
@@ -23,6 +24,8 @@ void	Request::_init() {
 		//TODO: send[400] error to client
 	} catch (RequestException::FirstLine::InvalidVersion &e) {
 		//TODO: send[505] error to client
+	} catch (RequestException::FirstLine::InvalidLine &e) {
+		//TODO: send[400] error to client
 	}
 }
 
