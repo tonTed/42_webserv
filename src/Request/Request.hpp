@@ -10,9 +10,9 @@
 #include "RequestException.hpp"
 
 struct startLine {
-	eRequestType	_type;
-	std::string		_path;
-	std::string 	_version;
+	eRequestType	type;
+	std::string		path;
+	std::string 	version;
 };
 
 /**
@@ -32,7 +32,11 @@ public:
 	void _init();
 
 	void _readSocketData();
+
 	void _parseStartLine();
+		void _setType(const std::string &type);
+		void _setPath(const std::string &path);
+		void _setVersion(const std::string &version);
 
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;

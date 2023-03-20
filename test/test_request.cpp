@@ -114,4 +114,24 @@ TEST_CASE("_parseStartLine() / CRLF check") {
 	}
 }
 
+TEST_CASE(" _setType()"){
+
+	Request request(-1);
+
+	CHECK_THROWS_AS(request._setType("GGET"), RequestException::FirstLine::InvalidMethod);
+	CHECK_THROWS_AS(request._setType("gET"), RequestException::FirstLine::InvalidMethod);
+	CHECK_NOTHROW(request._setType("GET"));
+}
+
+TEST_CASE("_setVersion")
+{
+	Request request(-1);
+
+	CHECK_THROWS_AS(request._setVersion("HTTP/1.2"), RequestException::FirstLine::InvalidVersion);
+	CHECK_THROWS_AS(request._setVersion("HTTP/1.0"), RequestException::FirstLine::InvalidVersion);
+	CHECK_THROWS_AS(request._setVersion("HTTP/2.0"), RequestException::FirstLine::InvalidVersion);
+	CHECK_NOTHROW(request._setVersion("HTTP/1.1"));
+
+}
+
 TEST_CASE("clean") { remove("test/resources/test_data_file");}
