@@ -20,16 +20,16 @@ public:
 	pollfd*			pollFdInit();
 
 	//ClientFd
-	const int		pollFdAdd(pollfd* pollFds, const unsigned int& fd);
-	void			pollFdRemove(pollfd* pollFds, const unsigned int& fd);
+	int		pollFdAdd(pollfd* pollFds, const unsigned int& fd);
+	void			pollFdRemove(pollfd* pollFds, int fd);
 	
 	// Set/reset
 	void			pollFdSetFd(pollfd* pollFds, const unsigned int& setToFd, const unsigned int& index);
 	void			pollFdResetFd(pollfd* pollFds, const unsigned int& index);
 
 	//getter
-	const unsigned int	getNbServer() const;
-	const unsigned int	getPollFdSize() const;
+	unsigned int	getNbServer() const;
+	unsigned int	getPollFdSize() const;
 
 	//setter
 	void				setNbServer(const unsigned int& nbServer);
