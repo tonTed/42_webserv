@@ -293,6 +293,18 @@ TEST_CASE("_parseHeader")
 		close(client);
 	}
 
+	SUBCASE("Duplicate Header") {
+		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\nHost:localhost\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/resources/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		request._parseStartLine();
+		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::DuplicateKey);
+		close(client);
+	}
 }
 
 TEST_CASE("clean") { remove("test/resources/test_data_file");}

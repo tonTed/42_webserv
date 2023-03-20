@@ -164,6 +164,8 @@ void	Request::_parseHeaders() {
 		i = line.find(':');
 		key = line.substr(0, i);
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+		if (_headers.find(key) != _headers.end())
+			throw RequestException::Header::DuplicateKey();
 		value = line.substr(i + 1, line.size() - i - 1);
 		_headers[key] = value;
 		key.clear();

@@ -49,6 +49,15 @@ public:
 		};
 
 	};
+
+	class Header {
+	public:
+		class DuplicateKey : public std::exception {
+			const char * what() const throw() {
+				return ERR_HEADER_DUPLICATE;
+			}
+		};
+	};
 };
 
 
