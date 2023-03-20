@@ -5,8 +5,7 @@
 #ifndef HAFID_HPP
 #define HAFID_HPP
 
-#include "../test/doctest.h"
-# include <fstream>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
