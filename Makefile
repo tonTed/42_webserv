@@ -46,7 +46,7 @@ fclean		: clean
 re			: fclean all
 
 utest		: buildrepo
-	$(CC) -std=c++98 $(SRC_TEST) -o utest
+	$(CC) $(CFLAGS) $(SRC_TEST) -o utest
 	@printf $(GREEN)"[$@] program created\n"$(RESET)
 	./utest
 	rm -f utest

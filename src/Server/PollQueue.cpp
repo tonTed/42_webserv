@@ -10,7 +10,7 @@ pollfd*		PollQueue::pollFdInit()
 {
 	pollfd*	pollFds = new pollfd[pollFdSize];
 	
-	for (int i = 0; i < pollFdSize; i++)
+	for (unsigned int i = 0; i < pollFdSize; i++)
 		this->pollFdResetFd(pollFds, i);
 
 	return pollFds;
@@ -20,9 +20,9 @@ pollfd*		PollQueue::pollFdInit()
    Recherche le premier fd = 0 et l'insere a cet endroit
    Renvoie index si aucun erreur / -1 si non inséré
 */
-const int	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
+int	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
 {
-	int i = -1;
+	unsigned int i = -1;
 	
 	while (++i < this->pollFdSize && pollFds[i].fd != 0){}
 	if (i < this->pollFdSize)
@@ -36,9 +36,9 @@ const int	PollQueue::pollFdAdd(pollfd* pollFds, const unsigned int& fd)
 /* Set a 0 le pollFd ayant etant fd = clientFd
    Throw une exception si le fd n'a pas ete trouver
 */ 
-void	PollQueue::pollFdRemove(pollfd* pollFds, const unsigned int& fd)
+void	PollQueue::pollFdRemove(pollfd* pollFds, int fd)
 {
-	int i = -1;
+	unsigned int i = -1;
 
 	while (++i < this->pollFdSize && pollFds[i].fd != fd){}
 	if (i < this->pollFdSize)
@@ -68,8 +68,8 @@ void	PollQueue::pollFdResetFd(pollfd* pollFds, const unsigned int& index)
 
 //Getters--------------
 
-const unsigned int	PollQueue::getNbServer() const {return this->nbServer;}
-const unsigned int	PollQueue::getPollFdSize() const {return this->pollFdSize;}
+unsigned int	PollQueue::getNbServer() const {return this->nbServer;}
+unsigned int	PollQueue::getPollFdSize() const {return this->pollFdSize;}
 
 //setters
 
