@@ -89,10 +89,10 @@ int	Server::addNewClient(const indexInfo_it indexInfoServer)
 	
 	int clientFd = accept(indexInfoServer->second->fd,
 			reinterpret_cast<sockaddr*>(&addr), &addrLen);
-
+	//todo controller la sortie de accept si == -1 (exception ou return)
 	int pollIndex = pollFdAdd(_pollFds, clientFd);
 	_indexInfo.insert(std::pair<unsigned int, indexInfo_t*>(pollIndex, new indexInfo_t));
-//todo return if fail
+	//todo return if fail
 }
 
 const int	Server::pollIndexSignal() const
