@@ -5,6 +5,13 @@ bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
+std::string getPath(const std::string &uri) {
+	(void)uri;
+	if (uri == "/" || uri == "/index.html")
+		return "./data/www/index.html";
+	return "";
+}
+
 Request::Request(const int client) : _client(client) {}
 
 /**
@@ -46,6 +53,8 @@ void	Request::_init() {
 		//TODO: send[400] error to client
 	} catch (RequestException::StartLine::NotAllowedMethod &e) {
 		//TODO: send[405] error to client
+	} catch (RequestException::StartLine::InvalidURI &e) {
+		//TODO: send[404] error to client
 	}
 }
 
@@ -121,10 +130,10 @@ void	Request::_setType(std::string &type) {
 		_startLine.type = GET;
 	else if (type == "POST")
 		_startLine.type = POST;
-	else if (type == "PUT")
-		_startLine.type = PUT;
 	else if (type == "DELETE")
 		_startLine.type = DELETE;
+	else if (type == "PUT")
+		_startLine.type = PUT;
 	else if (type == "HEAD")
 		_startLine.type = HEAD;
 	else if (type == "OPTIONS")
@@ -156,7 +165,11 @@ void	Request::_setType(std::string &type) {
 void	Request::_setPath(std::string &path) {
 	if (path.empty())
 		throw RequestException::InvalidLine();
-	_startLine.path = path;
+	if (path[0] != '/')
+		throw RequestException::StartLine::InvalidURI();
+	_startLine.path = getPath(path);
+	if (_startLine.path.empty())
+		throw RequestException::StartLine::InvalidURI();
 	path.clear();
 }
 

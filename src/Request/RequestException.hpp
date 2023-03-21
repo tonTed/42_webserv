@@ -55,6 +55,12 @@ public:
 			}
 		};
 
+		class InvalidURI : public std::exception {
+			const char * what() const throw() {
+				return ERR_START_LINE_INVALID_URI;
+			}
+		};
+
 	};
 
 	class Header {
