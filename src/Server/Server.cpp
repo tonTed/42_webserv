@@ -8,11 +8,19 @@ Server::~Server()
 
 }
 
+//TEMP DEFINE
+#define CONFIG_SERVER_NB 2
+#define CONFIG_MAX_CLIENT 10
+#define CONFIG_POLLTIMEOUT -1
+int CONFIG_SERVER_NBPORT[2] = {1, 2};
+#define CONFIG_SERVER_MAXHEADERSIZE 300
+int CONFIG_SERVER_PORTS_BACKLOG[3] = {5, 5, 5}; //changer en double dimension mais sera surement fix
+uint16_t CONFIG_SERVER_PORTS[3] = {8080, 8081, 8082};
+
 void	Server::configToServer(const ConfigServer& config)
 {
 	this->nbServer = CONFIG_SERVER_NB;
 	this->maxClient = CONFIG_MAX_CLIENT;
-	this->_pollTimeOut = -1;
 	this->_pollTimeOut = CONFIG_POLLTIMEOUT;
 	this->_nbFdServer = 0;
 	//PORT COPY
@@ -25,7 +33,7 @@ void	Server::configToServer(const ConfigServer& config)
 			indexInfoIt(_nbFdServer)->second->isServer = true;
 			indexInfoIt(_nbFdServer)->second->maxHeaderSize = CONFIG_SERVER_MAXHEADERSIZE;
 			indexInfoIt(_nbFdServer)->second->portBacklog = CONFIG_SERVER_PORTS_BACKLOG[iPort];
-			indexInfoIt(_nbFdServer)->second->port = CONFIG_SERVER_PORTS;
+			indexInfoIt(_nbFdServer)->second->port = CONFIG_SERVER_PORTS[iPort];
 			this->_nbFdServer++;
 		}
 	}
@@ -33,32 +41,32 @@ void	Server::configToServer(const ConfigServer& config)
 	this->pollFdSize = this->_nbFdServer + this->maxClient;
 }
 
-void	Server::setUpServer()
+void	Server::ServerBooting()
 {
 	int opt = 1;
+	sockaddr_in addr;
 
 	for (int iSocket = 0; iSocket < this->_nbFdServer; iSocket++)
 	{
 		//SET SERVER SOCKET (FD)
 		if (this->_indexInfo.find(iSocket)->second->fd == socket(AF_INET, SOCK_STREAM, 0) < 0)
-			throw Server::FctSocketException();
+			throw ServerException::FctSocketFail();
 
 		//OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
 		if (setsockopt(indexInfoIt(_nbFdServer)->second->fd,
 				SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
-			throw Server::FctSetsockoptException();
+			throw ServerException::FctSetsockoptFail();
 
 		//BINDING PORT AND SOCKET
-		sockaddr_in addr;
 		setAddrServer(addr, indexInfoIt(_nbFdServer)->second->port);
 		if (bind(indexInfoIt(_nbFdServer)->second->fd,
 				reinterpret_cast<const sockaddr*>(&addr), sizeof(addr) < 0))
-			throw Server::FctBindException();
+			throw ServerException::FctBindFail();
 
 		//LISTENING
 		if (listen(indexInfoIt(_nbFdServer)->second->fd,
 				indexInfoIt(_nbFdServer)->second->portBacklog) < 0)
-			throw Server::FctBindException();
+			throw ServerException::FctBindFail();
 
 		//ADDING SOCKET TO pollFds
 		this->pollFdSetFd(this->_pollFds, this->_indexInfo.find(iSocket)->second->fd, iSocket);
@@ -66,6 +74,20 @@ void	Server::setUpServer()
 }
 	
 void	Server::routine()
+{
+	try
+	{
+		ServerBooting();
+		ServerPollLoop();
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl
+					<< "Server stop!" << std::endl;
+	}
+}
+
+void	Server::ServerPollLoop()
 {
 	int	activeClient = 0;
 	int signalIndex;
@@ -137,24 +159,4 @@ void	Server::setAddrServer(sockaddr_in& addr, uint16_t port)
 }
 
 
-//Exception---------------
 
-const char*	Server::FctSocketException::what() const throw()
-{
-	return ("Error: Server::SetUpServer: socket function fail*");
-}
-
-const char*	Server::FctSetsockoptException::what() const throw()
-{
-	return ("Error: Server::SetUpServer: setsockopt function fail*");
-}
-
-const char*	Server::FctBindException::what() const throw()
-{
-	return ("Error: Server::SetUpServer: bind function fail*");
-}
-
-const char*	Server::FctListenException::what() const throw()
-{
-	return ("Error: Server::SetUpServer: listen function fail*");
-}

@@ -61,6 +61,9 @@ run			: all
 mock		: all
 	./$(NAME) -m
 
+pdf			:
+	@open subject/webserv.pdf
+
 # Create  repo of objects!
 buildrepo	:
 	$(HIDE)$(call make-repo)

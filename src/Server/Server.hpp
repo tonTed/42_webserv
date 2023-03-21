@@ -10,6 +10,8 @@
 
 # include "PollQueue.hpp"
 # include "../ConfigServer/ConfigServer.hpp"
+# include "../../includes/martin.hpp"
+# include "ServerException.hpp"
 
 typedef struct indexInfo_s
 {
@@ -39,8 +41,9 @@ public:
 	void				configToServer(const ConfigServer& config);
 
 
-	void				setUpServer();
 	void				routine();
+	void				ServerBooting();
+	void				ServerPollLoop();
 
 	int					addNewClient(const indexInfo_it indexInfoServer);
 
@@ -53,31 +56,6 @@ public:
 
 	//todo faire fonction ajout et remove de indexInfo
 
-	//Exceptions
-
-	class	FctSocketException: public std::exception
-	{
-		public:
-			virtual const char* what() const throw();
-	};
-
-	class	FctSetsockoptException: public std::exception
-	{
-		public:
-			virtual const char* what() const throw();
-	};
-
-	class	FctBindException: public std::exception
-	{
-		public:
-			virtual const char* what() const throw();
-	};
-
-	class	FctListenException: public std::exception
-	{
-		public:
-			virtual const char* what() const throw();
-	};
 
 };
 
