@@ -433,4 +433,20 @@ TEST_CASE("Request::_parseStartLine / Method not allowed"){
 	}
 }
 
+TEST_CASE("Request::_parseBody"){
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+
+	SUBCASE("Content-Length is not a number"){
+		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\n\r\nHello";
+
+		Request request(writeCloseOpen(client, buffer));
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+//		CHECK_NOTHROW_MESSAGE(request._parseBody(), "Bode is valid");
+	}
+}
+
 TEST_CASE("Request::clean") { remove("test/test_data_file");}

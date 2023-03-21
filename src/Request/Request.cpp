@@ -1,3 +1,4 @@
+#include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
 
@@ -5,8 +6,9 @@ bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
-std::string getPath(const std::string &uri) {
+std::string getPath(const std::string &uri, const eRequestType method) {
 	(void)uri;
+	(void)method;
 	if (uri == "/" || uri == "/index.html")
 		return "./data/www/index.html";
 	return "";
@@ -23,16 +25,13 @@ Request::Request(const int client) : _client(client) {}
  *
  * 	@note if an error occurs, the server will send an error to the client.
  *
- * 	@throw RequestException::ReadError if the client socket is invalid.
- * 			RequestException::MaxSize if the request size is bigger than MAX_REQUEST_SIZE.
- *
- *
  */
 void	Request::_init() {
 	try {
 		_readSocketData();
 		_parseStartLine();
 		_parseHeaders();
+//		_parseBody();
 	} catch (RequestException::ReadError &e) {
 		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
@@ -167,7 +166,7 @@ void	Request::_setPath(std::string &path) {
 		throw RequestException::InvalidLine();
 	if (path[0] != '/')
 		throw RequestException::StartLine::InvalidURI();
-	_startLine.path = getPath(path);
+	_startLine.path = getPath(path, _startLine.type);
 	if (_startLine.path.empty())
 		throw RequestException::StartLine::InvalidURI();
 	path.clear();
@@ -193,6 +192,13 @@ void	Request::_setVersion(std::string &version) {
 	version.clear();
 }
 
+void print_map(std::map<std::string, std::string> &m) {
+	std::map<std::string, std::string>::iterator it = m.begin();
+	while (it != m.end()) {
+		std::cout << it->first << " : " << it->second << std::endl;
+		it++;
+	}
+}
 
 /**
  * @brief	Parse the headers of the request.
@@ -272,13 +278,16 @@ void	Request::_parseHeaders() {
 			throw RequestException::Header::InvalidValue();
 
 		// Add the key and value to the map
-		_headers[key] = value;
+		_headers.insert(std::pair<std::string, std::string>(key, value));
+		std::cout << "> headers: " << std::endl;
+		print_map(_headers);
 
 		// Clear the key and value
 		key.clear();
 		value.clear();
 	}
 }
+
 
 /**
  * @brief	Parse the body of the request.
@@ -293,29 +302,20 @@ void	Request::_parseHeaders() {
  void	Request::_parseBody() {
 	std::string line;
 
+	std::cout << "headers: " << std::endl;
+	print_map(_headers);
+
 	// Check if the Content-Length header is present
 	if (_headers.find("CONTENT-LENGTH") == _headers.end())
 		throw RequestException::Header::MissingHeader();
 
-	// Check if the Content-Type header is present
-	if (_headers.find("CONTENT-TYPE") == _headers.end())
-		throw RequestException::Header::MissingHeader();
-
-	// Check if the Transfer-Encoding header is present
-	if (_headers.find("TRANSFER-ENCODING") != _headers.end())
-		throw RequestException::Header::MissingHeader();
-
 	// Get the Content-Length
-		// check if the value is a number
-	if (std::for_each(_headers["CONTENT-LENGTH"].begin(), _headers["CONTENT-LENGTH"].end(), ::isdigit))
-	{
-		int contentLength = std::stoi(_headers["CONTENT-LENGTH"]);
-		(void)contentLength;
-	}
-	else
-		throw RequestException::Header::InvalidValue();
-
-
+	// check if the value is a number
+	int contentLength;
+	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
+	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
+	std::cout << "contentLength: " << contentLength << std::endl;
+	std::cout << "body: " << _rawRequest.rdbuf() << std::endl;
  }
 
 Request::~Request() {}
