@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <iostream>
+#include <fstream>
 
 // TODO: remove this
 void	mock_server()
@@ -34,9 +36,23 @@ void	mock_server()
 		char	buffer[MAX_REQUEST_SIZE + 2];
 		int 	ret_read = read(sock_client, buffer, MAX_REQUEST_SIZE + 2);
 		{ if (ret_read == -1){ std::cout << "Error reading socket" << std::endl; return ; }}
+		buffer[ret_read] = '\0';
 		std::cout << buffer << std::endl;
 
-		std::string response = "HTTP/1.1 200 OK\nContent-Length: 12\r\n\r\nHello World!";
+		std::string response = "HTTP/1.1 200 OK\r\n";
+		std::string tmp;
+
+		std::ifstream index("./data/www/index.html");
+		if (index.is_open()){
+			std::string line;
+			while (getline(index, line)) {tmp += line;}
+			index.close();
+		}
+		else { response += "Error opening file"; }
+
+		response += "Content-Length: " + std::to_string(tmp.size()) + "\r\n\r\n";
+		response += tmp;
+
 		int ret_write = write(sock_client, response.c_str(), response.size());
 		{ if (ret_write == -1){ std::cout << "Error writing socket" << std::endl; return ; }}
 
