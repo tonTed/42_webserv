@@ -1,6 +1,10 @@
 #include "Request.hpp"
 #include "unistd.h"
 
+bool	isAllowedMethod(const eRequestType method) {
+	return (method == GET || method == POST || method == DELETE);
+}
+
 Request::Request(const int client) : _client(client) {}
 
 /**
@@ -28,9 +32,9 @@ void	Request::_init() {
 		//TODO: send[494] error to client
 	} catch (RequestException::NoCRLF &e) {
 		//TODO: send[400] error to client
-	} catch (RequestException::FirstLine::InvalidMethod &e) {
+	} catch (RequestException::StartLine::InvalidMethod &e) {
 		//TODO: send[400] error to client
-	} catch (RequestException::FirstLine::InvalidVersion &e) {
+	} catch (RequestException::StartLine::InvalidVersion &e) {
 		//TODO: send[505] error to client
 	} catch (RequestException::InvalidLine &e) {
 		//TODO: send[400] error to client
@@ -40,6 +44,8 @@ void	Request::_init() {
 		//TODO: send[400] error to client
 	} catch (RequestException::Header::InvalidValue &e) {
 		//TODO: send[400] error to client
+	} catch (RequestException::StartLine::NotAllowedMethod &e) {
+		//TODO: send[405] error to client
 	}
 }
 
@@ -98,7 +104,7 @@ void	Request::_parseStartLine() {
 		ss >> tmp;
 		_setVersion(tmp);
 
-	} catch (RequestException::FirstLine &e) {
+	} catch (RequestException::StartLine &e) {
 		throw e;
 	}
 
@@ -130,7 +136,9 @@ void	Request::_setType(std::string &type) {
 	else if (type == "PATCH")
 		_startLine.type = PATCH;
 	else
-		throw RequestException::FirstLine::InvalidMethod();
+		throw RequestException::StartLine::InvalidMethod();
+	if (!isAllowedMethod(_startLine.type))
+		throw RequestException::StartLine::NotAllowedMethod();
 	type.clear();
 }
 
@@ -168,7 +176,7 @@ void	Request::_setVersion(std::string &version) {
 		throw RequestException::InvalidLine();
 	_startLine.version = version;
 	if (_startLine.version.compare(HTTP_VERSION))
-		throw RequestException::FirstLine::InvalidVersion();
+		throw RequestException::StartLine::InvalidVersion();
 	version.clear();
 }
 
@@ -201,10 +209,6 @@ void	Request::_setVersion(std::string &version) {
  * @note	case-insensitive
  *
  * @throw RequestException::NoCRLF if the line doesn't end with CRLF
- *
- * @todo	What if the header value is empty?
- * @todo	length of the header value?
- * @todo	key or value can't be empty?
  *
  */
 void	Request::_parseHeaders() {

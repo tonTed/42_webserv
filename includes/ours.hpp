@@ -27,6 +27,7 @@
 
 # define ERR_START_LINE_INVALID_METHOD "Invalid start line: invalid method"
 # define ERR_START_LINE_INVALID_VERSION "Invalid start line: invalid version"
+# define ERR_START_LINE_NOT_ALLOWED_METHOD "Invalid start line: not allowed method"
 
 # define ERR_HEADER_DUPLICATE "Invalid header: duplicate header"
 # define ERR_HEADER_MISSING_HEADER "Invalid header: missing header"

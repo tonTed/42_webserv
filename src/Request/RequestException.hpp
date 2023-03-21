@@ -34,7 +34,7 @@ public:
 		}
 	};
 
-	class FirstLine {
+	class StartLine {
 	public:
 
 		class InvalidMethod : public std::exception {
@@ -46,6 +46,12 @@ public:
 		class InvalidVersion : public std::exception {
 			const char * what() const throw() {
 				return ERR_START_LINE_INVALID_VERSION;
+			}
+		};
+
+		class NotAllowedMethod : public std::exception {
+			const char * what() const throw() {
+				return ERR_START_LINE_NOT_ALLOWED_METHOD;
 			}
 		};
 

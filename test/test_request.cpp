@@ -120,10 +120,10 @@ TEST_CASE("Request::_setType() / method check"){
 	std::string token;
 
 	token = "GGET";
-	CHECK_THROWS_AS(request._setType(token), RequestException::FirstLine::InvalidMethod);
+	CHECK_THROWS_AS(request._setType(token), RequestException::StartLine::InvalidMethod);
 
 	token = "gET";
-	CHECK_THROWS_AS(request._setType(token), RequestException::FirstLine::InvalidMethod);
+	CHECK_THROWS_AS(request._setType(token), RequestException::StartLine::InvalidMethod);
 
 	token = "GET";
 	CHECK_NOTHROW(request._setType(token));
@@ -134,9 +134,9 @@ TEST_CASE("Request::_setVersion / version check"){
 	std::string token;
 
 	token = "HTTP/1.0";
-	CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidVersion);
+	CHECK_THROWS_AS(request._setVersion(token), RequestException::StartLine::InvalidVersion);
 	token = "HTTP/2.0";
-	CHECK_THROWS_AS(request._setVersion(token), RequestException::FirstLine::InvalidVersion);
+	CHECK_THROWS_AS(request._setVersion(token), RequestException::StartLine::InvalidVersion);
 	token = "HTTP/1.1";
 	CHECK_NOTHROW(request._setVersion(token));
 
@@ -462,6 +462,47 @@ TEST_CASE("Request::_parseHeader / value check") {
 		request._parseStartLine();
 		CHECK_NOTHROW_MESSAGE(request._parseHeaders(), "Host header value should be 'a'");
 		CHECK_MESSAGE(request._headers["HOST"] == "a", "Host header value should be 'a'");
+	}
+
+
+}
+
+TEST_CASE("Request::_parseStartLine / Method not allowed"){
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+
+	SUBCASE("Method not allowed HEAD"){
+		char buffer[] = "HEAD / HTTP/1.1\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::StartLine::NotAllowedMethod);
+	}
+
+	SUBCASE("Method not allowed PATCH"){
+		char buffer[] = "PATCH / HTTP/1.1\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_THROWS_AS(request._parseStartLine(), RequestException::StartLine::NotAllowedMethod);
+	}
+
+	SUBCASE("Method allowed POST"){
+		char buffer[] = "POST / HTTP/1.1\r\n";
+		write(client, buffer, strlen(buffer));
+		close(client);
+		client = open("test/test_data_file", O_RDONLY);
+
+		Request request(client);
+		request._readSocketData();
+		CHECK_NOTHROW_MESSAGE(request._parseStartLine(), "Method POST should be allowed");
 	}
 
 
