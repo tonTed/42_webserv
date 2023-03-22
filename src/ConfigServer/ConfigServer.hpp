@@ -7,8 +7,9 @@
 class ConfigServer
 {
   private:
-	std::vector<Server> _servers;
+	// std::vector<Server> _servers;
 	bool _goodFile;
+	unsigned int _serverNumber; 
 	// std::string _host;
 	// std::string _port;
 	// std::string _server_name;
@@ -21,6 +22,7 @@ class ConfigServer
 
 	ConfigServer &operator=(const ConfigServer &Config);
 
+	std::string getFile(const std::string paramFile);
 	bool lineNeeded(const std::string line);
 	std::string cleanedLine(std::string line);
 	bool readFile(const std::string inFile, std::string &stringLine);

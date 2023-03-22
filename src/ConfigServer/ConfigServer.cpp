@@ -11,8 +11,9 @@ ConfigServer::ConfigServer(const ConfigServer &config)
 	*this = config;
 }
 
-ConfigServer::ConfigServer(const std::string file)
+ConfigServer::ConfigServer(const std::string paramFile)
 {
+	std::string file = getFile(paramFile);
 	std::string stringFile = "";
 	// std::cout << "File: " << file << std::endl;
 	if (!readFile(file, stringFile))
@@ -42,12 +43,13 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 		std::cout << YELLOW << "Server name: " << RESET << getKeywordValue(*it, "server_name") << std::endl;
 		std::cout << YELLOW << "Client Size: " << RESET << getKeywordValue(*it, "client_size") << std::endl
 				  << std::endl;
-		std::vector<std::string> locationBlocks = getLocationBlocks(*it);
-		for (std::vector<std::string>::const_iterator itr = locationBlocks.begin(); itr != locationBlocks.end(); ++itr)
-		{
-			//     // Process each server block here
-			std::cout << YELLOW << "Location block: " << RESET << *itr << std::endl;
-		}
+		// std::vector<std::string> locationBlocks = getLocationBlocks(*it);
+		// for (std::vector<std::string>::const_iterator itr = locationBlocks.begin(); itr != locationBlocks.end(); ++itr)
+		// {
+		// 	//     // Process each server block here
+		// 	std::cout << YELLOW << "Location block: " << RESET << *itr << std::endl;
+		// }
+		std::cout << "_serverNumber::"  << this->_serverNumber << std::endl;
 	}
 }
 
@@ -72,21 +74,22 @@ ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 
 	* @return return the givent file Path if it works otherwise throw an error.
  */
-std::string getFile(int argc, const char **argv)
+std::string ConfigServer::getFile(const std::string paramFile)
 {
 	std::string configFile = "configFiles/default.config";
-	if (argc == 2)
+	if (paramFile != "default")
 	{
-		configFile = argv[1];
-		std::ifstream f(configFile.c_str());
-		if (!f.good())
-			throw std::runtime_error("File not found!");
+		std::ifstream f(paramFile.c_str());
+		if (f.good())
+			return (paramFile);
+		std::cout << BOLD_RED << "Bad File Given in Param! " << RESET << std::endl;
 	}
 	else
 	{
+		std::cout << BOLD_RED << "Using default config file! " << RESET << std::endl;
 		std::ifstream f(configFile.c_str());
 		if (!f.good())
-			throw std::runtime_error("Default config file not found!");
+			throw std::runtime_error("Default config file not found or no permissions! ⛔️");
 	}
 	return (configFile);
 }
@@ -117,6 +120,7 @@ std::string ConfigServer::cleanedLine(std::string line)
 	int j;
 	const char *str;
 	size_t commentPos;
+	bool found_first_space = false;
 
 	i = 0;
 	j = static_cast<int>(line.length()) - 1;
@@ -128,7 +132,29 @@ std::string ConfigServer::cleanedLine(std::string line)
 		j--;
 	if (commentPos != std::string::npos && commentPos > static_cast<size_t>(i))
 		j = static_cast<int>(commentPos - 1);
-	return (line.substr(i, j - i + 1) + "\n");
+	std::string ret = line.substr(i, j - i + 1);
+	for (std::string::iterator it = ret.begin(); it != ret.end();)
+	{
+		if (std::isspace(*it))
+		{
+			if (!found_first_space)
+			{
+				*it = ' ';
+				found_first_space = true;
+				++it;
+			}
+			else
+				it = ret.erase(it);
+		}
+		else
+		{
+			found_first_space = false;
+			++it;
+		}
+	}
+	// std::cout << "Ret: " << ret << std::endl;
+
+	return (ret);
 }
 
 /**
@@ -164,7 +190,8 @@ std::vector<std::string> ConfigServer::getServerBlocks(const std::string &config
 
 	std::vector<std::string> serverBlocks;
 	std::string::size_type pos = 0;
-	while ((pos = configStr.find("server", pos)) != std::string::npos)
+	// std::string::size_type bracePos = configStr.find("{", pos);
+	while ((pos = configStr.find("server {", pos)) != std::string::npos)
 	{
 		std::string::size_type bracePos = configStr.find("{", pos);
 		if (bracePos != std::string::npos)
@@ -184,12 +211,36 @@ std::vector<std::string> ConfigServer::getServerBlocks(const std::string &config
 				std::string serverBlock = configStr.substr(pos, endPos - pos);
 				serverBlocks.push_back(serverBlock);
 				pos = endPos;
+				this->_serverNumber++;
 				continue;
 			}
 		}
 		break; // Handle error: opening brace not found
+		std::cout << BOLD_RED << "Error: opening brace not found! " << RESET << std::endl;
 	}
 	return (serverBlocks);
+}
+
+bool checkServerBlock(const std::string &server)
+{
+	std::string::size_type pos = 0;
+	std::string::size_type bracePos = server.find("{", pos);
+	if (bracePos != std::string::npos)
+	{
+		std::string::size_type endPos = bracePos + 1;
+		int braceCount = 1;
+		while (braceCount > 0 && endPos < server.length())
+		{
+			if (server[endPos] == '{')
+				braceCount++;
+			else if (server[endPos] == '}')
+				braceCount--;
+			endPos++;
+		}
+		if (braceCount == 0)
+			return (true);
+	}
+	return (false);
 }
 
 /**
@@ -270,22 +321,20 @@ std::string ConfigServer::getPort(const std::string &configStr)
 std::string ConfigServer::getKeywordValue(const std::string &configStr,
 										  const std::string &derective)
 {
-	std::string server_name;
+	std::string keyWord;
 	std::string::size_type pos = configStr.find(derective);
 	if (pos != std::string::npos)
 	{
-		pos += derective.length(); // skip "server_name "
+		pos += derective.length(); // skip "keyWord "
 		std::string::size_type endPos = configStr.find(";", pos);
 		if (endPos != std::string::npos)
 		{
 			while (pos < endPos && isspace(configStr[pos]))
 				pos++;
-			server_name = configStr.substr(pos, endPos - pos);
+			keyWord = configStr.substr(pos, endPos - pos);
 		}
 		else
-			server_name = configStr.substr(pos);
+			keyWord = configStr.substr(pos);
 	}
-	return (server_name);
+	return (keyWord);
 }
-
-
