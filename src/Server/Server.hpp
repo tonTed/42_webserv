@@ -7,6 +7,7 @@
 # include <netdb.h> //struct sockaddr_in
 # include <arpa/inet.h> //htons
 # include <map>
+# include <unistd.h> //close
 
 # include "PollQueue.hpp"
 # include "../ConfigServer/ConfigServer.hpp"

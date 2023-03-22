@@ -31,6 +31,11 @@ public:
 			virtual const char* what() const throw() {return (SERR_LISTEN_FAIL);}
 	};
 
+	class	FctAcceptFail: public std::exception
+	{
+		public:
+			virtual const char* what() const throw() {return (SERR_ACCEPT_FAIL);}
+	};
 };
 
 #endif

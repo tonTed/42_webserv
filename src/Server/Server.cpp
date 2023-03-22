@@ -17,6 +17,7 @@ int CONFIG_SERVER_NBPORT[2] = {1, 2};
 int CONFIG_SERVER_PORTS_BACKLOG[3] = {5, 5, 5}; //changer en double dimension mais sera surement fix
 uint16_t CONFIG_SERVER_PORTS[3] = {8080, 8081, 8082};
 
+//PONT ENTRE CONFIG ET SERVER + SET D'AUTRE VARIABLE
 void	Server::configToServer(const ConfigServer& config)
 {
 	this->nbServer = CONFIG_SERVER_NB;
@@ -41,6 +42,7 @@ void	Server::configToServer(const ConfigServer& config)
 	this->pollFdSize = this->_nbFdServer + this->maxClient;
 }
 
+//Creation des servers socket (listen socket)
 void	Server::ServerBooting()
 {
 	int opt = 1;
@@ -98,10 +100,13 @@ void	Server::ServerPollLoop()
 			std::cout << "POLL ERROR HANDLER" << std::endl;
 		if (signalIndex = pollIndexSignal() >= 0)
 		{
-			if (indexInfoIt(signalIndex)->second->serverNo >= 0)
+			if (indexInfoIt(signalIndex)->second->isServer == true)
 			{
 				//REQUEST FROM SERVER
-				addNewClient(indexInfoIt(signalIndex));
+				if (addNewClient(indexInfoIt(signalIndex)) == 0)
+					//REQUEST
+				else
+					// BUSY PAGE
 				//TODO gestion retour fail
 			}
 			else
@@ -122,10 +127,17 @@ int	Server::addNewClient(const indexInfo_it indexInfoServer)
 	
 	int clientFd = accept(indexInfoServer->second->fd,
 			reinterpret_cast<sockaddr*>(&addr), &addrLen);
-	//todo controller la sortie de accept si == -1 (exception ou return)
-	int pollIndex = pollFdAdd(_pollFds, clientFd);
-	_indexInfo.insert(std::pair<unsigned int, indexInfo_t*>(pollIndex, new indexInfo_t));
-	//todo return if fail
+	if (clientFd < 0)
+		throw ServerException::FctAcceptFail();
+	
+	if (int pollIndex = pollFdAdd(_pollFds, clientFd) < 0)
+	{
+		_indexInfo.insert(std::pair<unsigned int, indexInfo_t*>(pollIndex, new indexInfo_t));
+		return 0;
+	}
+	//TODO RESPONSE busy page
+	close(clientFd);
+	return -1;
 }
 
 /*Return the first index of pollFds that have revents = POLLIN

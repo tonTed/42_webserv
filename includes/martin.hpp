@@ -10,6 +10,7 @@
 # define SERR_SETSOCKOPT_FAIL "Error: ServerBooting: setsockopt function fail"
 # define SERR_BIND_FAIL "Error: ServerBooting: bind function fail"
 # define SERR_LISTEN_FAIL "Error: ServerBooting: listen function fail"
+# define SERR_ACCEPT_FAIL "Error: addNewClient: accept function fail"
 
 
 
