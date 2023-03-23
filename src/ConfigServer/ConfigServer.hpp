@@ -28,15 +28,19 @@ class ConfigServer
 	bool readFile(const std::string inFile, std::string &stringLine);
 	std::vector<std::string> getServerBlocks(const std::string& configStr);
 	std::vector<std::string> getLocationBlocks(const std::string& configStr);
-	std::string getHost(const std::string& configStr);
-	std::string getPort(const std::string& configStr);
+	// std::string getHost(const std::string& configStr);
+	std::vector<std::string> getHosts(const std::string& configStr);
+	std::vector<int> getPorts(const std::string& configStr);
 	std::string getKeywordValue(const std::string& configStr, const std::string& derective);
 
 	void printBLocks(std::vector<std::string> &serverBlocks);
 };
 
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
-std::string getFile(int argc, const char **argv);
+std::string getline_with_newline(std::istream& input);
+bool isrealspace(char c);
+
+
 
 //#include <map>
 //

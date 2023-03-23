@@ -38,8 +38,23 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 		//     // Process each server block here
 		std::cout << YELLOW << "Server block: " << RESET << *it << std::endl
 				  << std::endl;
-		std::cout << YELLOW << "Host: " << RESET << getHost(*it) << std::endl;
-		std::cout << YELLOW << "Port: " << RESET << getPort(*it) << std::endl;
+		std::vector<std::string> hosts = getHosts(*it);
+		std::cout << YELLOW << "hosts: " << RESET;
+		for (std::vector<std::string>::const_iterator itr = hosts.begin(); itr != hosts.end(); ++itr)
+		{
+			//     // Process each server block here
+			std::cout << *itr << ' ';
+		}
+		std::cout << std::endl;
+
+		std::vector<int> ports = getPorts(*it);
+		std::cout << YELLOW << "Ports: " << RESET;
+		for (std::vector<int>::const_iterator itr = ports.begin(); itr != ports.end(); ++itr)
+		{
+			//     // Process each server block here
+			std::cout << *itr << ' ';
+		}
+		std::cout << std::endl;
 		std::cout << YELLOW << "Server name: " << RESET << getKeywordValue(*it, "server_name") << std::endl;
 		std::cout << YELLOW << "Client Size: " << RESET << getKeywordValue(*it, "client_size") << std::endl
 				  << std::endl;
@@ -49,7 +64,7 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 		// 	//     // Process each server block here
 		// 	std::cout << YELLOW << "Location block: " << RESET << *itr << std::endl;
 		// }
-		std::cout << "_serverNumber::"  << this->_serverNumber << std::endl;
+		std::cout << "_serverNumber::" << this->_serverNumber << std::endl;
 	}
 }
 
@@ -128,14 +143,14 @@ std::string ConfigServer::cleanedLine(std::string line)
 	commentPos = line.find("#");
 	while (i < j && std::isspace(static_cast<int>(str[i])))
 		i++;
-	while (j > i && std::isspace(static_cast<int>(str[j])))
+	while (j > i && isrealspace(static_cast<int>(str[j])))
 		j--;
 	if (commentPos != std::string::npos && commentPos > static_cast<size_t>(i))
 		j = static_cast<int>(commentPos - 1);
 	std::string ret = line.substr(i, j - i + 1);
 	for (std::string::iterator it = ret.begin(); it != ret.end();)
 	{
-		if (std::isspace(*it))
+		if (*it != '\n' && std::isspace(*it))
 		{
 			if (!found_first_space)
 			{
@@ -152,8 +167,6 @@ std::string ConfigServer::cleanedLine(std::string line)
 			++it;
 		}
 	}
-	// std::cout << "Ret: " << ret << std::endl;
-
 	return (ret);
 }
 
@@ -169,10 +182,14 @@ bool ConfigServer::readFile(const std::string inFile, std::string &stringLine)
 {
 	std::ifstream file(inFile.c_str());
 	std::string line = "";
-	while (std::getline(file, line))
+
+	while (!(line = getline_with_newline(file)).empty())
 	{
 		if (lineNeeded(line))
+		{
+			// std::cout << "line: " << cleanedLine(line) ;
 			stringLine += cleanedLine(line);
+		}
 	}
 	file.close();
 	return (true);
@@ -190,7 +207,6 @@ std::vector<std::string> ConfigServer::getServerBlocks(const std::string &config
 
 	std::vector<std::string> serverBlocks;
 	std::string::size_type pos = 0;
-	// std::string::size_type bracePos = configStr.find("{", pos);
 	while ((pos = configStr.find("server {", pos)) != std::string::npos)
 	{
 		std::string::size_type bracePos = configStr.find("{", pos);
@@ -215,8 +231,8 @@ std::vector<std::string> ConfigServer::getServerBlocks(const std::string &config
 				continue;
 			}
 		}
-		break; // Handle error: opening brace not found
 		std::cout << BOLD_RED << "Error: opening brace not found! " << RESET << std::endl;
+		break; // Handle error: opening brace not found
 	}
 	return (serverBlocks);
 }
@@ -265,26 +281,61 @@ std::vector<std::string> ConfigServer::getLocationBlocks(const std::string &conf
 	return (locationBlocks);
 }
 
-std::string ConfigServer::getHost(const std::string &configStr)
+std::vector<std::string>  ConfigServer::getHosts(const std::string &configStr)
 {
+	std::vector<std::string>  hosts;
 	std::string host;
-	std::string::size_type pos = configStr.find("listen");
+	std::string::size_type pos = 0;
 	// std::cout << "pos: " << pos << std::endl;
-	if (pos != std::string::npos)
+	while ((pos = configStr.find("listen", pos)) != std::string::npos)
 	{
+		std::cout << "FIRST Pos " << pos << std::endl;
 		pos += 6; // skip "listen "
-		std::string::size_type endPos = configStr.find(":", pos);
-		if (endPos != std::string::npos)
+		std::cout << "Pos + 6::: " << pos << std::endl;
+		std::string::size_type endPos = configStr.find(";", pos);
+		while ((endPos = configStr.find(";", pos)) != std::string::npos)
 		{
-			while (pos < endPos && isspace(configStr[pos]))
-				pos++;
-			host = configStr.substr(pos, endPos - pos);
+			std::string::size_type colonPos = configStr.find(":", pos);
+			if (colonPos != std::string::npos && colonPos < endPos)
+			{
+				std::cout << "colonPos::: " << colonPos << std::endl;
+				std::cout << "Pos::: " << pos << std::endl;
+				host = configStr.substr(pos, colonPos - pos);
+				hosts.push_back(host);
+				pos += host.length();
+			}
+			else if (colonPos == std::string::npos)
+			{
+				std::cout << "colonPos: " << colonPos << std::endl;
+				std::cout << "Pos: " << pos << std::endl;
+				host = configStr.substr(pos, endPos - pos);
+				hosts.push_back(host);
+			}
 		}
-		else
-			host = configStr.substr(pos);
 	}
-	return (host);
+	return (hosts);
 }
+
+// {
+// 	std::vector<std::string>  hosts;
+// 	std::string::size_type pos = 0;
+// 	// std::cout << "pos: " << pos << std::endl;
+// 	while ((pos = configStr.find("listen", pos)) != std::string::npos)
+// 	{
+// 		pos += 6; // skip "listen "
+// 		std::string::size_type endPos = configStr.find(":", pos);
+// 		// std::cout << "endPos: " << endPos << std::endl;
+// 		if (endPos != std::string::npos)
+// 		{
+// 			while (pos < endPos && isspace(configStr[pos]))
+// 				pos++;
+// 			hosts.push_back(configStr.substr(pos, endPos - pos));
+// 		}
+// 		// else
+// 		// 	hosts = configStr.substr(pos);
+// 	}
+// 	return (hosts);
+// }
 
 /**
  * @brief Get the port from the config string
@@ -292,11 +343,12 @@ std::string ConfigServer::getHost(const std::string &configStr)
  * @param configStr The block to get the port from
  * @return std::string the port value
  */
-std::string ConfigServer::getPort(const std::string &configStr)
+std::vector<int> ConfigServer::getPorts(const std::string &configStr)
 {
-	std::string port;
-	std::string::size_type pos = configStr.find("listen");
-	if (pos != std::string::npos)
+	std::vector<int> ports;
+	int port;
+	std::string::size_type pos = 0;
+	while ((pos = configStr.find("listen", pos)) != std::string::npos)
 	{
 		pos += 6; // skip "listen "
 		std::string::size_type endPos = configStr.find(";", pos);
@@ -305,11 +357,17 @@ std::string ConfigServer::getPort(const std::string &configStr)
 			std::string::size_type colonPos = configStr.find(":", pos);
 			if (colonPos != std::string::npos && colonPos < endPos)
 			{
-				port = configStr.substr(colonPos + 1, endPos - colonPos - 1);
+				port = std::atoi(configStr.substr(colonPos + 1, endPos - colonPos - 1).c_str());
+				ports.push_back(port);
+			}
+			else if (colonPos == std::string::npos)
+			{
+				port = std::atoi(configStr.substr(pos, endPos - pos).c_str());
+				ports.push_back(port);
 			}
 		}
 	}
-	return (port);
+	return (ports);
 }
 
 /**
@@ -318,8 +376,7 @@ std::string ConfigServer::getPort(const std::string &configStr)
  * @param configStr The block to get the server name from
  * @return std::string the server name value
  */
-std::string ConfigServer::getKeywordValue(const std::string &configStr,
-										  const std::string &derective)
+std::string ConfigServer::getKeywordValue(const std::string &configStr, const std::string &derective)
 {
 	std::string keyWord;
 	std::string::size_type pos = configStr.find(derective);
