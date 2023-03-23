@@ -61,7 +61,7 @@ void	Server::configToServer(const ConfigServer& config)
 	_pollTimeOut = CONFIG_POLLTIMEOUT;
 	_nbFdServer = 0;
 	//for each server: New indexInfo + PORT COPY + isServer = true + serverNo
-	for (int serverNo = 0; serverNo < nbServer; serverNo++)
+	for (unsigned int serverNo = 0; serverNo < nbServer; serverNo++)
 	{
 		for (int iPort = 0; iPort < CONFIG_SERVER_NBPORT[serverNo]; iPort++)
 		{
@@ -94,7 +94,7 @@ void	Server::ServerBooting()
 //SET SERVER SOCKET (FD)
 void	Server::bootingSocket(const int& iSocket)
 {
-	if (indexInfoIt(iSocket)->second->fd = socket(AF_INET, SOCK_STREAM, 0) < 0)
+	if ((indexInfoIt(iSocket)->second->fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		throw ServerException::FctSocketFail();
 }
 
@@ -141,7 +141,6 @@ void	Server::bootingListen(const int& iSocket)
 // listen and redirection loop
 void	Server::ServerPollLoop()
 {
-	int	activeClient = 0;
 	int signalIndex;
 	while (1)
 	{
@@ -150,7 +149,7 @@ void	Server::ServerPollLoop()
 			throw ServerException::FctPollFail();
 		
 		//find the index of the signal find by poll in pollfds
-		if (signalIndex = pollIndexSignal() >= 0)
+		if ((signalIndex = pollIndexSignal()) >= 0)
 		{
 			if (indexInfoIt(signalIndex)->second->isServer == true)	//REQUEST TO SERVER
 			{
@@ -175,7 +174,7 @@ void	Server::ServerPollLoop()
 */
 int	Server::pollIndexSignal()
 {
-	for (int index = 0; index < pollFdSize; index++)
+	for (unsigned int index = 0; index < pollFdSize; index++)
 	{
 		if (_pollFds[index].revents & POLLIN)
 		{
