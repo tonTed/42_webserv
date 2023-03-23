@@ -68,5 +68,16 @@ int	main(int ac, char **av)
 	{
 		std::cout << "No config file specified, using default config" << std::endl;
 	}
+	
+	//while (1) //TODO faire un timer qui selon le nombre de fois fail en x temps, not restart
+	//{
+		//Scope to call Destructor for each restart
+	//	{
+			std::cout << "Server booting" << std::endl;
+			//Server	WebServer(configData); //TODO input struct of data
+			//WebServer.routine(); 
+	//	}
+	//}
+	
 	return (EXIT_SUCCESS);
 }

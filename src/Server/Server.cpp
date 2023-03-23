@@ -1,6 +1,10 @@
 #include "Server.hpp"
 
-Server::Server():_pollFds(NULL)	{}
+Server::Server(const ConfigServer& config)
+{
+	_pollFds = NULL;
+	configToServer(config); //SET CONFIGURATIONS VARIABLES
+}
 
 Server::~Server()
 {
@@ -21,25 +25,6 @@ Server::~Server()
 		delete it->second;
 }
 
-//TODO ADD IN -> In main, need to have loop while(1) that restart server on exception
-//main server process
-void	Server::routine(const ConfigServer& config)
-{
-	//SET CONFIGURATIONS VARIABLES
-	configToServer(config);
-	try
-	{
-		ServerBooting();
-		std::cout << "Server on" << std::endl;
-		ServerPollLoop();
-	}
-	catch (const std::exception& e)
-	{
-		std::cout << e.what() << std::endl;
-	}
-}
-
-
 //TODO DELETE -> After filled good config ref, delete temp define
 //**************TEMP DEFINE****************
 #define CONFIG_SERVER_NB 2
@@ -49,7 +34,6 @@ int CONFIG_SERVER_NBPORT[2] = {1, 2};
 int CONFIG_SERVER_PORTS_BACKLOG[3] = {5, 5, 5}; //changer en double dimension mais sera surement fix
 uint16_t CONFIG_SERVER_PORTS[3] = {8080, 8081, 8082};
 // ******************************************
-
 
 //TODO CHANGE -> Replace all define for real config ref
 //PONT ENTRE CONFIG ET SERVER
@@ -75,6 +59,25 @@ void	Server::configToServer(const ConfigServer& config)
 	}
 	pollFdSize = _nbFdServer + maxClient;
 }
+
+//TODO ADD IN -> In main, need to have loop while(1) that restart server on exception
+//main server process
+void	Server::routine()
+{
+	try
+	{
+		ServerBooting();
+		std::cout << "Server on" << std::endl;
+		ServerPollLoop();
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+}
+
+
+
 
 //***********************BOOTING SERVER******************************
 //Creation des servers socket (listen socket)

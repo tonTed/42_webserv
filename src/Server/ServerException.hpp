@@ -2,7 +2,16 @@
 # define SERVEREXCEPTION
 
 # include <stdexcept>
-# include "../../includes/martin.hpp"
+
+//EXCEPTION ERR MESSAGES (SERVEX = SERVER EXCEPTION) -> should stop server
+# define SERVEX_SOCKET_FAIL "Error: ServerBooting: socket function fail"
+# define SERVEX_SETSOCKOPT_FAIL "Error: ServerBooting: setsockopt function fail"
+# define SERVEX_BIND_FAIL "Error: ServerBooting: bind function fail"
+# define SERVEX_LISTEN_FAIL "Error: ServerBooting: listen function fail"
+# define SERVEX_ACCEPT_FAIL "Error: addNewClient: accept function fail"
+# define SERVEX_POLL_FAIL "Error: addNewClient: poll function fail"
+# define SERVEX_INSERT_FAIL "Error: indexInfoIt: map.insert(): map.insert fail in _indexInfo"
+# define SERVEX_FIND_FAIL "Error: indexInfoIt: map.find(): index not found in _indexInfo"
 
 class ServerException
 {

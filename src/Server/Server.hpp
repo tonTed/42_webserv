@@ -14,6 +14,9 @@
 # include "../../includes/martin.hpp"
 # include "ServerException.hpp"
 
+//SERVER ERROR MESSAGES (SERR = SERVER ERROR) -> should never happen
+# define SERR_POLLINDEXSIGNAL "Server error: poll trigger but index signal not found"
+
 //Structure pour obtenir de l'information sur un index de _pollFds
 typedef struct indexInfo_s
 {
@@ -37,12 +40,12 @@ private:
 	int										_nbFdServer;	//Nombre total de fd pour les servers (si index au dessus = client)
 
 public:
-						Server();
+						Server(const ConfigServer& config);
 	virtual				~Server();
 
-	void				routine(const ConfigServer& config);
-
 	void				configToServer(const ConfigServer& config);
+
+	void				routine();
 
 	//BOOTING SERVER FCT---------------------------------------
 
