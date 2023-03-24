@@ -1,9 +1,9 @@
 #include "ConfigServer.hpp"
 
-ConfigServer::ConfigServer()
-	: _goodFile(true)
-{
-}
+// ConfigServer::ConfigServer()
+	// : _goodFile(true)
+// {
+// }
 
 ConfigServer::ConfigServer(const ConfigServer &config)
 	: _goodFile(true)
@@ -38,6 +38,7 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 		//     // Process each server block here
 		std::cout << YELLOW << "Server block: " << RESET << *it << std::endl
 				  << std::endl;
+
 		std::vector<std::string> hosts = getHosts(*it);
 		std::cout << YELLOW << "hosts: " << RESET;
 		for (std::vector<std::string>::const_iterator itr = hosts.begin(); itr != hosts.end(); ++itr)
@@ -55,9 +56,18 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 			std::cout << *itr << ' ';
 		}
 		std::cout << std::endl;
-		std::cout << YELLOW << "Server name: " << RESET << getKeywordValue(*it, "server_name") << std::endl;
-		std::cout << YELLOW << "Client Size: " << RESET << getKeywordValue(*it, "client_size") << std::endl
-				  << std::endl;
+
+		std::vector<std::string> serverNames = getKeywordValue(*it, "server_name");
+		std::cout << YELLOW << "Server name: " << RESET;
+		for (std::vector<std::string>::const_iterator itr = serverNames.begin(); itr != serverNames.end(); ++itr)
+		{
+			//     // Process each server block here
+			std::cout << *itr << ' ';
+		}
+		std::cout << std::endl;
+		
+		// std::cout << YELLOW << "Client Size: " << RESET << getKeywordValue(*it, "client_size") << std::endl
+		// 		  << std::endl;
 		// std::vector<std::string> locationBlocks = getLocationBlocks(*it);
 		// for (std::vector<std::string>::const_iterator itr = locationBlocks.begin(); itr != locationBlocks.end(); ++itr)
 		// {
@@ -144,13 +154,14 @@ std::string ConfigServer::cleanedLine(std::string line)
 	while (i < j && std::isspace(static_cast<int>(str[i])))
 		i++;
 	while (j > i && isrealspace(static_cast<int>(str[j])))
+	// while (j > i && std::isspace(static_cast<int>(str[j])))
 		j--;
 	if (commentPos != std::string::npos && commentPos > static_cast<size_t>(i))
 		j = static_cast<int>(commentPos - 1);
 	std::string ret = line.substr(i, j - i + 1);
 	for (std::string::iterator it = ret.begin(); it != ret.end();)
 	{
-		if (*it != '\n' && std::isspace(*it))
+		if (std::isspace(*it))
 		{
 			if (!found_first_space)
 			{
@@ -293,7 +304,7 @@ std::vector<std::string>  ConfigServer::getHosts(const std::string &configStr)
 		pos += 6; // skip "listen "
 		std::cout << "Pos + 6::: " << pos << std::endl;
 		std::string::size_type endPos = configStr.find(";", pos);
-		while ((endPos = configStr.find(";", pos)) != std::string::npos)
+		if ((endPos = configStr.find(";", pos)) != std::string::npos)
 		{
 			std::string::size_type colonPos = configStr.find(":", pos);
 			if (colonPos != std::string::npos && colonPos < endPos)
@@ -315,27 +326,6 @@ std::vector<std::string>  ConfigServer::getHosts(const std::string &configStr)
 	}
 	return (hosts);
 }
-
-// {
-// 	std::vector<std::string>  hosts;
-// 	std::string::size_type pos = 0;
-// 	// std::cout << "pos: " << pos << std::endl;
-// 	while ((pos = configStr.find("listen", pos)) != std::string::npos)
-// 	{
-// 		pos += 6; // skip "listen "
-// 		std::string::size_type endPos = configStr.find(":", pos);
-// 		// std::cout << "endPos: " << endPos << std::endl;
-// 		if (endPos != std::string::npos)
-// 		{
-// 			while (pos < endPos && isspace(configStr[pos]))
-// 				pos++;
-// 			hosts.push_back(configStr.substr(pos, endPos - pos));
-// 		}
-// 		// else
-// 		// 	hosts = configStr.substr(pos);
-// 	}
-// 	return (hosts);
-// }
 
 /**
  * @brief Get the port from the config string
@@ -376,22 +366,47 @@ std::vector<int> ConfigServer::getPorts(const std::string &configStr)
  * @param configStr The block to get the server name from
  * @return std::string the server name value
  */
-std::string ConfigServer::getKeywordValue(const std::string &configStr, const std::string &derective)
+// std::string ConfigServer::getKeywordValue(const std::string &configStr, const std::string &derective)
+std::vector<std::string> ConfigServer::getKeywordValue(const std::string &configStr, const std::string &derective)
 {
-	std::string keyWord;
-	std::string::size_type pos = configStr.find(derective);
-	if (pos != std::string::npos)
+	std::vector<std::string> keyWord;
+	std::string::size_type pos = 0;
+	while ((pos = configStr.find(derective)) != std::string::npos)
 	{
 		pos += derective.length(); // skip "keyWord "
 		std::string::size_type endPos = configStr.find(";", pos);
 		if (endPos != std::string::npos)
 		{
+			std::cout << "endPos: " << endPos << std::endl;
+			std::cout << "Pos: " << pos << std::endl;
+			std::cout << "configStr[pos]: " << configStr.c_str()[pos] << std::endl;
 			while (pos < endPos && isspace(configStr[pos]))
 				pos++;
-			keyWord = configStr.substr(pos, endPos - pos);
+			std::cout << "Pos aft: " << pos << std::endl;
+			keyWord.push_back(configStr.substr(pos, endPos - pos));
 		}
 		else
-			keyWord = configStr.substr(pos);
+			{std::cout << "endPos::::: " << endPos << std::endl;
+			std::cout << "Pos::::: " << pos << std::endl;
+			keyWord.push_back(configStr.substr(pos));}
 	}
 	return (keyWord);
 }
+// {
+// 	std::string keyWord;
+// 	std::string::size_type pos = 0;
+// 	if ((pos = configStr.find(derective)) != std::string::npos)
+// 	{
+// 		pos += derective.length(); // skip "keyWord "
+// 		std::string::size_type endPos = configStr.find(";", pos);
+// 		if (endPos != std::string::npos)
+// 		{
+// 			while (pos < endPos && isspace(configStr[pos]))
+// 				pos++;
+// 			keyWord = configStr.substr(pos, endPos - pos);
+// 		}
+// 		else
+// 			keyWord = configStr.substr(pos);
+// 	}
+// 	return (keyWord);
+// }

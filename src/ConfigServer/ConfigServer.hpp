@@ -11,11 +11,11 @@
 */
 struct Locations
 {
-	std::string 					root;
-	std::vector<std::string> 		index;
-	std::string 					autoindex; // ON or OFF
-	std::string 					redirection;
-	std::vector<enum eRequestType> 	methods;
+	std::string root;
+	std::vector<std::string> index;
+	std::string autoindex; // ON or OFF
+	std::string redirection;
+	std::vector<enum eRequestType> methods;
 };
 
 struct ServerData
@@ -25,18 +25,17 @@ struct ServerData
 	std::vector<std::string> _serverNames;
 
 	// Methods accepted by the server
-	std::vector<eRequestType> _methods;
+	std::vector<enum eRequestType> _methods;
 
 	// The key is the location, the value is the path to the file
 	std::vector<std::string> _root;
 
-	// The key is the location, the value is the path to the file
-	std::map<std::string, struct Locations> _locations;
-
 	// The key is the error code, the value is the path to the file
 	// Create data structure for error pages default before
 	std::map<int, std::string> _errorPages;
-	
+
+	// The key is the location, the value is the path to the file
+	std::map<std::string, struct Locations> _locations;
 };
 
 // ServerData[0]._serverPorts
@@ -49,18 +48,29 @@ private:
 	unsigned int _serverNumber;
 
 	// Client size by ports
-	int _clientSize;
-	int _bodySize;
+	// int _clientSize;
+	// int _bodySize;
 	// std::string _host;
 	// std::string _port;
 	// std::string _server_name;
 	std::vector<ServerData> _serversData;
+	static ConfigServer *singleton;
+	ConfigServer() {};
 
 public:
-	ConfigServer();
+	// ConfigServer();
 	ConfigServer(const std::string file);
 	ConfigServer(const ConfigServer &Config);
 	virtual ~ConfigServer();
+
+	static ConfigServer *getInstance()
+	{
+		if (singleton == NULL)
+		{
+			singleton = new ConfigServer();
+		}
+		return singleton;
+	}
 
 	ConfigServer &operator=(const ConfigServer &Config);
 
@@ -73,7 +83,8 @@ public:
 	// std::string getHost(const std::string& configStr);
 	std::vector<std::string> getHosts(const std::string &configStr);
 	std::vector<int> getPorts(const std::string &configStr);
-	std::string getKeywordValue(const std::string &configStr, const std::string &derective);
+	// std::string getKeywordValue(const std::string &configStr, const std::string &derective);
+	std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
 
 	void printBLocks(std::vector<std::string> &serverBlocks);
 };
