@@ -65,6 +65,15 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 			std::cout << *itr << ' ';
 		}
 		std::cout << std::endl;
+
+		std::vector<std::string> methods = getKeywordValue(*it, "methods");
+		std::cout << YELLOW << "Methods: " << RESET;
+		for (std::vector<std::string>::const_iterator itr = methods.begin(); itr != methods.end(); ++itr)
+		{
+			//     // Process each server block here
+			std::cout << *itr << ' ';
+		}
+		std::cout << std::endl;
 		
 		// std::cout << YELLOW << "Client Size: " << RESET << getKeywordValue(*it, "client_size") << std::endl
 		// 		  << std::endl;
@@ -371,25 +380,37 @@ std::vector<std::string> ConfigServer::getKeywordValue(const std::string &config
 {
 	std::vector<std::string> keyWord;
 	std::string::size_type pos = 0;
-	while ((pos = configStr.find(derective)) != std::string::npos)
+	std::string::size_type poSpace = 0;
+
+	if ((pos = configStr.find(derective)) != std::string::npos)
 	{
 		pos += derective.length(); // skip "keyWord "
 		std::string::size_type endPos = configStr.find(";", pos);
-		if (endPos != std::string::npos)
+		while (endPos != std::string::npos && pos < endPos)
 		{
-			std::cout << "endPos: " << endPos << std::endl;
-			std::cout << "Pos: " << pos << std::endl;
-			std::cout << "configStr[pos]: " << configStr.c_str()[pos] << std::endl;
+			// std::cout << "endPos: " << endPos << std::endl;
+			// char *str = configStr.c_str();
+			// std::cout << "Pos: " << pos << std::endl;
+			// std::cout << "configStr[pos]: " << configStr[pos] << std::endl;
 			while (pos < endPos && isspace(configStr[pos]))
 				pos++;
-			std::cout << "Pos aft: " << pos << std::endl;
-			keyWord.push_back(configStr.substr(pos, endPos - pos));
+			poSpace = pos;
+			while (poSpace < endPos && !isspace(configStr[poSpace]))
+				poSpace++;
+			// while (pos < endPos && isspace(configStr[pos]))
+			// 	poSpace++;
+			// std::cout << "Pos aft: " << pos << std::endl;
+			
+			// keyWord.push_back(configStr.substr(pos, endPos - pos));
+			keyWord.push_back(configStr.substr(pos, poSpace - pos));
+			pos = poSpace;
 		}
-		else
-			{std::cout << "endPos::::: " << endPos << std::endl;
-			std::cout << "Pos::::: " << pos << std::endl;
-			keyWord.push_back(configStr.substr(pos));}
+		// else
+		// 	{std::cout << "endPos::::: " << endPos << std::endl;
+		// 	std::cout << "Pos::::: " << pos << std::endl;
+		// 	keyWord.push_back(configStr.substr(pos));}
 	}
+	// handle error ULAC derective!
 	return (keyWord);
 }
 // {
