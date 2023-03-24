@@ -1,20 +1,62 @@
 #ifndef CONFIGSERVER_HPP
-# define CONFIGSERVER_HPP
+#define CONFIGSERVER_HPP
 
-# include "../../includes/webserv.hpp"
+#include "../../includes/webserv.hpp"
 #include "../Server/Server.hpp"
+
+#include <map>
+
+/*
+
+*/
+struct Locations
+{
+	std::string 					root;
+	std::vector<std::string> 		index;
+	std::string 					autoindex; // ON or OFF
+	std::string 					redirection;
+	std::vector<enum eRequestType> 	methods;
+};
+
+struct ServerData
+{
+	// Server port and name
+	std::vector<int> _serverPorts; // Martin
+	std::vector<std::string> _serverNames;
+
+	// Methods accepted by the server
+	std::vector<eRequestType> _methods;
+
+	// The key is the location, the value is the path to the file
+	std::vector<std::string> _root;
+
+	// The key is the location, the value is the path to the file
+	std::map<std::string, struct Locations> _locations;
+
+	// The key is the error code, the value is the path to the file
+	// Create data structure for error pages default before
+	std::map<int, std::string> _errorPages;
+	
+};
+
+// ServerData[0]._serverPorts
 
 class ConfigServer
 {
-  private:
+private:
 	// std::vector<Server> _servers;
 	bool _goodFile;
-	unsigned int _serverNumber; 
+	unsigned int _serverNumber;
+
+	// Client size by ports
+	int _clientSize;
+	int _bodySize;
 	// std::string _host;
 	// std::string _port;
 	// std::string _server_name;
+	std::vector<ServerData> _serversData;
 
-  public:
+public:
 	ConfigServer();
 	ConfigServer(const std::string file);
 	ConfigServer(const ConfigServer &Config);
@@ -26,58 +68,28 @@ class ConfigServer
 	bool lineNeeded(const std::string line);
 	std::string cleanedLine(std::string line);
 	bool readFile(const std::string inFile, std::string &stringLine);
-	std::vector<std::string> getServerBlocks(const std::string& configStr);
-	std::vector<std::string> getLocationBlocks(const std::string& configStr);
+	std::vector<std::string> getServerBlocks(const std::string &configStr);
+	std::vector<std::string> getLocationBlocks(const std::string &configStr);
 	// std::string getHost(const std::string& configStr);
-	std::vector<std::string> getHosts(const std::string& configStr);
-	std::vector<int> getPorts(const std::string& configStr);
-	std::string getKeywordValue(const std::string& configStr, const std::string& derective);
+	std::vector<std::string> getHosts(const std::string &configStr);
+	std::vector<int> getPorts(const std::string &configStr);
+	std::string getKeywordValue(const std::string &configStr, const std::string &derective);
 
 	void printBLocks(std::vector<std::string> &serverBlocks);
 };
 
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
-std::string getline_with_newline(std::istream& input);
+std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
 
+// class ConfigServer {
 
+// public:
+// 	std::vector<ServerConfig> _servers;
 
-//#include <map>
-//
-//struct ServerConfig {
-//
-//	//Server port and name
-//	std::vector<std::string>	_serverPorts;
-//	std::vector<std::string>	_serverNames;
-//
-//	//Client size by ports
-//	int 						_clientSize;
-//
-//	//Methods accepted by the server
-//	std::vector<eRequestType>			_methods;
-//
-//	//The key is the location, the value is the path to the file
-//	std::vector<std::string>			_root;
-//
-//	//The key is the location, the value is the path to the file
-//	std::map<std::string, std::string>	_locations;
-//
-//	//The key is the error code, the value is the path to the file
-//	//Create data structure for error pages default before
-//	std::map<int, std::string>			_errorPages;
-//
-//};
-//
-//class ConfigServer {
-//
-//public:
-//	std::vector<ServerConfig> _servers;
-//
-//	void test()
-//	{
-//		_servers[0]._methods.push_back(GET);
-//	};
-//};
+// 	void test()
+// 	{
+// 		_servers[0]._methods.push_back(GET);
+// 	};
+// };
 #endif
-
-
