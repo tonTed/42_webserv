@@ -8,8 +8,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
 #include <vector>
+
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
 
 #define RESET "\033[0m"
 #define BLACK "\033[30m"
@@ -31,3 +33,4 @@
 #define BOLD_WHITE "\033[1m\033[37m"
 
 #endif
+

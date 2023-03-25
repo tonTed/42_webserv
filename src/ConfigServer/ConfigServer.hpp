@@ -85,6 +85,7 @@ public:
 	std::vector<int> getPorts(const std::string &configStr);
 	// std::string getKeywordValue(const std::string &configStr, const std::string &derective);
 	std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
+	std::map<int, std::string> getErrorPages(const std::string &configStr);
 
 	void printBLocks(std::vector<std::string> &serverBlocks);
 };
