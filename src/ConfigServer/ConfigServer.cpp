@@ -80,10 +80,11 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 
 		std::map<int, std::string> errorPages = getErrorPages(*it);
 		std::cout << YELLOW << "Error Pages: " << RESET;
+		std::cout << errorPages.size() << std::endl;
 
 		for (std::map<int, std::string>::const_iterator iter = errorPages.begin(); iter != errorPages.end(); ++iter)
 		{
-			std::cout << iter->first << ": " << iter->second;
+			std::cout << iter->first << ": " << iter->second << std::endl;
 		}
 		std::cout << std::endl;
 		// for (std::map<int, std::string>::const_iterator itr = errorPages.begin(); itr != errorPages.end(); ++itr)
@@ -404,20 +405,12 @@ std::vector<std::string> ConfigServer::getKeywordValue(const std::string &config
 		std::string::size_type endPos = configStr.find(";", pos);
 		while (endPos != std::string::npos && pos < endPos)
 		{
-			// std::cout << "endPos: " << endPos << std::endl;
-			// char *str = configStr.c_str();
-			// std::cout << "Pos: " << pos << std::endl;
-			// std::cout << "configStr[pos]: " << configStr[pos] << std::endl;
 			while (pos < endPos && isspace(configStr[pos]))
 				pos++;
 			poSpace = pos;
 			while (poSpace < endPos && !isspace(configStr[poSpace]))
 				poSpace++;
-			// while (pos < endPos && isspace(configStr[pos]))
-			// 	poSpace++;
-			// std::cout << "Pos aft: " << pos << std::endl;
 
-			// keyWord.push_back(configStr.substr(pos, endPos - pos));
 			keyWord.push_back(configStr.substr(pos, poSpace - pos));
 			pos = poSpace;
 		}
@@ -436,47 +429,35 @@ std::vector<std::string> ConfigServer::getKeywordValue(const std::string &config
  * @param configStr The block to get the server name from
  * @return std::string the server name value
  */
-// std::map<int, std::string> ConfigServer::getErrorPages(const std::string &configStr)
-// {
-// 	std::map<int, std::string> errorPages;
-// 	std::stringstream ss(configStr);
-// 	std::string line;
-// 	while (std::getline(ss, line))
-// 	{
-// 		std::istringstream iss(line);
-// 		std::string token;
-// 		iss >> token;
-// 		if (token == "error_page")
-// 		{
-// 			int errorCode;
-// 			std::string errorPage;
-// 			iss >> errorCode >> errorPage;
-// 			errorPages[errorCode] = errorPage;
-// 		}
-// 	}
-// 	std::cout << "errorPages.size(): " << errorPages.size() << std::endl;
-// 	return errorPages;
-// }
-
 std::map<int, std::string> ConfigServer::getErrorPages(const std::string &configStr) {
     std::map<int, std::string> errorPages;
     std::string::size_type pos = 0;
+	// unsigned int braces = 0;
+        std::string::size_type brace = configStr.find("{", pos);
+		std::cout << "brace: " << brace << std::endl;
     while ((pos = configStr.find("error_page", pos)) != std::string::npos)
     {
         pos += 10; // skip "error_page "
+		std::string::size_type poSpace = pos;
         std::string::size_type endPos = configStr.find(";", pos);
-        if (endPos != std::string::npos)
+		//  std::string::size_type brace = configStr.find("{", pos);
+		// std::cout << "brace: " << brace << std::endl;
+        if (endPos != std::string::npos && brace > pos)
         {
-            int errorCode = std::atoi(configStr.substr(pos, endPos - pos).c_str());
-            pos = endPos + 1; // skip ";" character
-            endPos = configStr.find(";", pos);
+			while (pos < endPos && isspace(configStr[pos]))
+				pos++;
+			poSpace = pos;
+			while (poSpace < endPos && !isspace(configStr[poSpace]))
+				poSpace++;
+            int errorCode = std::atoi(configStr.substr(pos, poSpace - pos).c_str());
+			pos = poSpace;
             if (endPos != std::string::npos)
             {
                 std::string errorPage = configStr.substr(pos, endPos - pos);
                 errorPages[errorCode] = errorPage;
-                pos = endPos + 1; // skip ";" character
             }
         }
+		brace = configStr.find("{", pos);
     }
     return errorPages;
 }
