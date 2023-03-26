@@ -22,3 +22,25 @@ bool validPort(int portNumb)
 {
     return (portNumb > 0 && portNumb < 65535);
 }
+
+bool validClientSize(int clientSize)
+{
+    return (clientSize > 0);
+}
+
+bool validBodySize(int bodySize)
+{
+    return (bodySize > 0);
+}
+
+bool validServerName(std::string serverName)
+{
+    return (serverName != "");
+}
+
+bool validHost(std::string host)
+{
+    return (host != "");
+}
+
+
