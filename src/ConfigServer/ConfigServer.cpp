@@ -14,10 +14,10 @@ ConfigServer::ConfigServer(const ConfigServer &config)
 	*this = config;
 }
 
-ConfigServer::ConfigServer(const std::string paramFile)
+ConfigServer::ConfigServer(const string paramFile)
 {
-	std::string file = getFile(paramFile);
-	std::string stringFile = "";
+	string file = getFile(paramFile);
+	string stringFile = "";
 	// std::cout << "File: " << file << std::endl;
 	if (!readFile(file, stringFile))
 	{
@@ -29,22 +29,22 @@ ConfigServer::ConfigServer(const std::string paramFile)
 		// for (int i = 0; i < (int)stringFile.length(); i++)
 		// 	std::cout << stringFile[i];
 		_goodFile = true;
-		std::vector<std::string> serverBlocks = getServerBlocks(stringFile);
+		std::vector<string> serverBlocks = getServerBlocks(stringFile);
 		printBLocks(serverBlocks);
 	}
 }
 
-void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
+void ConfigServer::printBLocks(std::vector<string> &serverBlocks)
 {
-	for (std::vector<std::string>::const_iterator it = serverBlocks.begin(); it != serverBlocks.end(); ++it)
+	for (std::vector<string>::const_iterator it = serverBlocks.begin(); it != serverBlocks.end(); ++it)
 	{
 		//     // Process each server block here
 		std::cout << YELLOW << "Server block: " << RESET << *it << std::endl
 				  << std::endl;
 
-		std::vector<std::string> hosts = getHosts(*it);
+		std::vector<string> hosts = getHosts(*it);
 		std::cout << YELLOW << "hosts: " << RESET;
-		for (std::vector<std::string>::const_iterator itr = hosts.begin(); itr != hosts.end(); ++itr)
+		for (std::vector<string>::const_iterator itr = hosts.begin(); itr != hosts.end(); ++itr)
 		{
 			// Process each server block here
 			std::cout << *itr << ' ';
@@ -60,33 +60,33 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 		}
 		std::cout << std::endl;
 
-		std::vector<std::string> serverNames = getKeywordValue(*it, "server_name");
+		std::vector<string> serverNames = getKeywordValue(*it, "server_name");
 		std::cout << YELLOW << "Server name: " << RESET;
-		for (std::vector<std::string>::const_iterator itr = serverNames.begin(); itr != serverNames.end(); ++itr)
+		for (std::vector<string>::const_iterator itr = serverNames.begin(); itr != serverNames.end(); ++itr)
 		{
 			// Process each server block here
 			std::cout << *itr << ' ';
 		}
 		std::cout << std::endl;
 
-		std::vector<std::string> methods = getKeywordValue(*it, "methods");
+		std::vector<string> methods = getKeywordValue(*it, "methods");
 		std::cout << YELLOW << "Methods: " << RESET;
-		for (std::vector<std::string>::const_iterator itr = methods.begin(); itr != methods.end(); ++itr)
+		for (std::vector<string>::const_iterator itr = methods.begin(); itr != methods.end(); ++itr)
 		{
 			// Process each server block here
 			std::cout << *itr << ' ';
 		}
 		std::cout << std::endl;
 
-		std::map<int, std::string> errorPages = getErrorPages(*it);
+		std::map<int, string> errorPages = getErrorPages(*it);
 		std::cout << YELLOW << "Error Pages: " << RESET;
-		for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); ++it)
+		for (std::map<int, string>::iterator it = errorPages.begin(); it != errorPages.end(); ++it)
 		{
 			std::cout << it->first << ": " << it->second << std::endl;
 		}
 		std::cout << std::endl;
 
-		// for (std::map<int, std::string>::const_iterator itr = errorPages.begin(); itr != errorPages.end(); ++itr)
+		// for (std::map<int, string>::const_iterator itr = errorPages.begin(); itr != errorPages.end(); ++itr)
 		// {
 		// 	//     // Process each server block here
 		// 	std::cout << *itr << ' ';
@@ -94,8 +94,8 @@ void ConfigServer::printBLocks(std::vector<std::string> &serverBlocks)
 
 		// std::cout << YELLOW << "Client Size: " << RESET << getKeywordValue(*it, "client_size") << std::endl
 		// 		  << std::endl;
-		// std::vector<std::string> locationBlocks = getLocationBlocks(*it);
-		// for (std::vector<std::string>::const_iterator itr = locationBlocks.begin(); itr != locationBlocks.end(); ++itr)
+		// std::vector<string> locationBlocks = getLocationBlocks(*it);
+		// for (std::vector<string>::const_iterator itr = locationBlocks.begin(); itr != locationBlocks.end(); ++itr)
 		// {
 		// 	//     // Process each server block here
 		// 	std::cout << YELLOW << "Location block: " << RESET << *itr << std::endl;
@@ -125,9 +125,9 @@ ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 
 	* @return return the givent file Path if it works otherwise throw an error.
  */
-std::string ConfigServer::getFile(const std::string paramFile)
+string ConfigServer::getFile(const string paramFile)
 {
-	std::string configFile = "configFiles/default.config";
+	string configFile = "configFiles/default.config";
 	if (paramFile != "default")
 	{
 		std::ifstream f(paramFile.c_str());
@@ -152,10 +152,10 @@ std::string ConfigServer::getFile(const std::string paramFile)
  * @return true if not just a comment or just spaces
  * @return false otherwise
  */
-bool ConfigServer::lineNeeded(const std::string line)
+bool ConfigServer::lineNeeded(const string line)
 {
 	size_t i = line.find_first_not_of(" \t");
-	bool val = (i != std::string::npos && line[i] != '#');
+	bool val = (i != string::npos && line[i] != '#');
 	return val;
 }
 
@@ -163,9 +163,9 @@ bool ConfigServer::lineNeeded(const std::string line)
  * @brief Remove the spaces and comments from the line
  *
  * @param line The line to be modified
- * @return std::string The modified line
+ * @return string The modified line
  */
-std::string ConfigServer::cleanedLine(std::string line)
+string ConfigServer::cleanedLine(string line)
 {
 	int i;
 	int j;
@@ -182,10 +182,10 @@ std::string ConfigServer::cleanedLine(std::string line)
 	while (j > i && isrealspace(static_cast<int>(str[j])))
 		// while (j > i && std::isspace(static_cast<int>(str[j])))
 		j--;
-	if (commentPos != std::string::npos && commentPos > static_cast<size_t>(i))
+	if (commentPos != string::npos && commentPos > static_cast<size_t>(i))
 		j = static_cast<int>(commentPos - 1);
-	std::string ret = line.substr(i, j - i + 1);
-	for (std::string::iterator it = ret.begin(); it != ret.end();)
+	string ret = line.substr(i, j - i + 1);
+	for (string::iterator it = ret.begin(); it != ret.end();)
 	{
 		if (std::isspace(*it))
 		{
@@ -215,10 +215,10 @@ std::string ConfigServer::cleanedLine(std::string line)
  * @return true if the file could be open
  * @return false otherwise
  */
-bool ConfigServer::readFile(const std::string inFile, std::string &stringLine)
+bool ConfigServer::readFile(const string inFile, string &stringLine)
 {
 	std::ifstream file(inFile.c_str());
-	std::string line = "";
+	string line = "";
 
 	while (!(line = getline_with_newline(file)).empty())
 	{
@@ -236,20 +236,20 @@ bool ConfigServer::readFile(const std::string inFile, std::string &stringLine)
  * @brief Split configStr where all file is stored into blocks of servers
  *
  * @param configStr the string where readfile() stored the file it read.
- * @return std::vector<std::string>  A vector of strings one by server
+ * @return std::vector<string>  A vector of strings one by server
  */
-std::vector<std::string> ConfigServer::getServerBlocks(const std::string &configStr)
+std::vector<string> ConfigServer::getServerBlocks(const string &configStr)
 {
 	int braceCount;
 
-	std::vector<std::string> serverBlocks;
-	std::string::size_type pos = 0;
-	while ((pos = configStr.find("server {", pos)) != std::string::npos)
+	std::vector<string> serverBlocks;
+	string::size_type pos = 0;
+	while ((pos = configStr.find("server {", pos)) != string::npos)
 	{
-		std::string::size_type bracePos = configStr.find("{", pos);
-		if (bracePos != std::string::npos)
+		string::size_type bracePos = configStr.find("{", pos);
+		if (bracePos != string::npos)
 		{
-			std::string::size_type endPos = bracePos + 1;
+			string::size_type endPos = bracePos + 1;
 			braceCount = 1;
 			while (braceCount > 0 && endPos < configStr.length())
 			{
@@ -261,7 +261,7 @@ std::vector<std::string> ConfigServer::getServerBlocks(const std::string &config
 			}
 			if (braceCount == 0)
 			{
-				std::string serverBlock = configStr.substr(pos, endPos - pos);
+				string serverBlock = configStr.substr(pos, endPos - pos);
 				serverBlocks.push_back(serverBlock);
 				pos = endPos;
 				this->_serverNumber++;
@@ -274,13 +274,13 @@ std::vector<std::string> ConfigServer::getServerBlocks(const std::string &config
 	return (serverBlocks);
 }
 
-bool checkServerBlock(const std::string &server)
+bool checkServerBlock(const string &server)
 {
-	std::string::size_type pos = 0;
-	std::string::size_type bracePos = server.find("{", pos);
-	if (bracePos != std::string::npos)
+	string::size_type pos = 0;
+	string::size_type bracePos = server.find("{", pos);
+	if (bracePos != string::npos)
 	{
-		std::string::size_type endPos = bracePos + 1;
+		string::size_type endPos = bracePos + 1;
 		int braceCount = 1;
 		while (braceCount > 0 && endPos < server.length())
 		{
@@ -300,88 +300,139 @@ bool checkServerBlock(const std::string &server)
  * @brief Split the server block into a string of location
  *
  * @param configStr the input, should be the sting server block
- * @return std::vector<std::string> the vector of locations.
+ * @return std::vector<string> the vector of locations.
  */
-std::vector<std::string> ConfigServer::getLocationBlocks(const std::string &configStr)
+std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 {
-	std::vector<std::string> locationBlocks;
-	std::string::size_type pos = 0;
-	while ((pos = configStr.find("location ", pos)) != std::string::npos)
+	std::vector<string> locationBlocks;
+	string::size_type pos = 0;
+	while ((pos = configStr.find("location ", pos)) != string::npos)
 	{
-		std::string::size_type endPos = configStr.find("}", pos);
-		if (endPos == std::string::npos)
+		string::size_type endPos = configStr.find("}", pos);
+		if (endPos == string::npos)
 			break; // Handle error: closing brace not found
-		std::string locationBlock = configStr.substr(pos, endPos - pos + 1);
+		string locationBlock = configStr.substr(pos, endPos - pos + 1);
 		locationBlocks.push_back(locationBlock);
 		pos = endPos + 1;
 	}
 	return (locationBlocks);
 }
 
-std::vector<std::string> ConfigServer::getHosts(const std::string &configStr)
+std::vector<string> ConfigServer::getHosts(const string &configStr)
 {
-	std::vector<std::string> hosts;
-	std::string host;
-	std::string::size_type pos = 0;
+	std::vector<string> hosts;
+	string host;
+	string::size_type pos = 0;
+	string::size_type brace;
+	string::size_type endPos;
+	string::size_type colonPos;
+	int i = 3;
 	// std::cout << "pos: " << pos << std::endl;
-	while ((pos = configStr.find("listen", pos)) != std::string::npos)
+	while ((pos = configStr.find("listen", pos)) != string::npos)
 	{
-		// std::cout << "FIRST Pos " << pos << std::endl;
 		pos += 6; // skip "listen "
-		// std::cout << "Pos + 6::: " << pos << std::endl;
-		std::string::size_type endPos = configStr.find(";", pos);
-		if ((endPos = configStr.find(";", pos)) != std::string::npos)
+		std::cout << "Pos + 6::: " << pos << std::endl;
+		if ((endPos = configStr.find(";", pos)) != string::npos && pos < endPos &&
+			(brace = configStr.find("{", endPos)) != string::npos 
+			&& endPos < brace && i--)
 		{
-			std::string::size_type colonPos = configStr.find(":", pos);
-			if (colonPos != std::string::npos && colonPos < endPos)
+			std::cout << "brace::: " << brace << std::endl;
+			std::cout << "endPos::: " << endPos << std::endl;
+			std::cout << "pos::: " << pos << std::endl;
+			colonPos = configStr.find(":", pos);
+			std::cout << "colonPos: : : " << colonPos << std::endl
+					  << std::endl;
+			if (colonPos != string::npos && colonPos < endPos)
 			{
-				// std::cout << "colonPos::: " << colonPos << std::endl;
-				// std::cout << "Pos::: " << pos << std::endl;
+				std::cout << "colonPos::: " << colonPos << std::endl;
+				std::cout << "Pos: : " << pos << std::endl;
+				// while(!isspace(configStr[pos]))
+				// 	pos++;
+				// while(isspace(configStr[pos]))
+				// 	pos++;
 				host = configStr.substr(pos, colonPos - pos);
 				hosts.push_back(host);
-				pos += host.length();
+				pos += host.length() + 1;
+				std::cout << "Pos:-:-: " << pos << std::endl
+						  << std::endl;
 			}
-			else if (colonPos == std::string::npos)
+			else if (colonPos == string::npos)
 			{
-				// std::cout << "colonPos: " << colonPos << std::endl;
-				// std::cout << "Pos: " << pos << std::endl;
+				std::cout << "colonPos: " << colonPos << std::endl;
+				std::cout << "Pos: " << pos << std::endl
+						  << std::endl;
 				host = configStr.substr(pos, endPos - pos);
 				hosts.push_back(host);
 			}
+			brace = configStr.find("{", endPos);
+			std::cout << "brace: " << brace << std::endl;
 		}
 	}
 	return (hosts);
 }
 
+// {
+// 	std::vector<string> hosts;
+// 	string host;
+// 	string::size_type pos = 0;
+// 	string::size_type brace;
+// 	string::size_type colonPos;
+// 	while ((pos = configStr.find("listen", pos)) != string::npos)
+// 	{
+// 		pos += 6; // skip "listen "
+// 		string::size_type endPos = configStr.find(";", pos);
+// 		if (endPos != string::npos && endPos < brace &&
+// 			(brace = configStr.find("{", endPos)) != string::npos)
+// 		{
+// 			if ((colonPos = configStr.find(":", pos)) != string::npos
+// 				&& colonPos < endPos)
+// 			{
+// 				host = configStr.substr(pos, colonPos - pos);
+// 				hosts.push_back(host);
+// 			}
+// 			else if (colonPos == string::npos)
+// 			{
+// 				host = configStr.substr(pos, endPos - pos);
+// 				hosts.push_back(host);
+// 			}
+// 		}
+// 		brace = configStr.find("{", endPos);
+// 	}
+// 	return (hosts);
+// }
+
 /**
  * @brief Get the port from the config string
  *
  * @param configStr The block to get the port from
- * @return std::string the port value
+ * @return string the port value
  */
-std::vector<int> ConfigServer::getPorts(const std::string &configStr)
+std::vector<int> ConfigServer::getPorts(const string &configStr)
 {
 	std::vector<int> ports;
 	int port;
-	std::string::size_type pos = 0;
-	while ((pos = configStr.find("listen", pos)) != std::string::npos)
+	string::size_type pos = 0;
+	string::size_type brace;
+	while ((pos = configStr.find("listen", pos)) != string::npos)
 	{
 		pos += 6; // skip "listen "
-		std::string::size_type endPos = configStr.find(";", pos);
-		if (endPos != std::string::npos)
+		string::size_type endPos = configStr.find(";", pos);
+		if (endPos != string::npos && endPos < brace &&
+			(brace = configStr.find("{", endPos)) != string::npos)
 		{
-			std::string::size_type colonPos = configStr.find(":", pos);
-			if (colonPos != std::string::npos && colonPos < endPos)
+			string::size_type colonPos = configStr.find(":", pos);
+			if (colonPos != string::npos && colonPos < endPos)
 			{
 				port = std::atoi(configStr.substr(colonPos + 1, endPos - colonPos - 1).c_str());
 				ports.push_back(port);
 			}
-			else if (colonPos == std::string::npos)
+			else if (colonPos == string::npos)
 			{
 				port = std::atoi(configStr.substr(pos, endPos - pos).c_str());
 				ports.push_back(port);
 			}
 		}
+		brace = configStr.find("{", endPos);
 	}
 	return (ports);
 }
@@ -390,20 +441,21 @@ std::vector<int> ConfigServer::getPorts(const std::string &configStr)
  * @brief Get the value depeding on the derective from the config string
  *
  * @param configStr The block to get the server name from
- * @return std::string the server name value
+ * @return string the server name value
  */
-std::vector<std::string> ConfigServer::getKeywordValue(const std::string &configStr, const std::string &derective)
+std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const string &derective)
 {
-	std::vector<std::string> keyWord;
-	std::string::size_type pos = 0;
-	std::string::size_type poSpace = 0;
-	std::string::size_type brace;
+	std::vector<string> keyWord;
+	string::size_type pos = 0;
+	string::size_type poSpace = 0;
+	string::size_type brace;
 
-	if ((pos = configStr.find(derective)) != std::string::npos)
+	if ((pos = configStr.find(derective)) != string::npos)
 	{
 		pos += derective.length(); // skip "keyWord "
-		std::string::size_type endPos = configStr.find(";", pos);
-		while (endPos != std::string::npos && pos < endPos && endPos < brace && (brace = configStr.find("{", endPos)) != std::string::npos)
+		string::size_type endPos = configStr.find(";", pos);
+		while (endPos != string::npos && pos < endPos && endPos < brace &&
+			   (brace = configStr.find("{", endPos)) != string::npos)
 		{
 			while (pos < endPos && isspace(configStr[pos]))
 				pos++;
@@ -424,19 +476,19 @@ std::vector<std::string> ConfigServer::getKeywordValue(const std::string &config
  * @brief Get the value depeding on the derective from the config string
  *
  * @param configStr The block to get the server name from
- * @return std::string the server name value
+ * @return string the server name value
  */
-std::map<int, std::string> ConfigServer::getErrorPages(const std::string &configStr)
+std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 {
-	std::map<int, std::string> errorPages;
-	std::string::size_type pos = 0;
-	std::string::size_type brace;
-	while ((pos = configStr.find("error_page", pos)) != std::string::npos)
+	std::map<int, string> errorPages;
+	string::size_type pos = 0;
+	string::size_type brace;
+	while ((pos = configStr.find("error_page", pos)) != string::npos)
 	{
 		pos += 10; // skip "error_page "
-		std::string::size_type poSpace = pos;
-		std::string::size_type endPos = configStr.find(";", pos);
-		if (endPos != std::string::npos && endPos < brace && (brace = configStr.find("{", endPos)) != std::string::npos)
+		string::size_type poSpace = pos;
+		string::size_type endPos = configStr.find(";", pos);
+		if (endPos != string::npos && (brace = configStr.find("{", endPos)) != string::npos && endPos < brace)
 		{
 			while (pos < endPos && isspace(configStr[pos]))
 				pos++;
@@ -445,9 +497,9 @@ std::map<int, std::string> ConfigServer::getErrorPages(const std::string &config
 				poSpace++;
 			int errorCode = std::atoi(configStr.substr(pos, poSpace - pos).c_str());
 			pos = poSpace;
-			if (endPos != std::string::npos)
+			if (endPos != string::npos)
 			{
-				std::string errorPage = configStr.substr(pos, endPos - pos);
+				string errorPage = configStr.substr(pos, endPos - pos);
 				errorPages[errorCode] = errorPage;
 			}
 		}
