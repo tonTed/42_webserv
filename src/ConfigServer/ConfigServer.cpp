@@ -326,80 +326,35 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
 	string::size_type brace;
 	string::size_type endPos;
 	string::size_type colonPos;
-	int i = 3;
-	// std::cout << "pos: " << pos << std::endl;
-	while ((pos = configStr.find("listen", pos)) != string::npos)
+
+	while ((pos = configStr.find("listen", pos)) != string::npos && configStr.find(":", pos)!= string::npos)
 	{
 		pos += 6; // skip "listen "
-		std::cout << "Pos + 6::: " << pos << std::endl;
-		if ((endPos = configStr.find(";", pos)) != string::npos && pos < endPos &&
-			(brace = configStr.find("{", endPos)) != string::npos 
-			&& endPos < brace && i--)
+		while ((endPos = configStr.find(";", pos)) != string::npos && pos < endPos &&
+			(brace = configStr.find("{", endPos)) != string::npos && endPos < brace )
 		{
-			std::cout << "brace::: " << brace << std::endl;
-			std::cout << "endPos::: " << endPos << std::endl;
-			std::cout << "pos::: " << pos << std::endl;
 			colonPos = configStr.find(":", pos);
-			std::cout << "colonPos: : : " << colonPos << std::endl
-					  << std::endl;
-			if (colonPos != string::npos && colonPos < endPos)
+			if ((configStr.find(":", pos)!= string::npos) && colonPos < endPos)
 			{
-				std::cout << "colonPos::: " << colonPos << std::endl;
-				std::cout << "Pos: : " << pos << std::endl;
-				// while(!isspace(configStr[pos]))
-				// 	pos++;
-				// while(isspace(configStr[pos]))
-				// 	pos++;
-				host = configStr.substr(pos, colonPos - pos);
+				host = trim(configStr.substr(pos, colonPos - pos));
+				// std::cout << "host: " << host << std::cout;
+				if(!validHost(host))
+				{
+					std::cout << BOLD_RED << "Error: invalid host " << host << RESET << std::endl;
+					exit(1); // TODO fix the error!
+				}
 				hosts.push_back(host);
 				pos += host.length() + 1;
-				std::cout << "Pos:-:-: " << pos << std::endl
-						  << std::endl;
+				while(!isspace(configStr[pos]))
+					pos++;
 			}
 			else if (colonPos == string::npos)
-			{
-				std::cout << "colonPos: " << colonPos << std::endl;
-				std::cout << "Pos: " << pos << std::endl
-						  << std::endl;
-				host = configStr.substr(pos, endPos - pos);
-				hosts.push_back(host);
-			}
+				break;
 			brace = configStr.find("{", endPos);
-			std::cout << "brace: " << brace << std::endl;
 		}
 	}
 	return (hosts);
 }
-
-// {
-// 	std::vector<string> hosts;
-// 	string host;
-// 	string::size_type pos = 0;
-// 	string::size_type brace;
-// 	string::size_type colonPos;
-// 	while ((pos = configStr.find("listen", pos)) != string::npos)
-// 	{
-// 		pos += 6; // skip "listen "
-// 		string::size_type endPos = configStr.find(";", pos);
-// 		if (endPos != string::npos && endPos < brace &&
-// 			(brace = configStr.find("{", endPos)) != string::npos)
-// 		{
-// 			if ((colonPos = configStr.find(":", pos)) != string::npos
-// 				&& colonPos < endPos)
-// 			{
-// 				host = configStr.substr(pos, colonPos - pos);
-// 				hosts.push_back(host);
-// 			}
-// 			else if (colonPos == string::npos)
-// 			{
-// 				host = configStr.substr(pos, endPos - pos);
-// 				hosts.push_back(host);
-// 			}
-// 		}
-// 		brace = configStr.find("{", endPos);
-// 	}
-// 	return (hosts);
-// }
 
 /**
  * @brief Get the port from the config string
@@ -410,29 +365,43 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
 std::vector<int> ConfigServer::getPorts(const string &configStr)
 {
 	std::vector<int> ports;
-	int port;
+	string port;
 	string::size_type pos = 0;
-	string::size_type brace;
+	string::size_type openBrace;
+	string::size_type closeBrace;
+	string::size_type colonPos;
+	string::size_type endPos;
+
 	while ((pos = configStr.find("listen", pos)) != string::npos)
 	{
 		pos += 6; // skip "listen "
-		string::size_type endPos = configStr.find(";", pos);
-		if (endPos != string::npos && endPos < brace &&
-			(brace = configStr.find("{", endPos)) != string::npos)
+		openBrace = configStr.find("{", pos);
+		closeBrace = configStr.find("}", pos);
+		while ((endPos = configStr.find(";", pos)) != string::npos && pos < endPos &&
+			(openBrace != string::npos || closeBrace != string::npos) && 
+			(endPos < openBrace || endPos < closeBrace))
 		{
-			string::size_type colonPos = configStr.find(":", pos);
-			if (colonPos != string::npos && colonPos < endPos)
+			std::cout << "pos::: " << pos << std::endl;
+			std::cout << "endpos::: " << endPos << std::endl;
+			std::cout << "openBrace ::: " << openBrace << std::endl;
+			if ((colonPos = configStr.find(":", pos) != string::npos) && colonPos < endPos)
 			{
-				port = std::atoi(configStr.substr(colonPos + 1, endPos - colonPos - 1).c_str());
-				ports.push_back(port);
+				std::cout << "colonPos:: " << colonPos << std::endl;
+				port = configStr.substr(colonPos + 1, endPos - colonPos - 1);
+				ports.push_back(std::atoi(port.c_str()));
+				pos += port.length() + 1;
 			}
-			else if (colonPos == string::npos)
+			else if ((colonPos = configStr.find(":", pos)) == string::npos)
+				// break;
 			{
-				port = std::atoi(configStr.substr(pos, endPos - pos).c_str());
-				ports.push_back(port);
+				std::cout << "colonPos::: " << colonPos << std::endl;
+				port = configStr.substr(pos, endPos - pos);
+				ports.push_back(std::atoi(port.c_str()));
+				pos += port.length() + 1;
 			}
 		}
-		brace = configStr.find("{", endPos);
+		openBrace = configStr.find("{", endPos);
+		closeBrace = configStr.find("}", endPos);
 	}
 	return (ports);
 }

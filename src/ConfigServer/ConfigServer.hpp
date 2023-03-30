@@ -42,66 +42,51 @@ struct ServerData
 
 class ConfigServer
 {
-private:
-	// std::vector<Server> _servers;
-	bool _goodFile;
-	unsigned int _serverNumber;
+	private:
+		std::vector<ServerData> _serversData;
+		bool _goodFile;
+		unsigned int _serverNumber;
+		static ConfigServer *singleton;
+		ConfigServer(){};
 
-	// Client size by ports
-	// int _clientSize;
-	// int _bodySize;
-	// std::string _host;
-	// std::string _port;
-	// std::string _server_name;
-	std::vector<ServerData> _serversData;
-	static ConfigServer *singleton;
-	ConfigServer() {};
+	public:
+		// ConfigServer();
+		ConfigServer(const std::string file);
+		ConfigServer(const ConfigServer &Config);
+		virtual ~ConfigServer();
 
-public:
-	// ConfigServer();
-	ConfigServer(const std::string file);
-	ConfigServer(const ConfigServer &Config);
-	virtual ~ConfigServer();
-
-	static ConfigServer *getInstance()
-	{
-		if (singleton == NULL)
+		static ConfigServer *getInstance()
 		{
-			singleton = new ConfigServer();
+			if (singleton == NULL)
+			{
+				singleton = new ConfigServer();
+			}
+			return singleton;
 		}
-		return singleton;
-	}
 
-	ConfigServer &operator=(const ConfigServer &Config);
+		ConfigServer &operator=(const ConfigServer &Config);
 
-	std::string getFile(const std::string paramFile);
-	bool lineNeeded(const std::string line);
-	std::string cleanedLine(std::string line);
-	bool readFile(const std::string inFile, std::string &stringLine);
-	std::vector<std::string> getServerBlocks(const std::string &configStr);
-	std::vector<std::string> getLocationBlocks(const std::string &configStr);
-	// std::string getHost(const std::string& configStr);
-	std::vector<std::string> getHosts(const std::string &configStr);
-	std::vector<int> getPorts(const std::string &configStr);
-	// std::string getKeywordValue(const std::string &configStr, const std::string &derective);
-	std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
-	std::map<int, std::string> getErrorPages(const std::string &configStr);
+		std::string getFile(const std::string paramFile);
+		bool lineNeeded(const std::string line);
+		std::string cleanedLine(std::string line);
+		bool readFile(const std::string inFile, std::string &stringLine);
+		std::vector<std::string> getServerBlocks(const std::string &configStr);
+		std::vector<std::string> getLocationBlocks(const std::string &configStr);
+		// std::string getHost(const std::string& configStr);
+		std::vector<std::string> getHosts(const std::string &configStr);
+		std::vector<int> getPorts(const std::string &configStr);
+		// std::string getKeywordValue(const std::string &configStr, const std::string &derective);
+		std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
+		std::map<int, std::string> getErrorPages(const std::string &configStr);
 
-	void printBLocks(std::vector<std::string> &serverBlocks);
+		void printBLocks(std::vector<std::string> &serverBlocks);
 };
 
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
 std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
+bool validHost(std::string host);
+std::string trim(const std::string& str);
 
-// class ConfigServer {
 
-// public:
-// 	std::vector<ServerConfig> _servers;
-
-// 	void test()
-// 	{
-// 		_servers[0]._methods.push_back(GET);
-// 	};
-// };
 #endif
