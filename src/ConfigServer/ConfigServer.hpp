@@ -85,8 +85,10 @@ class ConfigServer
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
 std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
-bool validHost(std::string host);
 std::string trim(const std::string& str);
+
+bool validHost(std::string host);
+bool validPort(int portNumb);
 
 
 #endif

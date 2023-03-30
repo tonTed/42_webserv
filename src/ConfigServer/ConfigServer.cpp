@@ -318,26 +318,32 @@ std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 	return (locationBlocks);
 }
 
+/**
+ * @brief Get the Hosts object
+ *
+ * @param configStr the input, should be the sting server block
+ * @return std::vector<string> the vector of hosts.
+ */
 std::vector<string> ConfigServer::getHosts(const string &configStr)
 {
 	std::vector<string> hosts;
 	string host;
 	string::size_type pos = 0;
-	string::size_type brace;
 	string::size_type endPos;
+	string::size_type bracePos;
 	string::size_type colonPos;
 
 	while ((pos = configStr.find("listen", pos)) != string::npos && configStr.find(":", pos)!= string::npos)
 	{
 		pos += 6; // skip "listen "
+		bracePos = configStr.find("{", pos) < configStr.find("}", pos) ? configStr.find("{", pos) : configStr.find("}", pos);
 		while ((endPos = configStr.find(";", pos)) != string::npos && pos < endPos &&
-			(brace = configStr.find("{", endPos)) != string::npos && endPos < brace )
+			bracePos != string::npos && endPos < bracePos )
 		{
 			colonPos = configStr.find(":", pos);
 			if ((configStr.find(":", pos)!= string::npos) && colonPos < endPos)
 			{
 				host = trim(configStr.substr(pos, colonPos - pos));
-				// std::cout << "host: " << host << std::cout;
 				if(!validHost(host))
 				{
 					std::cout << BOLD_RED << "Error: invalid host " << host << RESET << std::endl;
@@ -350,7 +356,7 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
 			}
 			else if (colonPos == string::npos)
 				break;
-			brace = configStr.find("{", endPos);
+			bracePos = configStr.find("{", pos) < configStr.find("}", pos) ? configStr.find("{", pos) : configStr.find("}", pos);
 		}
 	}
 	return (hosts);
@@ -365,43 +371,49 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
 std::vector<int> ConfigServer::getPorts(const string &configStr)
 {
 	std::vector<int> ports;
-	string port;
+	string strPort;
+	int port;
 	string::size_type pos = 0;
-	string::size_type openBrace;
-	string::size_type closeBrace;
 	string::size_type colonPos;
 	string::size_type endPos;
+	string::size_type bracePos;
 
 	while ((pos = configStr.find("listen", pos)) != string::npos)
 	{
 		pos += 6; // skip "listen "
-		openBrace = configStr.find("{", pos);
-		closeBrace = configStr.find("}", pos);
-		while ((endPos = configStr.find(";", pos)) != string::npos && pos < endPos &&
-			(openBrace != string::npos || closeBrace != string::npos) && 
-			(endPos < openBrace || endPos < closeBrace))
+		bracePos = configStr.find("{", pos) < configStr.find("}", pos) ? configStr.find("{", pos) : configStr.find("}", pos);
+		endPos = configStr.find(";", pos);
+		while (endPos != string::npos && bracePos != string::npos && pos < endPos && endPos < bracePos)
 		{
-			std::cout << "pos::: " << pos << std::endl;
-			std::cout << "endpos::: " << endPos << std::endl;
-			std::cout << "openBrace ::: " << openBrace << std::endl;
-			if ((colonPos = configStr.find(":", pos) != string::npos) && colonPos < endPos)
+			colonPos = configStr.find(":", pos);
+			if (colonPos != string::npos && colonPos < endPos)
 			{
-				std::cout << "colonPos:: " << colonPos << std::endl;
-				port = configStr.substr(colonPos + 1, endPos - colonPos - 1);
-				ports.push_back(std::atoi(port.c_str()));
-				pos += port.length() + 1;
+				pos  = colonPos;
+				while(!isspace(configStr[pos]) && pos < endPos)
+					pos++;				
+				strPort = configStr.substr(colonPos + 1, pos - colonPos - 1);
+				port = std::atoi(strPort.c_str());
+				if (!validPort(port))
+				{
+					std::cout << BOLD_RED << "Error: invalid port " << strPort << RESET << std::endl;
+					exit(1); // TODO fix the error!
+				}
+				ports.push_back(port);
 			}
-			else if ((colonPos = configStr.find(":", pos)) == string::npos)
-				// break;
+			else if (colonPos == string::npos)
 			{
-				std::cout << "colonPos::: " << colonPos << std::endl;
-				port = configStr.substr(pos, endPos - pos);
-				ports.push_back(std::atoi(port.c_str()));
-				pos += port.length() + 1;
+				strPort = configStr.substr(pos, endPos - pos);
+				port = std::atoi(strPort.c_str());
+				if (!validPort(port))
+				{
+					std::cout << BOLD_RED << "Error: invalid port " << strPort << RESET << std::endl;
+					exit(1); // TODO fix the error!
+				}
+				ports.push_back(port);
+				pos += strPort.length() + 1;
 			}
 		}
-		openBrace = configStr.find("{", endPos);
-		closeBrace = configStr.find("}", endPos);
+		bracePos = configStr.find("{", pos) < configStr.find("}", pos) ? configStr.find("{", pos) : configStr.find("}", pos);
 	}
 	return (ports);
 }

@@ -53,3 +53,11 @@ std::string trim(const std::string& str)
     std::string::size_type end = str.find_last_not_of(" ");
     return str.substr(start, end - start + 1);
 }
+
+string::size_type findNextPos(const std::string& str, string::size_type startPos, char c)
+{
+    string::size_type pos = str.find(c, startPos);
+    if (pos == string::npos)
+        return string::npos;
+    return pos + 1;
+}
