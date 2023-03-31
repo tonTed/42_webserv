@@ -15,7 +15,6 @@ ConfigServer::ConfigServer(const string paramFile)
 {
 	string file = getFile(paramFile);
 	string stringFile = "";
-	// std::cout << "File: " << file << std::endl;
 	if (!readFile(file, stringFile))
 	{
 		_goodFile = false;
@@ -23,8 +22,6 @@ ConfigServer::ConfigServer(const string paramFile)
 	}
 	else
 	{
-		// for (int i = 0; i < (int)stringFile.length(); i++)
-		// 	std::cout << stringFile[i];
 		_goodFile = true;
 		std::vector<string> serverBlocks = getServerBlocks(stringFile);
 		// printBLocks(serverBlocks);
@@ -354,7 +351,7 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
 			pos = configStr.find("listen ", pos);
 		}
 	}
-	if(hosts.size() > 2)
+	if (hosts.size() > 2)
 	{
 		std::cout << BOLD_RED << "Error: too many hosts " << RESET << std::endl;
 		exit(1); // TODO fix the error!
@@ -371,50 +368,69 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
 std::vector<int> ConfigServer::getPorts(const string &configStr)
 {
 	std::vector<int> ports;
+	string::size_type pos = configStr.find("listen ", 0);
+	string::size_type newPos = 0;
+	string portLine;
 	string strPort;
 	int port;
-	string::size_type pos = 0;
-	string::size_type colonPos;
 	string::size_type endPos;
-	string::size_type bracePos;
+	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
+									 ? configStr.find("{", pos)
+									 : configStr.find("}", pos);
 
-	while ((pos = configStr.find("listen", pos)) != string::npos)
+	while (pos != string::npos && pos < bracePos)
 	{
-		pos += 6; // skip "listen "
-		bracePos = configStr.find("{", pos) < configStr.find("}", pos) ? configStr.find("{", pos) : configStr.find("}", pos);
 		endPos = configStr.find(";", pos);
-		while (endPos != string::npos && bracePos != string::npos && pos < endPos && endPos < bracePos)
+		while (endPos != string::npos && pos < endPos &&
+			   bracePos != string::npos && endPos < bracePos)
 		{
-			colonPos = configStr.find(":", pos);
-			if (colonPos != string::npos && colonPos < endPos)
+			portLine = trim(getHostLine(configStr, pos, &newPos));
+			if (!portLine.empty())
 			{
-				pos = colonPos;
-				while (!isspace(configStr[pos]) && pos < endPos)
-					pos++;
-				strPort = configStr.substr(colonPos + 1, pos - colonPos - 1);
-				port = std::atoi(strPort.c_str());
-				if (!validPort(port))
+				int i = 0, j = 0;
+				while (portLine[j])
+					if (portLine[j++] == ':')
+						i++;
+				j = 0;
+				if (i) // get th port incase of the presence of ":"
 				{
-					std::cout << BOLD_RED << "Error: invalid port " << strPort << RESET << std::endl;
-					exit(1); // TODO fix the error!
+					while (j < i)
+					{
+						strPort = getPortPart(portLine);
+						port = std::atoi(strPort.c_str());
+						if (!validPort(port))
+						{
+							std::cout << BOLD_RED << "Error: invalid host |" << strPort << "|" << RESET << std::endl;
+							exit(1); // TODO fix the error!
+						}
+						ports.push_back(port);
+						portLine = portLine.substr(portLine.find(" ", 0) + 1, portLine.length() - portLine.find(":", 0) - 1);
+						j++;
+					}
 				}
-				ports.push_back(port);
-			}
-			else if (colonPos == string::npos)
-			{
-				strPort = configStr.substr(pos, endPos - pos);
-				port = std::atoi(strPort.c_str());
-				if (!validPort(port))
+				else // get the port if the derective has no ":"
 				{
-					std::cout << BOLD_RED << "Error: invalid port " << strPort << RESET << std::endl;
-					exit(1); // TODO fix the error!
+					strPort = getPortPart(portLine);
+					port = std::atoi(strPort.c_str());
+					if (!validPort(port))
+					{
+						std::cout << BOLD_RED << "Error: invalid host |" << strPort << "|" << RESET << std::endl;
+						exit(1); // TODO fix the error!
+					}
+					ports.push_back(port);
 				}
-				ports.push_back(port);
-				pos += strPort.length() + 1;
+				pos = newPos;
 			}
+			endPos = configStr.find(";", pos);
+			pos = configStr.find("listen ", pos);
 		}
-		bracePos = configStr.find("{", pos) < configStr.find("}", pos) ? configStr.find("{", pos) : configStr.find("}", pos);
 	}
+	if (ports.size() < 1 || portDup(ports))
+	{
+		std::cout << BOLD_RED << "Error: no ports or duplicate ports" << RESET << std::endl;
+		exit(1); // TODO fix the error!
+	}
+
 	return (ports);
 }
 
@@ -495,73 +511,74 @@ std::vector<ServerData> ConfigServer::getServerData() const
 	return this->_serversData;
 }
 
-
 void ConfigServer::printServersData(std::vector<ServerData> &data)
 {
-    for (std::vector<ServerData>::iterator it = data.begin(); it != data.end(); ++it)
-    {
-        std::cout << YELLOW << "Hosts: ";
-        for (std::vector<string>::iterator itHosts = it->_hosts.begin(); itHosts != it->_hosts.end(); ++itHosts)
-        {
-            std::cout << RESET << *itHosts << " ";
-        }
-        std::cout << std::endl;
+	for (std::vector<ServerData>::iterator it = data.begin(); it != data.end(); ++it)
+	{
+		std::cout << std::endl
+				  << YELLOW << "Hosts: ";
+		for (std::vector<string>::iterator itHosts = it->_hosts.begin(); itHosts != it->_hosts.end(); ++itHosts)
+		{
+			std::cout << RESET << *itHosts << " ";
+		}
+		std::cout << std::endl;
 
-        // std::cout << "Server ports: ";
-        // for (std::vector<int>::iterator itPorts = it->_serverPorts.begin(); itPorts != it->_serverPorts.end(); ++itPorts)
-        // {
-        //     std::cout << *itPorts << " ";
-        // }
-        // std::cout << std::endl;
+		std::cout << YELLOW << "Server ports: ";
+		for (std::vector<int>::iterator itPorts = it->_serverPorts.begin(); itPorts != it->_serverPorts.end(); ++itPorts)
+		{
+			std::cout << RESET << *itPorts << " ";
+		}
+		std::cout << std::endl;
 
-        // std::cout << "Server names: ";
-        // for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
-        // {
-        //     std::cout << *itNames << " ";
-        // }
-        // std::cout << std::endl;
+		// std::cout << "Server names: ";
+		// for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
+		// {
+		//     std::cout << *itNames << " ";
+		// }
+		// std::cout << std::endl;
 
-        // std::cout << "Methods: ";
-        // for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
-        // {
-        //     std::cout << *itMethods << " ";
-        // }
-        // std::cout << std::endl;
+		// std::cout << "Methods: ";
+		// for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
+		// {
+		//     std::cout << *itMethods << " ";
+		// }
+		// std::cout << std::endl;
 
-        // std::cout << "Root: ";
-        // for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
-        // {
-        //     std::cout << *itRoot << " ";
-        // }
-        // std::cout << std::endl;
+		// std::cout << "Root: ";
+		// for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
+		// {
+		//     std::cout << *itRoot << " ";
+		// }
+		// std::cout << std::endl;
 
-        // std::cout << "Error pages: ";
-        // for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
-        // {
-        //     std::cout << itErrorPages->first << ": " << itErrorPages->second << " ";
-        // }
-        // std::cout << std::endl;
+		// std::cout << "Error pages: ";
+		// for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
+		// {
+		//     std::cout << itErrorPages->first << ": " << itErrorPages->second << " ";
+		// }
+		// std::cout << std::endl;
 
-        // std::cout << "Locations: ";
-        // for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
-        // {
-        //     std::cout << itLocations->first << ": " << itLocations->second.path << " ";
-        // }
-        // std::cout << std::endl;
-    }
+		// std::cout << "Locations: ";
+		// for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
+		// {
+		//     std::cout << itLocations->first << ": " << itLocations->second.path << " ";
+		// }
+		// std::cout << std::endl;
+	}
 }
 
 void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 {
 	std::vector<ServerData> servers(serverBlocks.size());
-	for (int i = 0; i < static_cast<int>(serverBlocks.size()); i++) 
+	for (int i = 0; i < static_cast<int>(serverBlocks.size()); i++)
 	{
-	
-		// std::cout << YELLOW << "Server block: |" << RESET << serverBlocks[i] << "|" << std::endl  
+
+		// std::cout << YELLOW << "Server block: |" << RESET << serverBlocks[i] << "|" << std::endl
 		// << std::endl;
-		
+
 		servers[i]._hosts = getHosts(serverBlocks[i]);
-		
+		servers[i]._serverPorts = getPorts(serverBlocks[i]);
+
 		// std::vector<int> ports = getPorts(*it);
 		// std::cout << YELLOW << "Ports: " << RESET;
 		// for (std::vector<int>::const_iterator itr = ports.begin(); itr != ports.end(); ++itr)
@@ -599,42 +616,42 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 	}
 
 	this->_serversData = servers;
-//     {
-//         std::cout << "Server ports: ";
-//         for (std::vector<int>::iterator itPorts = it->_serverPorts.begin(); itPorts != it->_serverPorts.end(); ++itPorts)
-//         {
-//             std::cout << *itPorts << " ";
-//         }
-//         std::cout << std::endl;
-//         std::cout << "Server names: ";
-//         for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
-//         {
-//             std::cout << *itNames << " ";
-//         }
-//         std::cout << std::endl;
-//         std::cout << "Methods: ";
-//         for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
-//         {
-//             std::cout << *itMethods << " ";
-//         }
-//         std::cout << std::endl;
-//         std::cout << "Root: ";
-//         for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
-//         {
-//             std::cout << *itRoot << " ";
-//         }
-//         std::cout << std::endl;
-//         std::cout << "Error pages: ";
-//         for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
-//         {
-//             std::cout << itErrorPages->first << ": " << itErrorPages->second << " ";
-//         }
-//         std::cout << std::endl;
-//         // std::cout << "Locations: ";
-//         // for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
-//         // {
-//         //     std::cout << itLocations->first << ": " << itLocations->second.path << " ";
-//         // }
-//         // std::cout << std::endl;
-//     }
+	//     {
+	//         std::cout << "Server ports: ";
+	//         for (std::vector<int>::iterator itPorts = it->_serverPorts.begin(); itPorts != it->_serverPorts.end(); ++itPorts)
+	//         {
+	//             std::cout << *itPorts << " ";
+	//         }
+	//         std::cout << std::endl;
+	//         std::cout << "Server names: ";
+	//         for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
+	//         {
+	//             std::cout << *itNames << " ";
+	//         }
+	//         std::cout << std::endl;
+	//         std::cout << "Methods: ";
+	//         for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
+	//         {
+	//             std::cout << *itMethods << " ";
+	//         }
+	//         std::cout << std::endl;
+	//         std::cout << "Root: ";
+	//         for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
+	//         {
+	//             std::cout << *itRoot << " ";
+	//         }
+	//         std::cout << std::endl;
+	//         std::cout << "Error pages: ";
+	//         for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
+	//         {
+	//             std::cout << itErrorPages->first << ": " << itErrorPages->second << " ";
+	//         }
+	//         std::cout << std::endl;
+	//         // std::cout << "Locations: ";
+	//         // for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
+	//         // {
+	//         //     std::cout << itLocations->first << ": " << itLocations->second.path << " ";
+	//         // }
+	//         // std::cout << std::endl;
+	//     }
 }

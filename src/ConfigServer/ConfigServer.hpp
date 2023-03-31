@@ -88,8 +88,6 @@ public:
 	void setServersData(std::vector<string> &serverBlocks);
 };
 
-// ConfigServer *ConfigServer::singleton = NULL;
-
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
 
 std::string getline_with_newline(std::istream &input);
@@ -98,8 +96,14 @@ std::string trim(const std::string &str);
 
 std::string getHostLine(const std::string &str, std::string::size_type &startPos, std::string::size_type *newPos);
 std::string getHostPart(const std::string &input);
-
 bool validHost(std::string host);
+
+std::string getPortLine(const std::string &str,
+                        string::size_type &startPos, string::size_type *newPos);
+std::string getPortPart(const std::string &input);
+bool portDup(std::vector<int> seq);
+std::string getPortPartSolo(const std::string &input);
+
 bool validPort(int portNumb);
 
 #endif

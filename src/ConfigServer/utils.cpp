@@ -22,7 +22,20 @@ bool isrealspace(char c)
 
 bool validPort(int portNumb)
 {
-    return (portNumb > 0 && portNumb < 65535);
+    return (portNumb == 80 || (portNumb > 1024 && portNumb < 65535));
+}
+
+bool portDup(std::vector<int> seq)
+{
+    for (int i = 0; i < static_cast<int>(seq.size()); i++)
+    {
+        for (int j = i + 1; j < static_cast<int>(seq.size()); j++)
+        {
+            if (seq[i] == seq[j])
+                return true;
+        }
+    }
+    return false;
 }
 
 bool validClientSize(int clientSize)
@@ -50,17 +63,8 @@ std::string trim(const std::string &str)
     std::string::size_type start = str.find_first_not_of(" ");
     if (start == std::string::npos)
         return "";
-
     std::string::size_type end = str.find_last_not_of(" ");
     return str.substr(start, end - start + 1);
-}
-
-string::size_type findNextPos(const std::string &str, string::size_type startPos, char c)
-{
-    string::size_type pos = str.find(c, startPos);
-    if (pos == string::npos)
-        return string::npos;
-    return pos + 1;
 }
 
 std::string getHostLine(const std::string &str,
@@ -93,7 +97,48 @@ std::string getHostPart(const std::string &input)
         if (pos != std::string::npos)
         {
             std::string host = token.substr(0, pos);
-        return host;
+            return host;
+        }
+    }
+    return "";
+}
+
+std::string getPortLine(const std::string &str,
+                        string::size_type &startPos, string::size_type *newPos)
+{
+    startPos += 6;
+    string::size_type endPos = str.find(";", startPos);
+    if (endPos == string::npos)
+        return "";
+    string::size_type colonPos = str.find_last_of(":", startPos, endPos - startPos);
+    if (colonPos != string::npos && startPos - 6 < colonPos && colonPos < endPos)
+    {
+        if (newPos)
+            *newPos = endPos;
+        // std::cout << "    "; // TODO How the hell is this even possible??
+        return str.substr(startPos, endPos - startPos);
+    }
+    else
+        return "";
+}
+
+std::string getPortPart(const std::string &input)
+{
+    std::stringstream ss(input);
+    std::string token;
+
+    while (std::getline(ss, token, ' '))
+    {
+        std::string::size_type pos = token.find(':');
+        if (pos != std::string::npos)
+        {
+            std::string port = token.substr(pos+1);
+            return port;
+        }
+        else if(pos == std::string::npos)
+        {
+            std::string port = token.substr(pos+1);
+            return port;
         }
     }
     return "";
