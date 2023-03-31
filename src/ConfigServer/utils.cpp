@@ -1,12 +1,14 @@
-# include "../../includes/webserv.hpp"
+#include "../../includes/webserv.hpp"
 
-std::string getline_with_newline(std::istream& input) 
+std::string getline_with_newline(std::istream &input)
 {
     std::string line;
     char c;
-    while (input.get(c)) {
+    while (input.get(c))
+    {
         line += c;
-        if (c == '\n') {
+        if (c == '\n')
+        {
             break;
         }
     }
@@ -43,8 +45,7 @@ bool validHost(std::string host)
     return (host == "127.0.0.1" || host == "localhost");
 }
 
-
-std::string trim(const std::string& str)
+std::string trim(const std::string &str)
 {
     std::string::size_type start = str.find_first_not_of(" ");
     if (start == std::string::npos)
@@ -54,10 +55,46 @@ std::string trim(const std::string& str)
     return str.substr(start, end - start + 1);
 }
 
-string::size_type findNextPos(const std::string& str, string::size_type startPos, char c)
+string::size_type findNextPos(const std::string &str, string::size_type startPos, char c)
 {
     string::size_type pos = str.find(c, startPos);
     if (pos == string::npos)
         return string::npos;
     return pos + 1;
+}
+
+std::string getHostLine(const std::string &str,
+                        string::size_type &startPos, string::size_type *newPos)
+{
+    startPos += 6;
+    string::size_type endPos = str.find(";", startPos);
+    if (endPos == string::npos)
+        return "";
+    string::size_type colonPos = str.find_last_of(":", startPos, endPos - startPos);
+    if (colonPos != string::npos && startPos - 6 < colonPos && colonPos < endPos)
+    {
+        if (newPos)
+            *newPos = endPos;
+        std::cout << "    "; // TODO How the hell is this even possible??
+        return str.substr(startPos, endPos - startPos);
+    }
+    else
+        return "";
+}
+
+std::string getHostPart(const std::string &input)
+{
+    std::stringstream ss(input);
+    std::string token;
+
+    while (std::getline(ss, token, ' '))
+    {
+        std::string::size_type pos = token.find(':');
+        if (pos != std::string::npos)
+        {
+            std::string host = token.substr(0, pos);
+        return host;
+        }
+    }
+    return "";
 }
