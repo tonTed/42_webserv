@@ -443,30 +443,131 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const string &derective)
 {
 	std::vector<string> keyWord;
-	string::size_type pos = 0;
+	string::size_type pos = configStr.find(derective, 0);
 	string::size_type poSpace = 0;
-	string::size_type brace;
-
-	if ((pos = configStr.find(derective)) != string::npos)
+	string word;
+	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
+									 ? configStr.find("{", pos)
+									 : configStr.find("}", pos);
+	while (pos != string::npos && pos < bracePos)
 	{
 		pos += derective.length(); // skip "keyWord "
 		string::size_type endPos = configStr.find(";", pos);
-		while (endPos != string::npos && pos < endPos && endPos < brace &&
-			   (brace = configStr.find("{", endPos)) != string::npos)
+		while (endPos != string::npos && pos < endPos && bracePos != string::npos && endPos < bracePos)
 		{
 			while (pos < endPos && isspace(configStr[pos]))
 				pos++;
 			poSpace = pos;
 			while (poSpace < endPos && !isspace(configStr[poSpace]))
 				poSpace++;
-
-			keyWord.push_back(configStr.substr(pos, poSpace - pos));
+			word = configStr.substr(pos, poSpace - pos);
+			if (word.empty())
+			{
+				std::cout << BOLD_RED << "Error: " << derective << " can't be empty!" << RESET << std::endl;
+				exit(1); // TODO fix the error!
+			}
+			keyWord.push_back(word);
 			pos = poSpace;
-			brace = configStr.find("{", endPos);
+			while (pos < endPos && isspace(configStr[pos]))
+				pos++;
+			endPos = configStr.find(";", pos);
 		}
+		pos = configStr.find(derective, pos);
 	}
-	// handle error ULAC derective!
 	return (keyWord);
+}
+
+std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
+{
+	std::vector<enum eRequestType> methods;
+	string::size_type pos = configStr.find("methods", 0);
+	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
+									 ? configStr.find("{", pos)
+									 : configStr.find("}", pos);
+	string::size_type newPos = 0;
+	string wordLine;
+	string word = "";
+	while (pos != string::npos && pos < bracePos)
+	{
+		std::cout << "pos:" << pos << std::endl;
+		// pos += 8; // skip "methods"
+		std::cout << "2 pos:" << pos << std::endl;
+		std::cout << "configStr[pos]:" << configStr[pos] << std::endl;
+		string::size_type endPos = configStr.find(";", pos);
+		while (endPos != string::npos && endPos < bracePos && pos < endPos)
+		{
+			std::cout << "3 pos:" << pos << std::endl;
+			std::cout << "endPos:" << endPos << std::endl;
+			std::cout << "bracePos:" << bracePos << std::endl;
+			// string word = configStr.substr(pos, endPos - pos);
+			wordLine = trim(getMethodsLine(configStr, pos, &newPos));
+			// int i = 0;
+			// int j;
+			std::cout << ":wordLine: |" << wordLine << "|" << std::endl;
+			// int n = 4;
+			while ((word = get_next_word(wordLine)) != "") // loop until all words have been returned
+			{
+				std::cout << "word: " << word << std::endl;
+				if (word.empty())
+				{
+					std::cout << BOLD_RED << "Error: "
+							  << "methods"
+							  << " can't be empty!" << RESET << std::endl;
+					// exit(1); // TODO fix the error!
+				}
+				else if (word == "GET")
+				{
+					methods.push_back(GET);
+				}
+				else if (word == "POST")
+				{
+					methods.push_back(POST);
+				}
+				else if (word == "PUT")
+				{
+					methods.push_back(PUT);
+				}
+				else if (word == "DELETE")
+				{
+					methods.push_back(DELETE);
+				}
+				else if (word == "HEAD")
+				{
+					methods.push_back(HEAD);
+				}
+				else if (word == "CONNECT")
+				{
+					methods.push_back(CONNECT);
+				}
+				else if (word == "OPTIONS")
+				{
+					methods.push_back(OPTIONS);
+				}
+				else if (word == "TRACE")
+				{
+					methods.push_back(TRACE);
+				}
+				else if (word == "PATCH")
+				{
+					methods.push_back(PATCH);
+				}
+				else
+				{
+					std::cout << BOLD_RED << "Error: Invalid HTTP method: " << word << RESET << std::endl;
+					// exit(1); // TODO fix the error!
+				}
+			}
+			// pos = endPos;
+			pos = newPos;
+			// while (pos < endPos && isspace(configStr[pos]))
+			// {
+			//     pos++;
+			// }
+			endPos = configStr.find(";", pos);
+		}
+		pos = configStr.find("methods", pos);
+	}
+	return methods;
 }
 
 /**
@@ -519,30 +620,34 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 				  << YELLOW << "Hosts: ";
 		for (std::vector<string>::iterator itHosts = it->_hosts.begin(); itHosts != it->_hosts.end(); ++itHosts)
 		{
-			std::cout << RESET << *itHosts << " ";
+			std::cout << RESET << "|" << *itHosts << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Server ports: ";
 		for (std::vector<int>::iterator itPorts = it->_serverPorts.begin(); itPorts != it->_serverPorts.end(); ++itPorts)
 		{
-			std::cout << RESET << *itPorts << " ";
+			std::cout << RESET << "|" << *itPorts << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
-		// std::cout << "Server names: ";
-		// for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
-		// {
-		//     std::cout << *itNames << " ";
-		// }
-		// std::cout << std::endl;
+		std::cout << YELLOW << "Server names: ";
+		for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
+		{
+			std::cout << RESET << "|" << *itNames << "|"
+					  << " ";
+		}
+		std::cout << std::endl;
 
-		// std::cout << "Methods: ";
-		// for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
-		// {
-		//     std::cout << *itMethods << " ";
-		// }
-		// std::cout << std::endl;
+		std::cout << YELLOW << "Methods: ";
+		for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
+		{
+			std::cout << RESET << "|" << *itMethods << "|"
+					  << " ";
+		}
+		std::cout << std::endl;
 
 		// std::cout << "Root: ";
 		// for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
@@ -578,15 +683,9 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 
 		servers[i]._hosts = getHosts(serverBlocks[i]);
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
-
-		// std::vector<int> ports = getPorts(*it);
-		// std::cout << YELLOW << "Ports: " << RESET;
-		// for (std::vector<int>::const_iterator itr = ports.begin(); itr != ports.end(); ++itr)
-		// {
-		// 	// Process each server block here
-		// 	std::cout << *itr << ' ';
-		// }
-		// std::cout << std::endl;
+		servers[i]._serverPorts = getPorts(serverBlocks[i]);
+		servers[i]._serverNames = getKeywordValue(serverBlocks[i], "server_name");
+		servers[i]._methods = getMethods(serverBlocks[i]);
 
 		// std::vector<string> serverNames = getKeywordValue(*it, "server_name");
 		// std::cout << YELLOW << "Server name: " << RESET;

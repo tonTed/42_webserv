@@ -80,7 +80,7 @@ public:
 	std::vector<int> getPorts(const std::string &configStr);
 	std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
 	std::map<int, std::string> getErrorPages(const std::string &configStr);
-
+	std::vector<enum eRequestType> getMethods(const string &configStr);
 	void printBLocks(std::vector<std::string> &serverBlocks);
 
 	std::vector<ServerData> getServerData() const;
@@ -102,8 +102,10 @@ std::string getPortLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos);
 std::string getPortPart(const std::string &input);
 bool portDup(std::vector<int> seq);
-std::string getPortPartSolo(const std::string &input);
-
 bool validPort(int portNumb);
 
+
+std::string getMethodsLine(const std::string &str,
+                        string::size_type &startPos, string::size_type *newPos);
+std::string get_next_word(const std::string& input);
 #endif
