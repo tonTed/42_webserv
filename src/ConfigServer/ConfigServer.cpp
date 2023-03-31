@@ -510,8 +510,7 @@ std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
 				std::cout << "word: " << word << std::endl;
 				if (word.empty())
 				{
-					std::cout << BOLD_RED << "Error: "
-							  << "methods"
+					std::cout << BOLD_RED << "Error: " << "methods"
 							  << " can't be empty!" << RESET << std::endl;
 					// exit(1); // TODO fix the error!
 				}
