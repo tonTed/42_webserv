@@ -160,15 +160,33 @@ std::string getMethodsLine(const std::string &str,
 }
 
 
-std::string get_next_word(const std::string& input)
-{
-    // std::cout << "input:: |" << input << "|" << std::endl;
-    static std::istringstream iss(input); // initialize string stream with input string
-    std::cout << "iss:: |" << iss << "|" << std::endl;
+// std::string get_next_word(const std::string& input)
+// {
+//     // std::cout << "input:: |" << input << "|" << std::endl;
+//     static std::istringstream iss(input); // initialize string stream with input string
+//     std::cout << "iss:: |" << iss << "|" << std::endl;
+//     std::string word;
+//     iss >> word; // extract next word from string stream
+//     std::cout << "word:: |" << word << "|" << std::endl;
+//     return word;
+// }
+
+std::string get_next_word(const std::string& input) {
+  static std::istringstream iss(input);
+  std::string word;
+  iss >> word;
+  return word;
+}
+
+std::vector<std::string> splitString(std::string input)
+ {
+    std::vector<std::string> result;
+    std::istringstream iss(input);
     std::string word;
-    iss >> word; // extract next word from string stream
-    std::cout << "word:: |" << word << "|" << std::endl;
-    return word;
+    while (iss >> word) {
+        result.push_back(word);
+    }
+    return result;
 }
 
 // std::string get_next_word(const std::string& input)

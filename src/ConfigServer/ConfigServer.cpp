@@ -486,82 +486,39 @@ std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
 									 : configStr.find("}", pos);
 	string::size_type newPos = 0;
 	string wordLine;
-	string word = "";
+	std::vector<string> words;
 	while (pos != string::npos && pos < bracePos)
 	{
-		std::cout << "pos:" << pos << std::endl;
-		// pos += 8; // skip "methods"
-		std::cout << "2 pos:" << pos << std::endl;
-		std::cout << "configStr[pos]:" << configStr[pos] << std::endl;
 		string::size_type endPos = configStr.find(";", pos);
 		while (endPos != string::npos && endPos < bracePos && pos < endPos)
 		{
-			std::cout << "3 pos:" << pos << std::endl;
-			std::cout << "endPos:" << endPos << std::endl;
-			std::cout << "bracePos:" << bracePos << std::endl;
-			// string word = configStr.substr(pos, endPos - pos);
 			wordLine = trim(getMethodsLine(configStr, pos, &newPos));
-			// int i = 0;
-			// int j;
-			std::cout << ":wordLine: |" << wordLine << "|" << std::endl;
-			// int n = 4;
-			while ((word = get_next_word(wordLine)) != "") // loop until all words have been returned
+			if (wordLine.empty())
 			{
-				std::cout << "word: " << word << std::endl;
-				if (word.empty())
+				std::cout << BOLD_RED << "Error: methods can't be empty!" << RESET << std::endl;
+				exit(1); // TODO fix the error!
+			}
+			words = splitString(wordLine);
+			for (int i = 0; i < static_cast<int>(words.size()); i++) // loop until all words have been returned
+			{
+				if (words[i].empty())
 				{
-					std::cout << BOLD_RED << "Error: " << "methods"
-							  << " can't be empty!" << RESET << std::endl;
-					// exit(1); // TODO fix the error!
+					std::cout << BOLD_RED << "Error: methods can't be empty!" << RESET << std::endl;
+					exit(1); // TODO fix the error!
 				}
-				else if (word == "GET")
-				{
+				else if (words[i] == "GET")
 					methods.push_back(GET);
-				}
-				else if (word == "POST")
-				{
+				else if (words[i] == "POST")
 					methods.push_back(POST);
-				}
-				else if (word == "PUT")
-				{
-					methods.push_back(PUT);
-				}
-				else if (word == "DELETE")
-				{
+				else if (words[i] == "DELETE")
 					methods.push_back(DELETE);
-				}
-				else if (word == "HEAD")
-				{
-					methods.push_back(HEAD);
-				}
-				else if (word == "CONNECT")
-				{
-					methods.push_back(CONNECT);
-				}
-				else if (word == "OPTIONS")
-				{
-					methods.push_back(OPTIONS);
-				}
-				else if (word == "TRACE")
-				{
-					methods.push_back(TRACE);
-				}
-				else if (word == "PATCH")
-				{
-					methods.push_back(PATCH);
-				}
 				else
 				{
-					std::cout << BOLD_RED << "Error: Invalid HTTP method: " << word << RESET << std::endl;
-					// exit(1); // TODO fix the error!
+					std::cout << BOLD_RED << "Error: Invalid HTTP method: " << words[i] << RESET << std::endl;
+					exit(1); // TODO fix the error!
 				}
 			}
-			// pos = endPos;
 			pos = newPos;
-			// while (pos < endPos && isspace(configStr[pos]))
-			// {
-			//     pos++;
-			// }
 			endPos = configStr.find(";", pos);
 		}
 		pos = configStr.find("methods", pos);

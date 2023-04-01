@@ -108,4 +108,5 @@ bool validPort(int portNumb);
 std::string getMethodsLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos);
 std::string get_next_word(const std::string& input);
+std::vector<std::string> splitString(std::string input);
 #endif
