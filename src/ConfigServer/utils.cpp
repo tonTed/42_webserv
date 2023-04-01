@@ -159,25 +159,6 @@ std::string getMethodsLine(const std::string &str,
         return "";
 }
 
-
-// std::string get_next_word(const std::string& input)
-// {
-//     // std::cout << "input:: |" << input << "|" << std::endl;
-//     static std::istringstream iss(input); // initialize string stream with input string
-//     std::cout << "iss:: |" << iss << "|" << std::endl;
-//     std::string word;
-//     iss >> word; // extract next word from string stream
-//     std::cout << "word:: |" << word << "|" << std::endl;
-//     return word;
-// }
-
-std::string get_next_word(const std::string& input) {
-  static std::istringstream iss(input);
-  std::string word;
-  iss >> word;
-  return word;
-}
-
 std::vector<std::string> splitString(std::string input)
  {
     std::vector<std::string> result;
@@ -189,12 +170,11 @@ std::vector<std::string> splitString(std::string input)
     return result;
 }
 
-// std::string get_next_word(const std::string& input)
-// {
-//     static std::istringstream iss; // declare static string stream
-//     iss.clear(); // clear previous errors and flags
-//     iss.str(input); // set input string
-//     std::string word;
-//     iss >> word; // extract next word from string stream
-//     return word;
-// }
+bool validErrorPage(std::string input) {
+    if (static_cast<int>(input.size()) < 5 || 
+        input.substr(static_cast<int>(input.size()) - 5) != ".html")
+        return false;
+    return true;
+}
+
+

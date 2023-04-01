@@ -477,6 +477,12 @@ std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const
 	return (keyWord);
 }
 
+/**
+ * @brief Get the methods from the config string
+ *
+ * @param configStr The block to get the methods from
+ * @return string the methods value
+ */
 std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
 {
 	std::vector<enum eRequestType> methods;
@@ -550,10 +556,20 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 			while (poSpace < endPos && !isspace(configStr[poSpace]))
 				poSpace++;
 			int errorCode = std::atoi(configStr.substr(pos, poSpace - pos).c_str());
+			if (errorCode < 0)
+			{
+				std::cout << BOLD_RED << "Error: Invalid error code: " << errorCode << RESET << std::endl;
+				exit(1); // TODO fix the error!
+			}
 			pos = poSpace;
 			if (endPos != string::npos)
 			{
 				string errorPage = configStr.substr(pos, endPos - pos);
+				if(!validErrorPage(errorPage))
+				{
+					std::cout << BOLD_RED << "Error: error_page can't be empty!" << RESET << std::endl;
+					exit(1); // TODO fix the error!
+				}
 				errorPages[errorCode] = errorPage;
 			}
 		}
@@ -562,6 +578,42 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 	}
 	return errorPages;
 };
+
+// std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
+// {
+// 	std::map<int, string> errorPages;
+// 	string::size_type pos = configStr.find("error_page", 0);
+// 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
+// 					? configStr.find("{", pos) : configStr.find("}", pos);
+// 	while (pos != string::npos && pos < bracePos)
+// 	{
+// 		pos += 10; // skip "error_page "
+// 		string::size_type poSpace = pos;
+// 		string::size_type endPos = configStr.find(";", pos);
+// 		while (endPos != string::npos && bracePos != string::npos && pos < endPos && endPos < bracePos)
+// 		{
+// 			while (pos < endPos && isspace(configStr[pos]))
+// 				pos++;
+// 			poSpace = pos;
+// 			while (poSpace < endPos && !isspace(configStr[poSpace]))
+// 				poSpace++;
+// 			int errorCode = std::atoi(configStr.substr(pos, poSpace - pos).c_str());
+// 			pos = poSpace;
+// 			if (endPos != string::npos)
+// 			{
+// 				string errorPage = configStr.substr(pos, endPos - pos);
+// 				errorPages[errorCode] = errorPage;
+// 			}
+// 			endPos = configStr.find(";", pos);
+// 		}
+// 		pos = endPos;
+// 		// brace = configStr.find("{", endPos);
+// 		// bracePos = configStr.find("{", pos) < configStr.find("}", pos)
+// 		// 			? configStr.find("{", pos) : configStr.find("}", pos);
+// 	}
+// 	return errorPages;
+// };
+
 
 std::vector<ServerData> ConfigServer::getServerData() const
 {
@@ -600,24 +652,23 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << YELLOW << "Methods: ";
 		for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
 		{
-			std::cout << RESET << "|" << *itMethods << "|"
-					  << " ";
+			std::cout << RESET << "|" << *itMethods << "|" << " ";
 		}
 		std::cout << std::endl;
 
-		// std::cout << "Root: ";
-		// for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
-		// {
-		//     std::cout << *itRoot << " ";
-		// }
-		// std::cout << std::endl;
+		std::cout << YELLOW << "Root: ";
+		for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
+		{
+		    std::cout << RESET << "|" << *itRoot << "|" << " ";
+		}
+		std::cout << std::endl;
 
-		// std::cout << "Error pages: ";
-		// for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
-		// {
-		//     std::cout << itErrorPages->first << ": " << itErrorPages->second << " ";
-		// }
-		// std::cout << std::endl;
+		std::cout << YELLOW << "Error pages: ";
+		for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
+		{
+		    std::cout << RESET << "|" << itErrorPages->first << ": " << itErrorPages->second << "|" << " ";
+		}
+		std::cout << std::endl;
 
 		// std::cout << "Locations: ";
 		// for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
@@ -642,25 +693,9 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
 		servers[i]._serverNames = getKeywordValue(serverBlocks[i], "server_name");
 		servers[i]._methods = getMethods(serverBlocks[i]);
-
-		// std::vector<string> serverNames = getKeywordValue(*it, "server_name");
-		// std::cout << YELLOW << "Server name: " << RESET;
-		// for (std::vector<string>::const_iterator itr = serverNames.begin(); itr != serverNames.end(); ++itr)
-		// {
-		// 	// Process each server block here
-		// 	std::cout << *itr << ' ';
-		// }
-		// std::cout << std::endl;
-
-		// std::vector<string> methods = getKeywordValue(*it, "methods");
-		// std::cout << YELLOW << "Methods: " << RESET;
-		// for (std::vector<string>::const_iterator itr = methods.begin(); itr != methods.end(); ++itr)
-		// {
-		// 	// Process each server block here
-		// 	std::cout << *itr << ' ';
-		// }
-		// std::cout << std::endl;
-
+		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
+		servers[i]._root = getKeywordValue(serverBlocks[i], "root");
+		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 		// std::map<int, string> errorPages = getErrorPages(*it);
 		// std::cout << YELLOW << "Error Pages: " << RESET;
 		// for (std::map<int, string>::iterator it = errorPages.begin(); it != errorPages.end(); ++it)
@@ -671,42 +706,7 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 	}
 
 	this->_serversData = servers;
-	//     {
-	//         std::cout << "Server ports: ";
-	//         for (std::vector<int>::iterator itPorts = it->_serverPorts.begin(); itPorts != it->_serverPorts.end(); ++itPorts)
-	//         {
-	//             std::cout << *itPorts << " ";
-	//         }
-	//         std::cout << std::endl;
-	//         std::cout << "Server names: ";
-	//         for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
-	//         {
-	//             std::cout << *itNames << " ";
-	//         }
-	//         std::cout << std::endl;
-	//         std::cout << "Methods: ";
-	//         for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
-	//         {
-	//             std::cout << *itMethods << " ";
-	//         }
-	//         std::cout << std::endl;
-	//         std::cout << "Root: ";
-	//         for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
-	//         {
-	//             std::cout << *itRoot << " ";
-	//         }
-	//         std::cout << std::endl;
-	//         std::cout << "Error pages: ";
-	//         for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
-	//         {
-	//             std::cout << itErrorPages->first << ": " << itErrorPages->second << " ";
-	//         }
-	//         std::cout << std::endl;
-	//         // std::cout << "Locations: ";
-	//         // for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
-	//         // {
-	//         //     std::cout << itLocations->first << ": " << itLocations->second.path << " ";
-	//         // }
-	//         // std::cout << std::endl;
-	//     }
+	
 }
+
+
