@@ -177,4 +177,23 @@ bool validErrorPage(std::string input) {
     return true;
 }
 
+std::vector<std::string> getLocationPath(const std::string& locationBlock)
+{
+    std::vector<std::string> paths;
+    std::string::size_type pos = locationBlock.find("location");
+
+    while (pos != std::string::npos) {
+        pos = locationBlock.find("/", pos);
+        std::string::size_type end_pos = locationBlock.find(" ", pos);
+
+        if (pos != std::string::npos && end_pos != std::string::npos) {
+            std::string path = locationBlock.substr(pos, end_pos - pos);
+            paths.push_back(path);
+        }
+
+        pos = locationBlock.find("location", end_pos);
+    }
+
+    return paths;
+}
 

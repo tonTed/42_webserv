@@ -565,7 +565,7 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 			if (endPos != string::npos)
 			{
 				string errorPage = configStr.substr(pos, endPos - pos);
-				if(!validErrorPage(errorPage))
+				if (!validErrorPage(errorPage))
 				{
 					std::cout << BOLD_RED << "Error: error_page can't be empty!" << RESET << std::endl;
 					exit(1); // TODO fix the error!
@@ -614,7 +614,6 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 // 	return errorPages;
 // };
 
-
 std::vector<ServerData> ConfigServer::getServerData() const
 {
 	return this->_serversData;
@@ -652,21 +651,24 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << YELLOW << "Methods: ";
 		for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
 		{
-			std::cout << RESET << "|" << *itMethods << "|" << " ";
+			std::cout << RESET << "|" << *itMethods << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Root: ";
 		for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
 		{
-		    std::cout << RESET << "|" << *itRoot << "|" << " ";
+			std::cout << RESET << "|" << *itRoot << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Error pages: ";
 		for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
 		{
-		    std::cout << RESET << "|" << itErrorPages->first << ": " << itErrorPages->second << "|" << " ";
+			std::cout << RESET << "|" << itErrorPages->first << ": " << itErrorPages->second << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
@@ -682,6 +684,7 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 {
 	std::vector<ServerData> servers(serverBlocks.size());
+	std::vector<string> locations;
 	for (int i = 0; i < static_cast<int>(serverBlocks.size()); i++)
 	{
 
@@ -696,17 +699,31 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 		servers[i]._root = getKeywordValue(serverBlocks[i], "root");
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
-		// std::map<int, string> errorPages = getErrorPages(*it);
-		// std::cout << YELLOW << "Error Pages: " << RESET;
-		// for (std::map<int, string>::iterator it = errorPages.begin(); it != errorPages.end(); ++it)
+		locations = getLocationBlocks(serverBlocks[i]);
+		// std::vector<string> locationBlocks(locations.size());
+		// locationBlocks = getLocationBlocks(serverBlocks[i]);
+		// std::map<std::string, struct Locations> servers[i]._locations;
+		// servers[i]._locations
+		
+		// for (int j = 0; j < static_cast<int>(locations.size()); j++)
 		// {
-		// 	std::cout << it->first << ": " << it->second << std::endl;
-		// }
-		// std::cout << std::endl;
+		// 	servers[i]._locations[j].root = getKeywordValue(locations[j], "root");
+		// 	std::cout << YELLOW << "locations[j]: |" << RESET << locations[j] << "|" << std::endl;
+		// servers[i]._locations.clear(); // clear any existing data in _locations map
+
+		std::vector<string> locations = getLocationBlocks(serverBlocks[i]);
+        for (int j = 0; j < static_cast<int>(locations.size()); j++)
+        {
+            Locations location;
+            location.root = getKeywordValue(locations[j], "root")[0];
+            // location.index = getKeywordValue(locations[j], "index");
+            // location.autoindex = getKeywordValue(locations[j], "autoindex");
+            // location.redirection = getKeywordValue(locations[j], "redirection");
+            // location.methods = getMethods(locations[j]);
+            servers[i]._locations[location.root] = location;
+        }
+
 	}
 
 	this->_serversData = servers;
-	
 }
-
-

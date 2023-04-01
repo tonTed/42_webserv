@@ -110,4 +110,7 @@ std::string getMethodsLine(const std::string &str,
 std::string get_next_word(const std::string& input);
 std::vector<std::string> splitString(std::string input);
 bool validErrorPage(std::string input);
+
+
+std::string getLocationPath(const std::string& input);
 #endif
