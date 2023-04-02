@@ -4,7 +4,7 @@
 
 TEST_CASE("ConfigServer::lineNeeded")
 {
-	ConfigServer cs;
+	ConfigServer cs("test/test_config.conf");
 	SUBCASE("Returns false for an empty line")
 	{
 		std::string line = "";
@@ -32,51 +32,99 @@ TEST_CASE("ConfigServer::lineNeeded")
 	}
 }
 
-TEST_CASE("ConfigServer::getFile")
+TEST_CASE("ConfigServer class")
 {
-	// Should pass
-	SUBCASE("valid file provided as command line argument")
-	{
-		const char *argv[] = {"test", "configFiles/default.config"};
-		std::string configFile = getFile(2, argv);
-		CHECK(configFile == "configFiles/default.config");
-	}
+    ConfigServer config("test/test_config.conf");
+    std::vector<ServerData> serversData;
 
-	// Should pass
-	SUBCASE("no command line argument, default config file exists")
-	{
-		const char *argv[] = {"test"};
-		std::string configFile = getFile(1, argv);
-		CHECK(configFile == "configFiles/default.config");
-	}
+    // // Tests for the constructor and getInstance method
+    // SUBCASE("Constructor and getInstance **SHOULD FAIL** ")
+    // {
+	// 	ConfigServer*  config1 = config.getInstance("test/test_config.conf");
+	// 	ConfigServer*  config2 = config.getInstance("test/test_config.conf");
 
-	// Should fail
-	// SUBCASE("no command line argument, default config file does not exist")
-	// {
-	// 	const char *argv[] = {"test"};
-	// 	std::string configFile = getFile(1, argv);
-	// 	CHECK_THROWS(getFile(1, argv));
-	// }
+	// 	// SHOULD FAIL
+	// 	CHECK(&config1 == &config2);
+	// 	// CHECK_FALSE(!(&config1 == &config2));
+    // }
 
-	// Should pass
-	SUBCASE("invalid file provided as command line argument")
-	{
-		const char *argv[] = {"test", "configFiles/nonexistent.config"};
-		CHECK_THROWS(getFile(2, argv));
-	}
+    // Tests for the getServerData method
+    SUBCASE("getServerData")
+    {
+        serversData = config.getServerData();
+
+        CHECK(serversData.size() == 2);
+
+        CHECK(serversData[0]._serverNames[0] == "server1");
+        CHECK(serversData[0]._serverNames[1] == "server2");
+        CHECK(serversData[0]._serverPorts[0] == 8081);
+        CHECK(serversData[0]._serverPorts[1] == 8080);
+        CHECK(serversData[0]._hosts[0] == "127.0.0.1");
+        CHECK(serversData[0]._hosts[1] == "localhost");
+        CHECK(serversData[0]._methods[0] == GET);
+        CHECK(serversData[0]._methods[1] == POST);
+        CHECK(serversData[0]._methods[2] == DELETE);
+
+        CHECK(serversData[1]._serverNames[0] == "server_test");
+        CHECK(serversData[1]._serverPorts[0] == 8084);
+        CHECK(serversData[1]._serverPorts[1] == 8085);
+        CHECK(serversData[1]._hosts[0] == "127.0.0.1");
+        CHECK(serversData[1]._methods[0] == POST);
+    }
+
+    // Tests for the getKeywordValue method
+    SUBCASE("getKeywordValue")
+    {
+        std::string configStr = "server { listen 8080;\nserver_name localhost;\nroot /var/www;\n }";
+        std::string directive = "server_name";
+
+        std::vector<std::string> value = config.getKeywordValue(configStr, directive);
+		CHECK(value.size() == 1);
+        CHECK(value[0] == "localhost");
+
+        directive = "listen";
+        value = config.getKeywordValue(configStr, directive);
+        CHECK(value[0] == "8080");
+
+        directive = "root";
+        value = config.getKeywordValue(configStr, directive);
+        CHECK(value[0] == "/var/www");
+    }
+
+    // Tests for the cleanedLine method
+    SUBCASE("cleanedLine")
+    {
+        std::string line = "  listen   8080;  # server port \n";
+        std::string cleaned = config.cleanedLine(line);
+        CHECK(cleaned == "listen 8080; ");
+    }
+
+    // Tests for the getPortPart and validPort functions
+    SUBCASE("getPortPart and validPort")
+    {
+        std::string input = "localhost:80";
+        std::string portPart = getPortPart(input);
+        CHECK(portPart == "80");
+
+        bool valid = validPort(80);
+        CHECK(valid == true);
+
+        valid = validPort(100000);
+        CHECK(valid == false);
+    }
+
+    // Tests for the getMethods method
+    SUBCASE("getMethods")
+    {
+        std::string configStr = "location / { methods GET POST; }\n";
+        std::vector<enum eRequestType> methods = config.getMethods(configStr);
+
+        CHECK(methods.size() == 2);
+        CHECK(methods[0] == GET);
+        CHECK(methods[1] == POST);
+    }
+
+    // ... add more test cases for other methods and functions ...
 }
 
-// TEST_CASE("test ConfFIle param ")
-// {
-// 	ConfigServer config;
-// 	ConfigServer config1;
 
-// 	/* Check If file could be open // Should pass */
-// 	CHECK(config.fileExists("configFiles/default.config") == 1);
-
-// 	/* Check If file could be open // Should fail */
-// 	CHECK(config1.fileExists("configFiles/default.configur") == 1);
-
-// 	ConfigServer ConfigT("configFiles/default.config");
-// 	ConfigServer ConfigT1("configFiles/default.configur");
-// }
