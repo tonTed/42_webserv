@@ -10,6 +10,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <stdlib.h>
 
 typedef std::string string;
 

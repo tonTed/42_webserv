@@ -279,10 +279,10 @@ std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 Locations ConfigServer::settingLocation(string &locString)
 {
 	Locations location;
-	location.root = getStrValue(locString, "root");
-	location.index = getKeywordValue(locString, "index");
-	location.autoindex = getStrValue(locString, "autoindex");
-	location.redirection = getStrValue(locString, "redirection");
+	location.root = getStrValue(locString, "root"); // TODO Check how many roots and if valid
+	location.index = getKeywordValue(locString, "index"); // TODO Check the index extention and is path is valid
+	location.autoindex = getStrValue(locString, "autoindex"); // TODO add check if ON or OFF and erro otherwise
+	location.redirection = getStrValue(locString, "redirection"); // TODO check if the redirection path is valid
 	location.methods = getMethods(locString);
 	return location;
 }

@@ -108,6 +108,7 @@ std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
 std::string trim(const std::string &str);
 std::vector<std::string> splitString(std::string input);
+bool validPath(string &path);
 
 //  HOST PART
 std::string getHostLine(const std::string &str, std::string::size_type &startPos, std::string::size_type *newPos);
