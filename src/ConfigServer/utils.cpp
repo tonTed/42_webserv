@@ -1,5 +1,11 @@
 #include "../../includes/webserv.hpp"
 
+/**
+ * @brief Get the line without newline
+ * 
+ * @param input the string to parse
+ * @return std::string without (/n)
+ */
 std::string getline_with_newline(std::istream &input)
 {
     std::string line;
@@ -8,23 +14,42 @@ std::string getline_with_newline(std::istream &input)
     {
         line += c;
         if (c == '\n')
-        {
             break;
-        }
     }
     return line;
 }
 
+/**
+ * @brief check if the char is a (/n)
+ * 
+ * @param c the caracter to check
+ * @return true if it not a (/n)
+ * @return false if it's a (/n)
+ */
 bool isrealspace(char c)
 {
     return (c == ' ' || c == '\t' || c == '\v' || c == '\f' || c == '\r');
 }
 
+/**
+ * @brief Check if the port is valid port number
+ * 
+ * @param portNumb the port to check
+ * @return true if it's a valid port number 
+ * @return false if the port number is not valid
+ */
 bool validPort(int portNumb)
 {
     return (portNumb == 80 || (portNumb > 1024 && portNumb < 65535));
 }
 
+/**
+ * @brief Check if the port is duplicated
+ * 
+ * @param seq the vector of port to check
+ * @return true if the port is duplicated
+ * @return false if the port is not duplicated
+ */
 bool portDup(std::vector<int> seq)
 {
     for (int i = 0; i < static_cast<int>(seq.size()); i++)
@@ -38,26 +63,60 @@ bool portDup(std::vector<int> seq)
     return false;
 }
 
+/**
+ * @brief Check if the client size is valid
+ * 
+ * @param clientSize the client size to check 
+ * @return true if the client size is valid
+ * @return false if the client size is not valid
+ */
 bool validClientSize(int clientSize)
 {
     return (clientSize > 0);
 }
 
+/**
+ * @brief Check if the body size is valid
+ * 
+ * @param bodySize the body size to check
+ * @return true if the body size is valid
+ * @return false if the body size is not valid
+ */
 bool validBodySize(int bodySize)
 {
     return (bodySize > 0);
 }
 
-bool validServerName(std::string serverName)
+/**
+ * @brief Check if the server name is valid
+ * 
+ * @param serverName the server name to check
+ * @return true if the server name is valid
+ * @return false if the server name is not valid
+ */
+bool validServerName(std::string serverName) // TODO check if the server name is duplicate in 2 diffrent servers
 {
     return (serverName != "");
 }
 
+/**
+ * @brief Check if the host is valid
+ * 
+ * @param host the host to check
+ * @return true if the host is valid
+ * @return false if the host is not valid
+ */
 bool validHost(std::string host)
 {
     return (host == "127.0.0.1" || host == "localhost");
 }
 
+/**
+ * @brief trim a tring from the spaces
+ * 
+ * @param str the string to trim
+ * @return std::string the string without the spaces
+ */
 std::string trim(const std::string &str)
 {
     std::string::size_type start = str.find_first_not_of(" ");
@@ -67,6 +126,14 @@ std::string trim(const std::string &str)
     return str.substr(start, end - start + 1);
 }
 
+/**
+ * @brief Get the Host Line object
+ * 
+ * @param str the string to get the Hostline from
+ * @param startPos the position to start from
+ * @param newPos the posiion of the last (';')
+ * @return std::string the string line fron start to end
+ */
 std::string getHostLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos)
 {
@@ -79,13 +146,18 @@ std::string getHostLine(const std::string &str,
     {
         if (newPos)
             *newPos = endPos;
-        std::cout << "    "; // TODO How the hell is this even possible??
         return str.substr(startPos, endPos - startPos);
     }
     else
         return "";
 }
 
+/**
+ * @brief Get the Host Part object
+ * 
+ * @param input the string to get the host part from
+ * @return std::string the host part
+ */
 std::string getHostPart(const std::string &input)
 {
     std::stringstream ss(input);
@@ -103,6 +175,14 @@ std::string getHostPart(const std::string &input)
     return "";
 }
 
+/**
+ * @brief Get the Port Line object
+ * 
+ * @param str the string to get the Portline from
+ * @param startPos the position to start from
+ * @param newPos the posiion of the last (';')
+ * @return std::string the string line fron start to end
+ */
 std::string getPortLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos)
 {
@@ -122,6 +202,12 @@ std::string getPortLine(const std::string &str,
         return "";
 }
 
+/**
+ * @brief Get the Port Part object
+ * 
+ * @param input the string to get the port part from
+ * @return std::string the port part
+ */
 std::string getPortPart(const std::string &input)
 {
     std::stringstream ss(input);
@@ -144,6 +230,14 @@ std::string getPortPart(const std::string &input)
     return "";
 }
 
+/**
+ * @brief Get the Methods Line object
+ * 
+ * @param str the string to get the Methodsline from
+ * @param startPos the position to start from
+ * @param newPos the posiion of the last (';')
+ * @return std::string the string line fron start to end
+ */
 std::string getMethodsLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos)
 {
@@ -159,6 +253,12 @@ std::string getMethodsLine(const std::string &str,
         return "";
 }
 
+/**
+ * @brief split the string into parts and return it in a vector of strings
+ * 
+ * @param input the string to split
+ * @return std::vector<std::string> the splitted string
+ */
 std::vector<std::string> splitString(std::string input)
  {
     std::vector<std::string> result;
@@ -170,6 +270,13 @@ std::vector<std::string> splitString(std::string input)
     return result;
 }
 
+/**
+ * @brief check if the error pages are valid
+ * 
+ * @param input the error page string
+ * @return true if the input is valid
+ * @return false if the input is not valid
+ */
 bool validErrorPage(std::string input) {
     if (static_cast<int>(input.size()) < 5 || 
         input.substr(static_cast<int>(input.size()) - 5) != ".html")
@@ -177,7 +284,13 @@ bool validErrorPage(std::string input) {
     return true;
 }
 
-std::vector<std::string> getLocationPath(const std::string& locationBlock)
+/**
+ * @brief Get the Location Path object from the location block
+ * 
+ * @param locationBlock the location block to get the path from
+ * @return std::string the path of the location
+ */
+std::string getLocationPath(const std::string& locationBlock)
 {
     std::vector<std::string> paths;
     std::string::size_type pos = locationBlock.find("location");
@@ -194,6 +307,14 @@ std::vector<std::string> getLocationPath(const std::string& locationBlock)
         pos = locationBlock.find("location", end_pos);
     }
 
-    return paths;
+    if (paths.empty()) {
+        return "";
+    } else {
+        std::string result = paths[0];
+        for (int i = 1; i < (int)paths.size(); i++) {
+            result += paths[i];
+        }
+        return result;
+    }
 }
 

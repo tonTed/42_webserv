@@ -3,14 +3,28 @@
 #include "string"
 #include <stdlib.h>
 
+/**
+ * @brief declaring the Singleton
+ * 
+ */
 ConfigServer *ConfigServer::singleton = NULL;
 
+/**
+ * @brief Construct a new Config Server:: Config Server object
+ * 
+ * @param config an instance of the Config class
+ */
 ConfigServer::ConfigServer(const ConfigServer &config)
 	: _goodFile(true)
 {
 	*this = config;
 }
 
+/**
+ * @brief Construct a new Config Server:: Config Server object
+ * 
+ * @param paramFile the config file path
+ */
 ConfigServer::ConfigServer(const string paramFile)
 {
 	string file = getFile(paramFile);
@@ -24,73 +38,28 @@ ConfigServer::ConfigServer(const string paramFile)
 	{
 		_goodFile = true;
 		std::vector<string> serverBlocks = getServerBlocks(stringFile);
-		// printBLocks(serverBlocks);
 		setServersData(serverBlocks);
 		std::vector<ServerData> data = getServerData();
 		printServersData(data);
 	}
 }
 
-void ConfigServer::printBLocks(std::vector<string> &serverBlocks)
-{
-	for (std::vector<string>::const_iterator it = serverBlocks.begin(); it != serverBlocks.end(); ++it)
-	{
-		//     // Process each server block here
-		std::cout << YELLOW << "Server block: |" << RESET << *it << "|" << std::endl
-				  << std::endl;
-
-		std::vector<string> hosts = getHosts(*it);
-		std::cout << YELLOW << "hosts: |" << RESET;
-		for (std::vector<string>::const_iterator itr = hosts.begin(); itr != hosts.end(); ++itr)
-		{
-			// Process each server block here
-			std::cout << *itr << ' ';
-		}
-		std::cout << "|" << std::endl;
-
-		// std::vector<int> ports = getPorts(*it);
-		// std::cout << YELLOW << "Ports: " << RESET;
-		// for (std::vector<int>::const_iterator itr = ports.begin(); itr != ports.end(); ++itr)
-		// {
-		// 	// Process each server block here
-		// 	std::cout << *itr << ' ';
-		// }
-		// std::cout << std::endl;
-
-		// std::vector<string> serverNames = getKeywordValue(*it, "server_name");
-		// std::cout << YELLOW << "Server name: " << RESET;
-		// for (std::vector<string>::const_iterator itr = serverNames.begin(); itr != serverNames.end(); ++itr)
-		// {
-		// 	// Process each server block here
-		// 	std::cout << *itr << ' ';
-		// }
-		// std::cout << std::endl;
-
-		// std::vector<string> methods = getKeywordValue(*it, "methods");
-		// std::cout << YELLOW << "Methods: " << RESET;
-		// for (std::vector<string>::const_iterator itr = methods.begin(); itr != methods.end(); ++itr)
-		// {
-		// 	// Process each server block here
-		// 	std::cout << *itr << ' ';
-		// }
-		// std::cout << std::endl;
-
-		// std::map<int, string> errorPages = getErrorPages(*it);
-		// std::cout << YELLOW << "Error Pages: " << RESET;
-		// for (std::map<int, string>::iterator it = errorPages.begin(); it != errorPages.end(); ++it)
-		// {
-		// 	std::cout << it->first << ": " << it->second << std::endl;
-		// }
-		// std::cout << std::endl;
-	}
-}
-
+/**
+ * @brief Destroy the Config Server:: Config Server object
+ * 
+ */
 ConfigServer::~ConfigServer()
 {
 	// Destroy the Singlton
 	destroy();
 }
 
+/**
+ * @brief 
+ * 
+ * @param config 
+ * @return ConfigServer& 
+ */
 ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 {
 	if (this != &config)
@@ -302,6 +271,23 @@ std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 }
 
 /**
+ * @brief Get every element from location and set it
+ *
+ * @param locString the input, should be the sting location block
+ * @return Locations the structur of location elements.
+ */
+Locations ConfigServer::settingLocation(string &locString)
+{
+	Locations location;
+	location.root = getStrValue(locString, "root");
+	location.index = getKeywordValue(locString, "index");
+	location.autoindex = getStrValue(locString, "autoindex");
+	location.redirection = getStrValue(locString, "redirection");
+	location.methods = getMethods(locString);
+	return location;
+}
+
+/**
  * @brief Get the Hosts object
  *
  * @param configStr the input, should be the sting server block
@@ -435,15 +421,15 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 }
 
 /**
- * @brief Get the value depeding on the derective from the config string
+ * @brief Get the value depeding on the directive from the config string
  *
- * @param configStr The block to get the server name from
- * @return string the server name value
+ * @param configStr The block to get the directive value from
+ * @return std::vector<string> of the directive values
  */
-std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const string &derective)
+std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const string &directive)
 {
 	std::vector<string> keyWord;
-	string::size_type pos = configStr.find(derective, 0);
+	string::size_type pos = configStr.find(directive, 0);
 	string::size_type poSpace = 0;
 	string word;
 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
@@ -451,7 +437,7 @@ std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const
 									 : configStr.find("}", pos);
 	while (pos != string::npos && pos < bracePos)
 	{
-		pos += derective.length(); // skip "keyWord "
+		pos += directive.length(); // skip "keyWord "
 		string::size_type endPos = configStr.find(";", pos);
 		while (endPos != string::npos && pos < endPos && bracePos != string::npos && endPos < bracePos)
 		{
@@ -463,7 +449,7 @@ std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const
 			word = configStr.substr(pos, poSpace - pos);
 			if (word.empty())
 			{
-				std::cout << BOLD_RED << "Error: " << derective << " can't be empty!" << RESET << std::endl;
+				std::cout << BOLD_RED << "Error: " << directive << " can't be empty!" << RESET << std::endl;
 				exit(1); // TODO fix the error!
 			}
 			keyWord.push_back(word);
@@ -472,7 +458,57 @@ std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const
 				pos++;
 			endPos = configStr.find(";", pos);
 		}
-		pos = configStr.find(derective, pos);
+		pos = configStr.find(directive, pos);
+	}
+	return (keyWord);
+}
+
+/**
+ * @brief Get the value depeding on the directive from the config string
+ *
+ * @param configStr The block to get the directive from
+ * @return string of the directive value
+ */
+string ConfigServer::getStrValue(const string &configStr, const string &directive)
+{
+	string keyWord;
+	string::size_type pos = configStr.find(directive, 0);
+	string::size_type poSpace = 0;
+	string word;
+	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
+									 ? configStr.find("{", pos)
+									 : configStr.find("}", pos);
+	int presence = 0;
+	while (pos != string::npos && pos < bracePos)
+	{
+		pos += directive.length(); // skip "keyWord "
+		string::size_type endPos = configStr.find(";", pos);
+		while (endPos != string::npos && pos < endPos && bracePos != string::npos && endPos < bracePos)
+		{
+			while (pos < endPos && isspace(configStr[pos]))
+				pos++;
+			poSpace = pos;
+			while (poSpace < endPos && !isspace(configStr[poSpace]))
+				poSpace++;
+			word = configStr.substr(pos, poSpace - pos);
+			if (word.empty())
+			{
+				std::cout << BOLD_RED << "Error: " << directive << " can't be empty!" << RESET << std::endl;
+				exit(1); // TODO fix the error!
+			}
+			keyWord = word;
+			pos = poSpace;
+			while (pos < endPos && isspace(configStr[pos]))
+				pos++;
+			endPos = configStr.find(";", pos);
+		}
+		pos = configStr.find(directive, pos);
+		presence++;
+	}
+	if(presence > 1)
+	{
+		std::cout << BOLD_RED << "Error: " << directive << " can't be more than one!" << RESET << std::endl;
+		exit(1); // TODO fix the error!
 	}
 	return (keyWord);
 }
@@ -579,46 +615,21 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 	return errorPages;
 };
 
-// std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
-// {
-// 	std::map<int, string> errorPages;
-// 	string::size_type pos = configStr.find("error_page", 0);
-// 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
-// 					? configStr.find("{", pos) : configStr.find("}", pos);
-// 	while (pos != string::npos && pos < bracePos)
-// 	{
-// 		pos += 10; // skip "error_page "
-// 		string::size_type poSpace = pos;
-// 		string::size_type endPos = configStr.find(";", pos);
-// 		while (endPos != string::npos && bracePos != string::npos && pos < endPos && endPos < bracePos)
-// 		{
-// 			while (pos < endPos && isspace(configStr[pos]))
-// 				pos++;
-// 			poSpace = pos;
-// 			while (poSpace < endPos && !isspace(configStr[poSpace]))
-// 				poSpace++;
-// 			int errorCode = std::atoi(configStr.substr(pos, poSpace - pos).c_str());
-// 			pos = poSpace;
-// 			if (endPos != string::npos)
-// 			{
-// 				string errorPage = configStr.substr(pos, endPos - pos);
-// 				errorPages[errorCode] = errorPage;
-// 			}
-// 			endPos = configStr.find(";", pos);
-// 		}
-// 		pos = endPos;
-// 		// brace = configStr.find("{", endPos);
-// 		// bracePos = configStr.find("{", pos) < configStr.find("}", pos)
-// 		// 			? configStr.find("{", pos) : configStr.find("}", pos);
-// 	}
-// 	return errorPages;
-// };
-
+/**
+ * @brief Get the server data private member
+ *
+ * @return std::vector<ServerData> the server data vector
+ */
 std::vector<ServerData> ConfigServer::getServerData() const
 {
 	return this->_serversData;
 }
 
+/**
+ * @brief Print the server data one by one
+ * 
+ * @param data the vector<ServerData> to print
+ */
 void ConfigServer::printServersData(std::vector<ServerData> &data)
 {
 	for (std::vector<ServerData>::iterator it = data.begin(); it != data.end(); ++it)
@@ -667,30 +678,41 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << YELLOW << "Error pages: ";
 		for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
 		{
-			std::cout << RESET << "|" << itErrorPages->first << ": " << itErrorPages->second << "|"
-					  << " ";
+			std::cout << RESET << "|" << itErrorPages->first << ": " 
+			<< itErrorPages->second << "|" << " ";
 		}
 		std::cout << std::endl;
 
-		// std::cout << "Locations: ";
-		// for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
-		// {
-		//     std::cout << itLocations->first << ": " << itLocations->second.path << " ";
-		// }
-		// std::cout << std::endl;
+		std::cout << YELLOW << "Locations: " << std::endl;
+		for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
+		{
+		    std::cout << BOLD_MAGENTA << "|Path:" << RESET << itLocations->first << ": " 
+			<< itLocations->second.root << "|" << std::endl;
+		    std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": " 
+			<< itLocations->second.autoindex << "|" << std::endl;
+		    std::cout << BOLD_MAGENTA << "|Redirection:" << RESET << itLocations->first << ": " 
+			<< itLocations->second.redirection << "|" << std::endl;
+		    for(int n = 0; n < static_cast<int>(itLocations->second.index.size()); n++)
+			{
+				std::cout << BOLD_MAGENTA << "|Index:" << RESET << itLocations->second.index[n] 
+					<< "| " << std::endl;
+			}
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
 	}
 }
 
+/**
+ * @brief Set the server data one by one after getting each element
+ * 
+ * @param the std::vector<string> &serverBlocks to use to set the data
+ */
 void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 {
 	std::vector<ServerData> servers(serverBlocks.size());
-	std::vector<string> locations;
 	for (int i = 0; i < static_cast<int>(serverBlocks.size()); i++)
 	{
-
-		// std::cout << YELLOW << "Server block: |" << RESET << serverBlocks[i] << "|" << std::endl
-		// << std::endl;
-
 		servers[i]._hosts = getHosts(serverBlocks[i]);
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
@@ -699,31 +721,18 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 		servers[i]._root = getKeywordValue(serverBlocks[i], "root");
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
-		locations = getLocationBlocks(serverBlocks[i]);
-		// std::vector<string> locationBlocks(locations.size());
-		// locationBlocks = getLocationBlocks(serverBlocks[i]);
-		// std::map<std::string, struct Locations> servers[i]._locations;
-		// servers[i]._locations
-		
-		// for (int j = 0; j < static_cast<int>(locations.size()); j++)
-		// {
-		// 	servers[i]._locations[j].root = getKeywordValue(locations[j], "root");
-		// 	std::cout << YELLOW << "locations[j]: |" << RESET << locations[j] << "|" << std::endl;
-		// servers[i]._locations.clear(); // clear any existing data in _locations map
+		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 
+		// Setting locations
 		std::vector<string> locations = getLocationBlocks(serverBlocks[i]);
         for (int j = 0; j < static_cast<int>(locations.size()); j++)
         {
             Locations location;
-            location.root = getKeywordValue(locations[j], "root")[0];
-            // location.index = getKeywordValue(locations[j], "index");
-            // location.autoindex = getKeywordValue(locations[j], "autoindex");
-            // location.redirection = getKeywordValue(locations[j], "redirection");
-            // location.methods = getMethods(locations[j]);
-            servers[i]._locations[location.root] = location;
+			string path = getLocationPath(locations[j]);
+			location = settingLocation(locations[j]);
+            servers[i]._locations[path] = location;
         }
-
-	}
-
+    }
 	this->_serversData = servers;
 }
+

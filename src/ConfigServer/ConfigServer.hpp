@@ -4,8 +4,6 @@
 #include "../../includes/webserv.hpp"
 #include "../Server/Server.hpp"
 
-#include <map>
-
 struct Locations
 {
 	std::string root;
@@ -33,7 +31,18 @@ struct ServerData
 	std::map<int, std::string> _errorPages;
 
 	// The key is the location, the value is the path to the file
-	std::map<std::string, struct Locations> _locations;
+	std::map<std::string, struct Locations> _locations; 
+	// TODO fix the key issue.
+	/*
+	if there are multiple location blocks like:
+		location / {
+			...
+		}
+		location / {
+			...
+		}
+		we need to be able to differentiate between them.	
+	*/ 
 };
 
 class ConfigServer
@@ -79,38 +88,47 @@ public:
 
 	std::vector<int> getPorts(const std::string &configStr);
 	std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
+	string getStrValue(const string &configStr, const string &directive);
 	std::map<int, std::string> getErrorPages(const std::string &configStr);
 	std::vector<enum eRequestType> getMethods(const string &configStr);
-	void printBLocks(std::vector<std::string> &serverBlocks);
+	struct Locations settingLocation(string &locString);
 
 	std::vector<ServerData> getServerData() const;
 	void printServersData(std::vector<ServerData> &data);
 	void setServersData(std::vector<string> &serverBlocks);
+
 };
 
 std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
 
+
+/* The functons utils */
+// GENERAL UTILS FUNCTIONS
 std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
 std::string trim(const std::string &str);
+std::vector<std::string> splitString(std::string input);
 
+//  HOST PART
 std::string getHostLine(const std::string &str, std::string::size_type &startPos, std::string::size_type *newPos);
 std::string getHostPart(const std::string &input);
 bool validHost(std::string host);
 
+//  PORT PART
 std::string getPortLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos);
 std::string getPortPart(const std::string &input);
 bool portDup(std::vector<int> seq);
 bool validPort(int portNumb);
 
-
+//  METHODS PART
 std::string getMethodsLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos);
 std::string get_next_word(const std::string& input);
-std::vector<std::string> splitString(std::string input);
+
+//  ERROR PAGE PART
 bool validErrorPage(std::string input);
 
-
+// LOCATIONS PART
 std::string getLocationPath(const std::string& input);
 #endif

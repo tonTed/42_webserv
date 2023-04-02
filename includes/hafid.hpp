@@ -9,9 +9,9 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <map>
 
 typedef std::string string;
-// typedef std::string::npos nopos;
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
