@@ -39,9 +39,10 @@ ConfigServer::ConfigServer(const string paramFile)
 		_goodFile = true;
 		std::vector<string> serverBlocks = getServerBlocks(stringFile);
 		setServersData(serverBlocks);
-		// std::vector<ServerData> data = getServerData();
-		// std::cout << "data: " << data[0]._root << std::endl;
-		// printServersData(data);
+
+		// TODO COMMENT THIS TO STOP PRINTING
+		std::vector<ServerData> data = getServerData();
+		printServersData(data);
 	}
 }
 
