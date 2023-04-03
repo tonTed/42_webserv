@@ -55,18 +55,18 @@ private:
 	ConfigServer(){};
 
 public:
-	ConfigServer(const std::string file);
-	ConfigServer(const ConfigServer &Config);
+	void setConfigServer(const std::string file);
 	virtual ~ConfigServer();
 
-	static ConfigServer *getInstance(const std::string file)
+	static ConfigServer *getInstance()
 	{
 		if (singleton == NULL)
 		{
-			singleton = new ConfigServer(file);
+			singleton = new ConfigServer();
 		}
 		return singleton;
 	};
+
 	static void destroy()
 	{
 		if (singleton != NULL)

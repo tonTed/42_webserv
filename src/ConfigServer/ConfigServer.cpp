@@ -12,20 +12,9 @@ ConfigServer *ConfigServer::singleton = NULL;
 /**
  * @brief Construct a new Config Server:: Config Server object
  * 
- * @param config an instance of the Config class
- */
-ConfigServer::ConfigServer(const ConfigServer &config)
-	: _goodFile(true)
-{
-	*this = config;
-}
-
-/**
- * @brief Construct a new Config Server:: Config Server object
- * 
  * @param paramFile the config file path
  */
-ConfigServer::ConfigServer(const string paramFile)
+void ConfigServer::setConfigServer(string paramFile)
 {
 	string file = getFile(paramFile);
 	string stringFile = "";

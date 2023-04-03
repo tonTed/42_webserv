@@ -83,10 +83,7 @@ void mock_server()
 
 int main(int ac, char **av)
 {
-	ConfigServer *config;
-	// ConfigServer *config = ConfigServer::getInstance("default");
 
-	// std::vector<ServerData> data;
 	std::cout << "Launching webserver 42!" << std::endl;
 	if (ac > 2)
 	{
@@ -100,12 +97,10 @@ int main(int ac, char **av)
 	}
 
 	else if (av[1])
-		config = ConfigServer::getInstance(av[1]);
+		ConfigServer::getInstance()->setConfigServer(av[1]);
+
 	else
-		config = ConfigServer::getInstance("default");
-	// data = config->getServerData();
-	// config->printServersData(data);
-	std::cout << "config: " << config << std::endl;
+		ConfigServer::getInstance()->setConfigServer("default");
 
 	return (EXIT_SUCCESS);
 }
