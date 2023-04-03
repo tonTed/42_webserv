@@ -42,12 +42,13 @@ public:
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;
 
-private:
-	Request();
-
 	const int 							_client;
 	const int 							_cgiFd;
 	const int 							_serverId;
+
+private:
+	Request();
+
 
 };
 
