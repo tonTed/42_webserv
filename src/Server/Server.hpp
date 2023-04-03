@@ -17,10 +17,12 @@
 typedef struct indexInfo_s
 {
 	int					serverNo; 		//0 >= serverNo <0 = client
-	bool				isServer;		//true if its a socket from socket/bind/listen
+	int					origin;			//0->fromPort 1->fromCGI 2->fromCGIParsing
 	uint16_t			port;			//Structure pour bind et accept
 	int					portBacklog;	//Pour la function listen, le nombre de backlog par port (config?)
-	int					fd;				//le fd qui sera inserer dans pollFds
+	int					fd;
+	int					fdCGI;			//fd
+	int					fdClient;		//
 }						indexInfo_t;
 
 //TYPEDEF ITERATOR INDEXINFO

@@ -47,13 +47,13 @@ void	Server::configToServer()
 		{
 			indexInfoInsert(_nbFdServer);
 			indexInfoIt(_nbFdServer)->second->serverNo = nbServer;
-			indexInfoIt(_nbFdServer)->second->isServer = true;
+			indexInfoIt(_nbFdServer)->second->origin = FROM_PORT;
 			indexInfoIt(_nbFdServer)->second->portBacklog = LISTEN_BACKLOG;
 			indexInfoIt(_nbFdServer)->second->port =  static_cast<uint16_t>(*itPort);
 			_nbFdServer++;
 		}
 	}
-	pollFdSize = _nbFdServer + maxClient;
+	pollFdSize = _nbFdServer + (maxClient * 2);
 }
 
 //main server process

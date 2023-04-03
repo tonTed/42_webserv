@@ -39,6 +39,13 @@ enum eRequestType
 	PATCH,
 };
 
+enum eOriginFD
+{
+	FROM_PORT,
+	FROM_CGI,
+	FROM_CGI_PARSING,
+};
+
 # define EXIT_SUCCESS 0
 # define EXIT_FAILURE 1
 
