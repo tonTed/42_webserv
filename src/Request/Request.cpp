@@ -14,7 +14,7 @@ std::string getPath(const std::string &uri, const eRequestType method) {
 	return "";
 }
 
-Request::Request(const int client) : _client(client) {}
+Request::Request(const int client, const int cgiFd, const int serverId) : _client(client), _cgiFd(cgiFd), _serverId(serverId) {}
 
 /**
  * @brief	Initialise the request.

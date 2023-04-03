@@ -19,7 +19,7 @@ struct startLine {
  * */
 class Request {
 public:
-	Request(const int client);
+	Request(const int client, const int cgiFd, const int serverId);
 	~Request();
 
 
@@ -46,6 +46,8 @@ private:
 	Request();
 
 	const int 							_client;
+	const int 							_cgiFd;
+	const int 							_serverId;
 
 };
 
