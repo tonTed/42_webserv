@@ -41,8 +41,8 @@ ConfigServer::ConfigServer(const string paramFile)
 		setServersData(serverBlocks);
 
 		// TODO COMMENT THIS TO STOP PRINTING
-		std::vector<ServerData> data = getServerData();
-		printServersData(data);
+		// std::vector<ServerData> data = getServerData();
+		// printServersData(data);
 	}
 }
 
@@ -688,7 +688,7 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << YELLOW << "Locations: " << std::endl;
 		for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
 		{
-		    std::cout << BOLD_MAGENTA << "|Path:" << RESET << itLocations->first << ": " 
+		    std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": " 
 			<< itLocations->second.root << "|" << std::endl;
 		    std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": " 
 			<< itLocations->second.autoindex << "|" << std::endl;

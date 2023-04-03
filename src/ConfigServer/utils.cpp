@@ -199,12 +199,12 @@ std::string getPortLine(const std::string &str,
         return str.substr(startPos, endPos - startPos);
     }
     else if (colonPos != string::npos)
-    {
-        if (newPos)
+        {
+            if (newPos)
             *newPos = endPos;
 
         return str.substr(startPos, endPos - startPos);
-    }
+        }
     else
         return "";
 }
