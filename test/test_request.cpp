@@ -433,7 +433,7 @@ TEST_CASE("Request::_parseStartLine / Method not allowed"){
 	}
 }
 
-TEST_CASE("Request::_parseBody"){
+TEST_CASE("Request::_parseBody / Content-Length"){
 	int client;
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
@@ -456,6 +456,47 @@ TEST_CASE("Request::_parseBody"){
 		request._parseStartLine();
 		request._parseHeaders();
 		CHECK_THROWS_AS(request._parseBody(), RequestException::Header::InvalidValue);
+	}
+}
+
+TEST_CASE("Request::_parseBody / Value check"){
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+
+	SUBCASE("Body should be 'Hello', with matching Content-Length"){
+		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\n\r\nHello";
+
+		Request request(writeCloseOpen(client, buffer));
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		request._parseBody();
+		CHECK_MESSAGE(request._body == "Hello", "Body should be 'Hello'");
+	}
+
+	SUBCASE("Body should be 'Hello', with Bigger Content-Length"){
+		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 6\r\n\r\nHello";
+
+		Request request(writeCloseOpen(client, buffer));
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		request._parseBody();
+		CHECK_MESSAGE(request._body == "Hello", "Body should be 'Hello'");
+		CHECK_MESSAGE(request._body.size() == 5, "Body size should be 5");
+	}
+
+	SUBCASE("Body should be 'Hell', with smaller Content-Length"){
+		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 4\r\n\r\nHello World";
+
+		Request request(writeCloseOpen(client, buffer));
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		request._parseBody();
+		CHECK_MESSAGE(request._body == "Hell", "Body should be 'Hell'");
+		CHECK_MESSAGE(request._body.size() == 4, "Body size should be 4");
 	}
 }
 

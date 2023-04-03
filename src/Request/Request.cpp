@@ -307,6 +307,13 @@ void	Request::_parseHeaders() {
 	int contentLength;
 	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
+
+	// Read the body
+	while (std::getline(_rawRequest, line)) {
+		_body += line;
+	}
+	if (_body.size() > static_cast<unsigned long>(contentLength))
+		_body.erase(contentLength, _body.size() - contentLength);
  }
 
 Request::~Request() {}
