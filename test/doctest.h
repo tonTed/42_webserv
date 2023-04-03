@@ -3596,67 +3596,67 @@ String toString(double long in) { return detail::fpToString(in, 15); }
 
 String toString(char in) {
     char buf[64];
-    std::sprintf(buf, "%d", in);
+    std::snprintf(buf, strlen(buf),  "%d", in);
     return buf;
 }
 
 String toString(char signed in) {
     char buf[64];
-    std::sprintf(buf, "%d", in);
+    std::snprintf(buf, strlen(buf),  "%d", in);
     return buf;
 }
 
 String toString(char unsigned in) {
     char buf[64];
-    std::sprintf(buf, "%ud", in);
+    std::snprintf(buf, strlen(buf),  "%ud", in);
     return buf;
 }
 
 String toString(int short in) {
     char buf[64];
-    std::sprintf(buf, "%d", in);
+    std::snprintf(buf, strlen(buf),  "%d", in);
     return buf;
 }
 
 String toString(int short unsigned in) {
     char buf[64];
-    std::sprintf(buf, "%u", in);
+    std::snprintf(buf, strlen(buf),  "%u", in);
     return buf;
 }
 
 String toString(int in) {
     char buf[64];
-    std::sprintf(buf, "%d", in);
+    std::snprintf(buf, strlen(buf),  "%d", in);
     return buf;
 }
 
 String toString(int unsigned in) {
     char buf[64];
-    std::sprintf(buf, "%u", in);
+    std::snprintf(buf, strlen(buf),  "%u", in);
     return buf;
 }
 
 String toString(int long in) {
     char buf[64];
-    std::sprintf(buf, "%ld", in);
+    std::snprintf(buf, strlen(buf),  "%ld", in);
     return buf;
 }
 
 String toString(int long unsigned in) {
     char buf[64];
-    std::sprintf(buf, "%lu", in);
+    std::snprintf(buf, strlen(buf),  "%lu", in);
     return buf;
 }
 
 #ifdef DOCTEST_CONFIG_WITH_LONG_LONG
 String toString(int long long in) {
     char buf[64];
-    std::sprintf(buf, "%lld", in);
+    std::snprintf(buf, strlen(buf),  "%lld", in);
     return buf;
 }
 String toString(int long long unsigned in) {
     char buf[64];
-    std::sprintf(buf, "%llu", in);
+    std::snprintf(buf, strlen(buf),  "%llu", in);
     return buf;
 }
 #endif // DOCTEST_CONFIG_WITH_LONG_LONG
