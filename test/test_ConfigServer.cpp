@@ -130,31 +130,45 @@ TEST_CASE("ConfigServer class")
 
 TEST_CASE("ConfigServer::lineNeeded")
 {
-    SUBCASE("NUMBER OF PORT TESTING")
+    SUBCASE("SERVER DATA TESTING")
     {
         ConfigServer::getInstance()->setConfigServer("test/test_config.conf");
         ConfigServer *cs = ConfigServer::getInstance();
         std::vector<ServerData> serversData = cs->getServerData();
 
         CHECK(serversData.size() == 2);
+        // char buffer[] = "/var/temp/";
+        // std::string expected = "/var/temp/";
+        // std::string actual = serversData[0]._root;
+        // CHECK_EQ(expected, actual);
 
-        std::cout <<  "serversData.size():" << serversData.size() << std::endl;
         for (int i = 0; i < static_cast<int>(serversData.size()); i++)
         {
-            // std::cout << std::endl
-            //           << YELLOW << "Hosts: ";
-            // for (std::vector<string>::iterator itHosts = it->_hosts.begin(); itHosts != it->_hosts.end(); ++itHosts)
-            // {
-            //     std::cout << RESET << "|" << *itHosts << "|"  << " ";
-            // }
-            // std::cout << std::endl;
-            CHECK(static_cast<int>(serversData.size()) == 2);
+            // CHECK(static_cast<int>(serversData.size()) == 2);
 
-            // CHECK(serversData[0]._serverPorts.size() == 4);
+            // CHECK_EQ(serversData[0]._root == expected);
+            // char buffer[] = "/var/temp/";
+            // std::string expected = "/var/temp/";
+            // std::string actual = serversData[0]._root;
+            // CHECK_EQ(expected, actual);
+            // CHECK(serversData[1]._serverPorts.size() == 2);
+
+            for (int j = 0; j < static_cast<int>(serversData[i]._hosts.size()); j++)
+            {
+                 CHECK(serversData[0]._hosts.size() == 2);
+                CHECK(serversData[1]._hosts.size() == 1);
+            }
+
             for (int j = 0; j < static_cast<int>(serversData[i]._serverPorts.size()); j++)
             {
-                CHECK(serversData[0]._serverPorts.size() == 4);
+                CHECK(serversData[0]._serverPorts.size() == 6);
+                CHECK(serversData[1]._serverPorts.size() == 2);
             }
+
+
+            // for (int j = 0; j < static_cast<int>(serversData[i]. .size()); j++)
+            // {
+            // }
 
         }
     }
