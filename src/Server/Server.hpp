@@ -10,8 +10,7 @@
 # include <unistd.h> //close
 
 # include "PollQueue.hpp"
-//TODO Remove include and the file temp_config.hpp
-# include "temp_config.hpp"
+
 # include "../ConfigServer/ConfigServer.hpp"
 # include "../../includes/martin.hpp"
 # include "ServerException.hpp"
