@@ -198,6 +198,13 @@ std::string getPortLine(const std::string &str,
         // std::cout << "    "; // TODO How the hell is this even possible??
         return str.substr(startPos, endPos - startPos);
     }
+    else if (colonPos != string::npos)
+    {
+        if (newPos)
+            *newPos = endPos;
+
+        return str.substr(startPos, endPos - startPos);
+    }
     else
         return "";
 }

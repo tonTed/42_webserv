@@ -372,7 +372,7 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 		while (endPos != string::npos && pos < endPos &&
 			   bracePos != string::npos && endPos < bracePos)
 		{
-			portLine = trim(getHostLine(configStr, pos, &newPos));
+			portLine = trim(getPortLine(configStr, pos, &newPos));
 			if (!portLine.empty())
 			{
 				int i = 0, j = 0;
