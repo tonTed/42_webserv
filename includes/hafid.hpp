@@ -14,6 +14,10 @@
 
 typedef std::string string;
 
+#define PORT_ERR "Error: invalid port |"
+#define HOST_ERR "Error: invalid host |"
+
+
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 
