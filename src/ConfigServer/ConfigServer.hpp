@@ -76,6 +76,7 @@ public:
 
 	ConfigServer &operator=(const ConfigServer &Config);
 
+	// PARSING METHODS
 	std::string getFile(const std::string paramFile);
 	bool lineNeeded(const std::string line);
 	std::string cleanedLine(std::string line);
@@ -83,6 +84,7 @@ public:
 	std::vector<std::string> getServerBlocks(const std::string &configStr);
 	std::vector<std::string> getLocationBlocks(const std::string &configStr);
 
+	// PARSE HOSTS
 	std::vector<std::string> getHosts(const std::string &configStr);
 	void setHosts(std::vector<std::string> &hosts);
 
@@ -93,9 +95,10 @@ public:
 	std::vector<enum eRequestType> getMethods(const string &configStr);
 	struct Locations settingLocation(string &locString);
 
+
 	std::vector<ServerData> getServerData() const;
-	void printServersData(std::vector<ServerData> &data);
 	void setServersData(std::vector<string> &serverBlocks);
+	void printServersData(std::vector<ServerData> &data);
 
 };
 
