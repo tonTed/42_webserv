@@ -13,7 +13,7 @@
 # define SERVEX_INSERT_FAIL "Error: indexInfoIt: map.insert(): map.insert fail in _indexInfo"
 # define SERVEX_FIND_FAIL "Error: indexInfoIt: map.find(): index not found in _indexInfo"
 
-class ServerException
+class ServerBootingException
 {
 public:
 	class	FctSocketFail: public std::exception
@@ -40,6 +40,11 @@ public:
 			virtual const char* what() const throw() {return (SERVEX_LISTEN_FAIL);}
 	};
 
+};
+
+class ServerLoopingException
+{
+public:
 	class	FctAcceptFail: public std::exception
 	{
 		public:

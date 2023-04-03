@@ -1,9 +1,10 @@
 #include "Server.hpp"
 
-Server::Server(const ConfigServer& config)
+Server::Server()
 {
+	std::cout << "Server booting" << std::endl;
 	_pollFds = NULL;
-	configToServer(config); //SET CONFIGURATIONS VARIABLES
+	configToServer(); //SET CONFIGURATIONS VARIABLES
 }
 
 Server::~Server()
@@ -25,57 +26,53 @@ Server::~Server()
 		delete it->second;
 }
 
-//TODO DELETE -> After filled good config ref, delete temp define
-//**************TEMP DEFINE****************
-#define CONFIG_SERVER_NB 2
-#define CONFIG_MAX_CLIENT 10
-#define CONFIG_POLLTIMEOUT -1
-int CONFIG_SERVER_NBPORT[2] = {1, 2};
-int CONFIG_SERVER_PORTS_BACKLOG[3] = {5, 5, 5}; //changer en double dimension mais sera surement fix
-uint16_t CONFIG_SERVER_PORTS[3] = {8080, 8081, 8082};
-// ******************************************
-
-//TODO CHANGE -> Replace all define for real config ref
 //PONT ENTRE CONFIG ET SERVER
 //INITIATION DE CERTAINES VARIABLE
-void	Server::configToServer(const ConfigServer& config)
+void	Server::configToServer()
 {
-	nbServer = CONFIG_SERVER_NB;
+	ConfigServer&	config = *ConfigServer::getInstance();
+
 	maxClient = CONFIG_MAX_CLIENT;
 	_pollTimeOut = CONFIG_POLLTIMEOUT;
 	_nbFdServer = 0;
-	//for each server: New indexInfo + PORT COPY + isServer = true + serverNo
-	for (unsigned int serverNo = 0; serverNo < nbServer; serverNo++)
+	nbServer = -1;
+
+	for (std::vector<ServerData>::iterator itServer = config.getServerData().begin();
+			itServer != config.getServerData().end(); itServer++)
 	{
-		for (int iPort = 0; iPort < CONFIG_SERVER_NBPORT[serverNo]; iPort++)
+		nbServer++;
+		for (std::vector<int>::iterator itPort = itServer->_serverPorts.begin();
+			itPort != itServer->_serverPorts.end(); itPort++)
 		{
 			indexInfoInsert(_nbFdServer);
-			indexInfoIt(_nbFdServer)->second->serverNo = serverNo;
+			indexInfoIt(_nbFdServer)->second->serverNo = nbServer;
 			indexInfoIt(_nbFdServer)->second->isServer = true;
-			indexInfoIt(_nbFdServer)->second->portBacklog = CONFIG_SERVER_PORTS_BACKLOG[iPort];
-			indexInfoIt(_nbFdServer)->second->port = CONFIG_SERVER_PORTS[iPort];
+			indexInfoIt(_nbFdServer)->second->portBacklog = LISTEN_BACKLOG;
+			indexInfoIt(_nbFdServer)->second->port =  static_cast<uint16_t>(*itPort);
 			_nbFdServer++;
 		}
 	}
 	pollFdSize = _nbFdServer + maxClient;
 }
 
-//TODO ADD IN -> In main, need to have loop while(1) that restart server on exception
 //main server process
 void	Server::routine()
 {
-	try
+	while (1)
 	{
-		ServerBooting();
-		std::cout << "Server on" << std::endl;
-		ServerPollLoop();
-	}
-	catch (const std::exception& e)
-	{
-		std::cout << e.what() << std::endl;
+		try
+		{
+			ServerBooting();
+			std::cout << "Server on" << std::endl;
+			ServerPollLoop();
+		}
+		catch (const ServerLoopingException::FctAcceptFail& e) {std::cout << e.what() << std::endl;}
+		catch (const ServerLoopingException::FctPollFail& e) {std::cout << e.what() << std::endl;}
+		catch (const ServerLoopingException::FindFail& e) {std::cout << e.what() << std::endl;}
+		catch (const ServerLoopingException::InsertFail& e) {std::cout << e.what() << std::endl;}
+		catch (const std::exception& e) {std::cout << e.what() << std::endl << "Server stop" << std::endl; break;}
 	}
 }
-
 
 
 
@@ -98,7 +95,7 @@ void	Server::ServerBooting()
 void	Server::bootingSocket(const int& iSocket)
 {
 	if ((indexInfoIt(iSocket)->second->fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		throw ServerException::FctSocketFail();
+		throw ServerBootingException::FctSocketFail();
 }
 
 //OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
@@ -108,7 +105,7 @@ void	Server::bootingSetSockOpt(const int& iSocket)
 	
 	if (setsockopt(indexInfoIt(iSocket)->second->fd,
 			SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
-		throw ServerException::FctSetsockoptFail();
+		throw ServerBootingException::FctSetsockoptFail();
 }
 
 //BINDING PORT AND SOCKET
@@ -119,7 +116,7 @@ void	Server::bootingBind(const int& iSocket)
 	setAddrServer(addr, indexInfoIt(iSocket)->second->port);
 	if (bind(indexInfoIt(iSocket)->second->fd,
 			reinterpret_cast<const sockaddr*>(&addr), sizeof(addr) < 0))
-		throw ServerException::FctBindFail();
+		throw ServerBootingException::FctBindFail();
 }
 
 //set addr for server socket purposes (bind )
@@ -135,7 +132,7 @@ void	Server::bootingListen(const int& iSocket)
 {
 	if (listen(indexInfoIt(iSocket)->second->fd,
 			indexInfoIt(iSocket)->second->portBacklog) < 0)
-		throw ServerException::FctBindFail();
+		throw ServerBootingException::FctBindFail();
 }
 //**************************************************************************
 
@@ -149,7 +146,7 @@ void	Server::ServerPollLoop()
 	{
 		//poll signal launcher
 		if (poll(_pollFds, _nbFdServer, _pollTimeOut) < 0)
-			throw ServerException::FctPollFail();
+			throw ServerLoopingException::FctPollFail();
 		
 		//find the index of the signal find by poll in pollfds
 		if ((signalIndex = pollIndexSignal()) >= 0)
@@ -200,7 +197,7 @@ int	Server::addNewClient(const int& signalIndex)
 	int clientFd = accept(indexInfoServer->second->fd,
 			reinterpret_cast<sockaddr*>(&addr), &addrLen);
 	if (clientFd < 0)
-		throw ServerException::FctAcceptFail();
+		throw ServerLoopingException::FctAcceptFail();
 	
 	if (int pollIndex = pollFdAdd(_pollFds, clientFd) < 0)
 	{
@@ -227,7 +224,7 @@ void	Server::closeClient(const int& signalIndex)
 indexInfo_it	Server::indexInfoIt(const int& pollIndex)
 {
 	if (_indexInfo.find(pollIndex) == _indexInfo.end())
-		throw ServerException::FindFail();
+		throw ServerLoopingException::FindFail();
 	return _indexInfo.find(pollIndex);
 }
 
@@ -235,7 +232,7 @@ void	Server::indexInfoInsert(const int& pollIndex)
 {
 	_indexInfo.insert(std::pair<unsigned int, indexInfo_t*>(pollIndex, new indexInfo_t));
 	if (_indexInfo.find(pollIndex) == _indexInfo.end())
-		throw ServerException::InsertFail();
+		throw ServerLoopingException::InsertFail();
 }
 
 

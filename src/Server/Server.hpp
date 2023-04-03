@@ -10,9 +10,16 @@
 # include <unistd.h> //close
 
 # include "PollQueue.hpp"
-# include "../ConfigServer/ConfigServer.hpp"
+//TODO Remove include and the file temp_config.hpp
+# include "temp_config.hpp"
+//# include "../ConfigServer/ConfigServer.hpp"
 # include "../../includes/martin.hpp"
 # include "ServerException.hpp"
+
+
+#define CONFIG_POLLTIMEOUT -1
+#define CONFIG_MAX_CLIENT 100
+#define LISTEN_BACKLOG 100
 
 //SERVER ERROR MESSAGES (SERR = SERVER ERROR) -> should never happen
 # define SERR_POLLINDEXSIGNAL "Server error: poll trigger but index signal not found"
@@ -40,10 +47,10 @@ private:
 	int										_nbFdServer;	//Nombre total de fd pour les servers (si index au dessus = client)
 
 public:
-						Server(const ConfigServer& config);
+						Server();
 	virtual				~Server();
 
-	void				configToServer(const ConfigServer& config);
+	void				configToServer();
 
 	void				routine();
 
