@@ -5,7 +5,4 @@
 #ifndef MARTIN_HPP
 # define MARTIN_HPP
 
-# include "../src/Server/Server.hpp"
-# include "../src/Server/PollQueue.hpp"
-
 #endif

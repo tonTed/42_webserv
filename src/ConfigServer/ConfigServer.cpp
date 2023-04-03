@@ -1,7 +1,4 @@
-#include "ConfigServer.hpp"
-#include "ctype.h"
-#include "string"
-#include <stdlib.h>
+# include "ConfigServer.hpp"
 
 /**
  * @brief declaring the Singleton

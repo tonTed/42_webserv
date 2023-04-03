@@ -5,10 +5,48 @@
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
+
 # include <iostream>
+# include <fstream>
+# include <sstream>
+# include <algorithm>
+# include <map>
+# include <vector>
+# include <string>
+# include <stdexcept>
+
+# include <stdlib.h>
+# include <ctype.h>
+# include <poll.h>			//pollfd
+# include <sys/socket.h>	//socket
+# include <poll.h>			//pollfd
+# include <netdb.h>			//struct sockaddr_in
+# include <arpa/inet.h>		//htons
+# include <unistd.h>		//close
+
+typedef std::string string;
+
+enum eRequestType
+{
+	GET,
+	POST,
+	PUT,
+	DELETE,
+	HEAD,
+	CONNECT,
+	OPTIONS,
+	TRACE,
+	PATCH,
+};
+
+# define EXIT_SUCCESS 0
+# define EXIT_FAILURE 1
 
 # include "server_limits.hpp"
 # include "exception_messages.hpp"
+# include "colors.hpp"
+
+# include "../src/ConfigServer/ConfigServer.hpp"
 
 // TODO: remove this
 # include "hafid.hpp"

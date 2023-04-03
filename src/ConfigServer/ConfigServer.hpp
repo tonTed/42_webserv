@@ -2,7 +2,7 @@
 #define CONFIGSERVER_HPP
 
 #include "../../includes/webserv.hpp"
-#include "../Server/Server.hpp"
+
 
 struct Locations
 {

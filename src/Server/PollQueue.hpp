@@ -1,8 +1,10 @@
 #ifndef POLLQUEUE_HPP
 # define POLLQUEUE_HPP
 
-# include <poll.h> //pollfd
-# include <stdexcept>
+ //pollfd
+
+#include "../../includes/webserv.hpp"
+
 
 class PollQueue
 {
