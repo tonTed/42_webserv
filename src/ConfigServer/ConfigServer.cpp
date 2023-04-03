@@ -2,13 +2,13 @@
 
 /**
  * @brief declaring the Singleton
- * 
+ *
  */
 ConfigServer *ConfigServer::singleton = NULL;
 
 /**
  * @brief Construct a new Config Server:: Config Server object
- * 
+ *
  * @param paramFile the config file path
  */
 void ConfigServer::setConfigServer(string paramFile)
@@ -34,7 +34,7 @@ void ConfigServer::setConfigServer(string paramFile)
 
 /**
  * @brief Destroy the Config Server:: Config Server object
- * 
+ *
  */
 ConfigServer::~ConfigServer()
 {
@@ -43,10 +43,10 @@ ConfigServer::~ConfigServer()
 }
 
 /**
- * @brief 
- * 
- * @param config 
- * @return ConfigServer& 
+ * @brief
+ *
+ * @param config
+ * @return ConfigServer&
  */
 ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 {
@@ -163,10 +163,7 @@ bool ConfigServer::readFile(const string inFile, string &stringLine)
 	while (!(line = getline_with_newline(file)).empty())
 	{
 		if (lineNeeded(line))
-		{
-			// std::cout << "line: " << cleanedLine(line) ;
 			stringLine += cleanedLine(line);
-		}
 	}
 	file.close();
 	return (true);
@@ -184,6 +181,8 @@ std::vector<string> ConfigServer::getServerBlocks(const string &configStr)
 
 	std::vector<string> serverBlocks;
 	string::size_type pos = 0;
+	if(!validBraces(configStr))
+		exit_error("Error: braces not even! |", "");
 	while ((pos = configStr.find("server {", pos)) != string::npos)
 	{
 		string::size_type bracePos = configStr.find("{", pos);
@@ -209,31 +208,8 @@ std::vector<string> ConfigServer::getServerBlocks(const string &configStr)
 			}
 		}
 		std::cout << BOLD_RED << "Error: opening brace not found! " << RESET << std::endl;
-		break; // Handle error: opening brace not found
 	}
 	return (serverBlocks);
-}
-
-bool checkServerBlock(const string &server)
-{
-	string::size_type pos = 0;
-	string::size_type bracePos = server.find("{", pos);
-	if (bracePos != string::npos)
-	{
-		string::size_type endPos = bracePos + 1;
-		int braceCount = 1;
-		while (braceCount > 0 && endPos < server.length())
-		{
-			if (server[endPos] == '{')
-				braceCount++;
-			else if (server[endPos] == '}')
-				braceCount--;
-			endPos++;
-		}
-		if (braceCount == 0)
-			return (true);
-	}
-	return (false);
 }
 
 /**
@@ -267,9 +243,9 @@ std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 Locations ConfigServer::settingLocation(string &locString)
 {
 	Locations location;
-	location.root = getStrValue(locString, "root"); // TODO Check how many roots and if valid
-	location.index = getKeywordValue(locString, "index"); // TODO Check the index extention and is path is valid
-	location.autoindex = getStrValue(locString, "autoindex"); // TODO add check if ON or OFF and erro otherwise
+	location.root = getStrValue(locString, "root");				  // TODO Check how many roots and if valid
+	location.index = getKeywordValue(locString, "index");		  // TODO Check the index extention and is path is valid
+	location.autoindex = getStrValue(locString, "autoindex");	  // TODO add check if ON or OFF and erro otherwise
 	location.redirection = getStrValue(locString, "redirection"); // TODO check if the redirection path is valid
 	location.methods = getMethods(locString);
 	return location;
@@ -311,10 +287,7 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
 				{
 					host = getHostPart(hostLine);
 					if (!validHost(host))
-					{
-						std::cout << BOLD_RED << "Error: invalid host |" << host << "|" << RESET << std::endl;
-						exit(1); // TODO fix the error!
-					}
+						exit_error(HOST_ERR, host);
 					hosts.push_back(host);
 					hostLine = hostLine.substr(hostLine.find(":", 0) + 1, hostLine.length() - hostLine.find(":", 0) - 1);
 					j++;
@@ -351,6 +324,7 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
 									 ? configStr.find("{", pos)
 									 : configStr.find("}", pos);
+	std::vector<string> words;
 
 	while (pos != string::npos && pos < bracePos)
 	{
@@ -372,11 +346,8 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 					{
 						strPort = getPortPart(portLine);
 						port = std::atoi(strPort.c_str());
-						if (!validPort(port))
-						{
-							std::cout << BOLD_RED << "Error: invalid host |" << strPort << "|" << RESET << std::endl;
-							exit(1); // TODO fix the error!
-						}
+						if(!validPort(port))
+							exit_error(PORT_ERR, strPort);
 						ports.push_back(port);
 						portLine = portLine.substr(portLine.find(" ", 0) + 1, portLine.length() - portLine.find(":", 0) - 1);
 						j++;
@@ -384,14 +355,14 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 				}
 				else // get the port if the derective has no ":"
 				{
-					strPort = getPortPart(portLine);
-					port = std::atoi(strPort.c_str());
-					if (!validPort(port))
+					words = splitString(portLine);
+					for (int i = 0; i < static_cast<int>(words.size()); i++) // loop until all words have been returned
 					{
-						std::cout << BOLD_RED << "Error: invalid host |" << strPort << "|" << RESET << std::endl;
-						exit(1); // TODO fix the error!
+						port = std::atoi(words[i].c_str());
+						if(!validPort(port))
+							exit_error(PORT_ERR, words[i]);
+						ports.push_back(port);
 					}
-					ports.push_back(port);
 				}
 				pos = newPos;
 			}
@@ -400,11 +371,7 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 		}
 	}
 	if (ports.size() < 1 || portDup(ports))
-	{
-		std::cout << BOLD_RED << "Error: no ports or duplicate ports" << RESET << std::endl;
-		exit(1); // TODO fix the error!
-	}
-
+		exit_error("Error: no ports or duplicate ports ", "");
 	return (ports);
 }
 
@@ -436,10 +403,7 @@ std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const
 				poSpace++;
 			word = configStr.substr(pos, poSpace - pos);
 			if (word.empty())
-			{
-				std::cout << BOLD_RED << "Error: " << directive << " can't be empty!" << RESET << std::endl;
-				exit(1); // TODO fix the error!
-			}
+				exit_error("Error: ", directive + " can't be empty!");
 			keyWord.push_back(word);
 			pos = poSpace;
 			while (pos < endPos && isspace(configStr[pos]))
@@ -480,10 +444,7 @@ string ConfigServer::getStrValue(const string &configStr, const string &directiv
 				poSpace++;
 			word = configStr.substr(pos, poSpace - pos);
 			if (word.empty())
-			{
-				std::cout << BOLD_RED << "Error: " << directive << " can't be empty!" << RESET << std::endl;
-				exit(1); // TODO fix the error!
-			}
+				exit_error("Error: ", directive + " can't be empty!");
 			keyWord = word;
 			pos = poSpace;
 			while (pos < endPos && isspace(configStr[pos]))
@@ -493,11 +454,8 @@ string ConfigServer::getStrValue(const string &configStr, const string &directiv
 		pos = configStr.find(directive, pos);
 		presence++;
 	}
-	if(presence > 1)
-	{
-		std::cout << BOLD_RED << "Error: " << directive << " can't be more than one!" << RESET << std::endl;
-		exit(1); // TODO fix the error!
-	}
+	if (presence > 1)
+		exit_error("Error: ", directive + " can't be more than one!");
 	return (keyWord);
 }
 
@@ -524,18 +482,12 @@ std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
 		{
 			wordLine = trim(getMethodsLine(configStr, pos, &newPos));
 			if (wordLine.empty())
-			{
-				std::cout << BOLD_RED << "Error: methods can't be empty!" << RESET << std::endl;
-				exit(1); // TODO fix the error!
-			}
+				exit_error("Error: methods can't be empty!", "");
 			words = splitString(wordLine);
 			for (int i = 0; i < static_cast<int>(words.size()); i++) // loop until all words have been returned
 			{
 				if (words[i].empty())
-				{
-					std::cout << BOLD_RED << "Error: methods can't be empty!" << RESET << std::endl;
-					exit(1); // TODO fix the error!
-				}
+					exit_error("Error: methods can't be empty!","");
 				else if (words[i] == "GET")
 					methods.push_back(GET);
 				else if (words[i] == "POST")
@@ -543,10 +495,7 @@ std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
 				else if (words[i] == "DELETE")
 					methods.push_back(DELETE);
 				else
-				{
-					std::cout << BOLD_RED << "Error: Invalid HTTP method: " << words[i] << RESET << std::endl;
-					exit(1); // TODO fix the error!
-				}
+					exit_error("Error: Invalid HTTP method: ", words[i]);
 			}
 			pos = newPos;
 			endPos = configStr.find(";", pos);
@@ -567,6 +516,7 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 	std::map<int, string> errorPages;
 	string::size_type pos = 0;
 	string::size_type brace;
+	string errorStrCode;
 	while ((pos = configStr.find("error_page", pos)) != string::npos)
 	{
 		pos += 10; // skip "error_page "
@@ -579,21 +529,16 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 			poSpace = pos;
 			while (poSpace < endPos && !isspace(configStr[poSpace]))
 				poSpace++;
-			int errorCode = std::atoi(configStr.substr(pos, poSpace - pos).c_str());
+			errorStrCode = configStr.substr(pos, poSpace - pos);
+			int errorCode = std::atoi(errorStrCode.c_str());
 			if (errorCode < 0)
-			{
-				std::cout << BOLD_RED << "Error: Invalid error code: " << errorCode << RESET << std::endl;
-				exit(1); // TODO fix the error!
-			}
+				exit_error("Error: Invalid error code: ", errorStrCode);
 			pos = poSpace;
 			if (endPos != string::npos)
 			{
 				string errorPage = configStr.substr(pos, endPos - pos);
 				if (!validErrorPage(errorPage))
-				{
-					std::cout << BOLD_RED << "Error: error_page can't be empty!" << RESET << std::endl;
-					exit(1); // TODO fix the error!
-				}
+					exit_error("Error: error_page can't be empty!", "");
 				errorPages[errorCode] = errorPage;
 			}
 		}
@@ -615,7 +560,7 @@ std::vector<ServerData> ConfigServer::getServerData() const
 
 /**
  * @brief Print the server data one by one
- * 
+ *
  * @param data the vector<ServerData> to print
  */
 void ConfigServer::printServersData(std::vector<ServerData> &data)
@@ -666,24 +611,25 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << YELLOW << "Error pages: ";
 		for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
 		{
-			std::cout << RESET << "|" << itErrorPages->first << ": " 
-			<< itErrorPages->second << "|" << " ";
+			std::cout << RESET << "|" << itErrorPages->first << ": "
+					  << itErrorPages->second << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Locations: " << std::endl;
 		for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
 		{
-		    std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": " 
-			<< itLocations->second.root << "|" << std::endl;
-		    std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": " 
-			<< itLocations->second.autoindex << "|" << std::endl;
-		    std::cout << BOLD_MAGENTA << "|Redirection:" << RESET << itLocations->first << ": " 
-			<< itLocations->second.redirection << "|" << std::endl;
-		    for(int n = 0; n < static_cast<int>(itLocations->second.index.size()); n++)
+			std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": "
+					  << itLocations->second.root << "|" << std::endl;
+			std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": "
+					  << itLocations->second.autoindex << "|" << std::endl;
+			std::cout << BOLD_MAGENTA << "|Redirection:" << RESET << itLocations->first << ": "
+					  << itLocations->second.redirection << "|" << std::endl;
+			for (int n = 0; n < static_cast<int>(itLocations->second.index.size()); n++)
 			{
-				std::cout << BOLD_MAGENTA << "|Index:" << RESET << itLocations->second.index[n] 
-					<< "| " << std::endl;
+				std::cout << BOLD_MAGENTA << "|Index:" << RESET << itLocations->second.index[n]
+						  << "| " << std::endl;
 			}
 			std::cout << std::endl;
 		}
@@ -693,7 +639,7 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 
 /**
  * @brief Set the server data one by one after getting each element
- * 
+ *
  * @param the std::vector<string> &serverBlocks to use to set the data
  */
 void ConfigServer::setServersData(std::vector<string> &serverBlocks)
@@ -713,14 +659,13 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 
 		// Setting locations
 		std::vector<string> locations = getLocationBlocks(serverBlocks[i]);
-        for (int j = 0; j < static_cast<int>(locations.size()); j++)
-        {
-            Locations location;
+		for (int j = 0; j < static_cast<int>(locations.size()); j++)
+		{
+			Locations location;
 			string path = getLocationPath(locations[j]);
 			location = settingLocation(locations[j]);
-            servers[i]._locations[path] = location;
-        }
-    }
+			servers[i]._locations[path] = location;
+		}
+	}
 	this->_serversData = servers;
 }
-

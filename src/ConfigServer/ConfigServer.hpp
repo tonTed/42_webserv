@@ -111,7 +111,9 @@ std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
 std::string trim(const std::string &str);
 std::vector<std::string> splitString(std::string input);
-bool validPath(string &path);
+
+void exit_error(string str, string err);
+bool validBraces(const string &str);
 
 //  HOST PART
 std::string getHostLine(const std::string &str, std::string::size_type &startPos, std::string::size_type *newPos);
@@ -135,4 +137,6 @@ bool validErrorPage(std::string input);
 
 // LOCATIONS PART
 std::string getLocationPath(const std::string& input);
+bool rootPathValid(string &path);
+
 #endif

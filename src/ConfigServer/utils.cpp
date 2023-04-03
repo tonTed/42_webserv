@@ -32,6 +32,38 @@ bool isrealspace(char c)
 }
 
 /**
+ * @brief Print an error and exit
+ * 
+ * @param str the error string
+ * @param err the error object
+ */
+void exit_error(string str, string err)
+{
+    std::cout << BOLD_RED << str << err << "|" << RESET << std::endl;
+    exit(1); // TODO fix the error!
+}
+
+/**
+ * @brief Validate that the braces are even
+ * 
+ * @param str The string to check
+ * @return true if the braces are even
+ * @return false if they're odd
+ */
+bool validBraces(const string &str)
+{
+    int count = 0;
+    for (size_t i = 0; i < str.size(); i++)
+    {
+        if (str[i] == '{')
+            count++;
+        else if (str[i] == '}')
+            count--;
+    }
+    return (count == 0);
+}
+
+/**
  * @brief Check if the port is valid port number
  *
  * @param portNumb the port to check
@@ -41,6 +73,7 @@ bool isrealspace(char c)
 bool validPort(int portNumb)
 {
     return (portNumb == 80 || (portNumb > 1024 && portNumb < 65535));
+
 }
 
 /**
@@ -293,7 +326,14 @@ bool validErrorPage(std::string input)
     return true;
 }
 
-bool validPath(string &path)
+/**
+ * @brief check if the path is valid
+ *
+ * @param path the path to check
+ * @return true if the path is valid
+ * @return false if the path is not valid
+ */
+bool rootPathValid(string &path)
 {
     int i = 1;
     if (path.size() < 1)
@@ -327,11 +367,8 @@ std::string getLocationPath(const std::string &locationBlock)
         if (pos != std::string::npos && end_pos != std::string::npos)
         {
             std::string path = locationBlock.substr(pos, end_pos - pos);
-            if (!validPath(path))
-            {
-                std::cout << "Invalid path: |" << path << "|" << std::endl;
-                exit(-1);
-            }
+            if (!rootPathValid(path))
+                exit_error("Error: Invalid path: |", path);
             paths.push_back(path);
         }
 
@@ -352,3 +389,4 @@ std::string getLocationPath(const std::string &locationBlock)
         return result;
     }
 }
+
