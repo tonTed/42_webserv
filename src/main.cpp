@@ -102,5 +102,8 @@ int main(int ac, char **av)
 	else
 		ConfigServer::getInstance()->setConfigServer("default");
 
+	Server	WebServer;
+	WebServer.routine(); 
+
 	return (EXIT_SUCCESS);
 }
