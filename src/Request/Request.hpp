@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "../../includes/webserv.hpp"
+#include "../ConfigServer/ConfigServer.hpp"
 #include "RequestException.hpp"
 
 struct startLine {

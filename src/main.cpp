@@ -64,6 +64,7 @@ void mock_server()
 				return;
 			}
 		}
+		buffer[ret_read] = '\0';
 		std::cout << buffer << std::endl;
 
 		std::string response = "HTTP/1.1 200 OK\nContent-Length: 12\r\n\r\nHello World!";
