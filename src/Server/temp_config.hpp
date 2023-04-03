@@ -10,7 +10,7 @@ struct Locations
 	std::vector<std::string> index;
 	std::string autoindex; // ON or OFF
 	std::string redirection;
-	std::vector<enum eRequestType> methods;
+	//std::vector<enum eRequestType> methods;
 };
 
 struct ServerData
@@ -21,7 +21,7 @@ struct ServerData
 	std::vector<std::string> _hosts;
 
 	// Methods accepted by the server
-	std::vector<enum eRequestType> _methods;
+	//std::vector<enum eRequestType> _methods;
 
 	// The key is the location, the value is the path to the file
 	std::vector<std::string> _root;
@@ -63,7 +63,7 @@ public:
 	{
 		if (singleton == NULL)
 		{
-			singleton = new ConfigServer(file);
+			singleton = new ConfigServer();
 		}
 		return singleton;
 	};
@@ -90,7 +90,7 @@ public:
 	std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
 	std::string getStrValue(const std::string &configStr, const std::string &directive);
 	std::map<int, std::string> getErrorPages(const std::string &configStr);
-	std::vector<enum eRequestType> getMethods(const std::string &configStr);
+	//std::vector<enum eRequestType> getMethods(const std::string &configStr);
 	struct Locations settingLocation(std::string &locString);
 
 	std::vector<ServerData> getServerData() const;

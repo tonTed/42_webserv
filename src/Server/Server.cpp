@@ -14,7 +14,7 @@ Server::~Server()
 	//Close all remaining fd (all server and not close client "on error")
 	if (_pollFds != NULL)
 	{
-		for (int index = 0; index < pollFdSize; index++)
+		for (uint index = 0; index < pollFdSize; index++)
 		{
 			if (_pollFds[index].fd >= 3)
 				close(_pollFds[index].fd);
@@ -31,14 +31,15 @@ Server::~Server()
 void	Server::configToServer()
 {
 	ConfigServer&	config = *ConfigServer::getInstance();
+	std::vector<ServerData>	serversData = config.getServerData();
 
 	maxClient = CONFIG_MAX_CLIENT;
 	_pollTimeOut = CONFIG_POLLTIMEOUT;
 	_nbFdServer = 0;
 	nbServer = -1;
 
-	for (std::vector<ServerData>::iterator itServer = config.getServerData().begin();
-			itServer != config.getServerData().end(); itServer++)
+	for (std::vector<ServerData>::iterator itServer = serversData.begin();
+			itServer != serversData.end(); itServer++)
 	{
 		nbServer++;
 		for (std::vector<int>::iterator itPort = itServer->_serverPorts.begin();
