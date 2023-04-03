@@ -1,57 +1,58 @@
 
 #include "test_header.hpp"
 
-
 TEST_CASE("ConfigServer::lineNeeded")
 {
-	ConfigServer cs("test/test_config.conf");
-	SUBCASE("Returns false for an empty line")
-	{
-		std::string line = "";
-		CHECK_FALSE(cs.lineNeeded(line));
-	}
-	SUBCASE("Returns false for a line with only whitespace")
-	{
-		std::string line = "   \t\t ";
-		CHECK_FALSE(cs.lineNeeded(line));
-	}
-	SUBCASE("Returns false for a commented line")
-	{
-		std::string line = "# this is a comment";
-		CHECK_FALSE(cs.lineNeeded(line));
-	}
-	SUBCASE("Returns true for a line with non-whitespace characters")
-	{
-		std::string line = "listen 127.0.0.1:8080";
-		CHECK(cs.lineNeeded(line));
-	}
-	SUBCASE("Returns true for a line with leading whitespace")
-	{
-		std::string line = "\t    listen 127.0.0.1:8080";
-		CHECK(cs.lineNeeded(line));
-	}
+    ConfigServer *cs = ConfigServer::getInstance();
+
+    SUBCASE("Returns false for an empty line")
+    {
+        std::string line = "";
+        CHECK_FALSE(cs->lineNeeded(line));
+    }
+    SUBCASE("Returns false for a line with only whitespace")
+    {
+        std::string line = "   \t\t ";
+        CHECK_FALSE(cs->lineNeeded(line));
+    }
+    SUBCASE("Returns false for a commented line")
+    {
+        std::string line = "# this is a comment";
+        CHECK_FALSE(cs->lineNeeded(line));
+    }
+    SUBCASE("Returns true for a line with non-whitespace characters")
+    {
+        std::string line = "listen 127.0.0.1:8080";
+        CHECK(cs->lineNeeded(line));
+    }
+    SUBCASE("Returns true for a line with leading whitespace")
+    {
+        std::string line = "\t    listen 127.0.0.1:8080";
+        CHECK(cs->lineNeeded(line));
+    }
 }
 
 TEST_CASE("ConfigServer class")
 {
-    ConfigServer config("test/test_config.conf");
+    ConfigServer::getInstance()->setConfigServer("test/test_config.conf");
+    ConfigServer *cs = ConfigServer::getInstance();
     std::vector<ServerData> serversData;
 
     // // Tests for the constructor and getInstance method
     // SUBCASE("Constructor and getInstance **SHOULD FAIL** ")
     // {
-	// 	ConfigServer*  config1 = config.getInstance("test/test_config.conf");
-	// 	ConfigServer*  config2 = config.getInstance("test/test_config.conf");
+    // 	ConfigServer*  config1 = config.getInstance("test/test_config.conf");
+    // 	ConfigServer*  config2 = config.getInstance("test/test_config.conf");
 
-	// 	// SHOULD FAIL
-	// 	CHECK(&config1 == &config2);
-	// 	// CHECK_FALSE(!(&config1 == &config2));
+    // 	// SHOULD FAIL
+    // 	CHECK(&config1 == &config2);
+    // 	// CHECK_FALSE(!(&config1 == &config2));
     // }
 
     // Tests for the getServerData method
     SUBCASE("getServerData")
     {
-        serversData = config.getServerData();
+        serversData = cs->getServerData();
 
         CHECK(serversData.size() == 2);
 
@@ -78,16 +79,16 @@ TEST_CASE("ConfigServer class")
         std::string configStr = "server { listen 8080;\nserver_name localhost;\nroot /var/www;\n }";
         std::string directive = "server_name";
 
-        std::vector<std::string> value = config.getKeywordValue(configStr, directive);
-		CHECK(value.size() == 1);
+        std::vector<std::string> value = cs->getKeywordValue(configStr, directive);
+        CHECK(value.size() == 1);
         CHECK(value[0] == "localhost");
 
         directive = "listen";
-        value = config.getKeywordValue(configStr, directive);
+        value = cs->getKeywordValue(configStr, directive);
         CHECK(value[0] == "8080");
 
         directive = "root";
-        value = config.getKeywordValue(configStr, directive);
+        value = cs->getKeywordValue(configStr, directive);
         CHECK(value[0] == "/var/www");
     }
 
@@ -95,7 +96,7 @@ TEST_CASE("ConfigServer class")
     SUBCASE("cleanedLine")
     {
         std::string line = "  listen   8080;  # server port \n";
-        std::string cleaned = config.cleanedLine(line);
+        std::string cleaned = cs->cleanedLine(line);
         CHECK(cleaned == "listen 8080; ");
     }
 
@@ -117,14 +118,44 @@ TEST_CASE("ConfigServer class")
     SUBCASE("getMethods")
     {
         std::string configStr = "location / { methods GET POST; }\n";
-        std::vector<enum eRequestType> methods = config.getMethods(configStr);
+        std::vector<enum eRequestType> methods = cs->getMethods(configStr);
 
         CHECK(methods.size() == 2);
         CHECK(methods[0] == GET);
         CHECK(methods[1] == POST);
     }
 
-    // ... add more test cases for other methods and functions ...
+    //     // ... add more test cases for other methods and functions ...
 }
 
+TEST_CASE("ConfigServer::lineNeeded")
+{
+    SUBCASE("NUMBER OF PORT TESTING")
+    {
+        ConfigServer::getInstance()->setConfigServer("test/test_config.conf");
+        ConfigServer *cs = ConfigServer::getInstance();
+        std::vector<ServerData> serversData = cs->getServerData();
 
+        CHECK(serversData.size() == 2);
+
+        std::cout <<  "serversData.size():" << serversData.size() << std::endl;
+        for (int i = 0; i < static_cast<int>(serversData.size()); i++)
+        {
+            // std::cout << std::endl
+            //           << YELLOW << "Hosts: ";
+            // for (std::vector<string>::iterator itHosts = it->_hosts.begin(); itHosts != it->_hosts.end(); ++itHosts)
+            // {
+            //     std::cout << RESET << "|" << *itHosts << "|"  << " ";
+            // }
+            // std::cout << std::endl;
+            CHECK(static_cast<int>(serversData.size()) == 2);
+
+            // CHECK(serversData[0]._serverPorts.size() == 4);
+            for (int j = 0; j < static_cast<int>(serversData[i]._serverPorts.size()); j++)
+            {
+                CHECK(serversData[0]._serverPorts.size() == 4);
+            }
+
+        }
+    }
+}

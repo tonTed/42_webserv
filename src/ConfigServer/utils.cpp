@@ -38,9 +38,15 @@ bool isrealspace(char c)
  * @return true if it's a valid port number
  * @return false if the port number is not valid
  */
-bool validPort(int portNumb)
+void validPort(int portNumb)
 {
-    return (portNumb == 80 || (portNumb > 1024 && portNumb < 65535));
+    if (portNumb == 80 || (portNumb > 1024 && portNumb < 65535))
+        return;
+    else
+    {
+        std::cout << BOLD_RED << "Error: invalid port |" << portNumb << "|" << RESET << std::endl;
+        exit(1); // TODO fix the error!
+    }
 }
 
 /**
@@ -352,3 +358,36 @@ std::string getLocationPath(const std::string &locationBlock)
         return result;
     }
 }
+
+
+// while (endPos != string::npos && endPos < bracePos && pos < endPos)
+// 		{
+// 			wordLine = trim(getMethodsLine(configStr, pos, &newPos));
+// 			if (wordLine.empty())
+// 			{
+// 				std::cout << BOLD_RED << "Error: methods can't be empty!" << RESET << std::endl;
+// 				exit(1); // TODO fix the error!
+// 			}
+// 			words = splitString(wordLine);
+// 			for (int i = 0; i < static_cast<int>(words.size()); i++) // loop until all words have been returned
+// 			{
+// 				if (words[i].empty())
+// 				{
+// 					std::cout << BOLD_RED << "Error: methods can't be empty!" << RESET << std::endl;
+// 					exit(1); // TODO fix the error!
+// 				}
+// 				else if (words[i] == "GET")
+// 					methods.push_back(GET);
+// 				else if (words[i] == "POST")
+// 					methods.push_back(POST);
+// 				else if (words[i] == "DELETE")
+// 					methods.push_back(DELETE);
+// 				else
+// 				{
+// 					std::cout << BOLD_RED << "Error: Invalid HTTP method: " << words[i] << RESET << std::endl;
+// 					exit(1); // TODO fix the error!
+// 				}
+// 			}
+// 			pos = newPos;
+// 			endPos = configStr.find(";", pos);
+// 		}

@@ -123,7 +123,8 @@ std::string getPortLine(const std::string &str,
                         string::size_type &startPos, string::size_type *newPos);
 std::string getPortPart(const std::string &input);
 bool portDup(std::vector<int> seq);
-bool validPort(int portNumb);
+// bool validPort(int portNumb);
+void validPort(int portNumb);
 
 //  METHODS PART
 std::string getMethodsLine(const std::string &str,

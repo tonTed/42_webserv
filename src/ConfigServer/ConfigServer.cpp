@@ -5,13 +5,13 @@
 
 /**
  * @brief declaring the Singleton
- * 
+ *
  */
 ConfigServer *ConfigServer::singleton = NULL;
 
 /**
  * @brief Construct a new Config Server:: Config Server object
- * 
+ *
  * @param paramFile the config file path
  */
 void ConfigServer::setConfigServer(string paramFile)
@@ -30,14 +30,14 @@ void ConfigServer::setConfigServer(string paramFile)
 		setServersData(serverBlocks);
 
 		// TODO COMMENT THIS TO STOP PRINTING
-		// std::vector<ServerData> data = getServerData();
-		// printServersData(data);
+		std::vector<ServerData> data = getServerData();
+		printServersData(data);
 	}
 }
 
 /**
  * @brief Destroy the Config Server:: Config Server object
- * 
+ *
  */
 ConfigServer::~ConfigServer()
 {
@@ -46,10 +46,10 @@ ConfigServer::~ConfigServer()
 }
 
 /**
- * @brief 
- * 
- * @param config 
- * @return ConfigServer& 
+ * @brief
+ *
+ * @param config
+ * @return ConfigServer&
  */
 ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 {
@@ -270,9 +270,9 @@ std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 Locations ConfigServer::settingLocation(string &locString)
 {
 	Locations location;
-	location.root = getStrValue(locString, "root"); // TODO Check how many roots and if valid
-	location.index = getKeywordValue(locString, "index"); // TODO Check the index extention and is path is valid
-	location.autoindex = getStrValue(locString, "autoindex"); // TODO add check if ON or OFF and erro otherwise
+	location.root = getStrValue(locString, "root");				  // TODO Check how many roots and if valid
+	location.index = getKeywordValue(locString, "index");		  // TODO Check the index extention and is path is valid
+	location.autoindex = getStrValue(locString, "autoindex");	  // TODO add check if ON or OFF and erro otherwise
 	location.redirection = getStrValue(locString, "redirection"); // TODO check if the redirection path is valid
 	location.methods = getMethods(locString);
 	return location;
@@ -354,6 +354,7 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
 									 ? configStr.find("{", pos)
 									 : configStr.find("}", pos);
+	std::vector<string> words;
 
 	while (pos != string::npos && pos < bracePos)
 	{
@@ -375,11 +376,7 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 					{
 						strPort = getPortPart(portLine);
 						port = std::atoi(strPort.c_str());
-						if (!validPort(port))
-						{
-							std::cout << BOLD_RED << "Error: invalid host |" << strPort << "|" << RESET << std::endl;
-							exit(1); // TODO fix the error!
-						}
+						validPort(port);
 						ports.push_back(port);
 						portLine = portLine.substr(portLine.find(" ", 0) + 1, portLine.length() - portLine.find(":", 0) - 1);
 						j++;
@@ -387,14 +384,13 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
 				}
 				else // get the port if the derective has no ":"
 				{
-					strPort = getPortPart(portLine);
-					port = std::atoi(strPort.c_str());
-					if (!validPort(port))
+					words = splitString(portLine);
+					for (int i = 0; i < static_cast<int>(words.size()); i++) // loop until all words have been returned
 					{
-						std::cout << BOLD_RED << "Error: invalid host |" << strPort << "|" << RESET << std::endl;
-						exit(1); // TODO fix the error!
+						port = std::atoi(words[i].c_str());
+						validPort(port);
+						ports.push_back(port);
 					}
-					ports.push_back(port);
 				}
 				pos = newPos;
 			}
@@ -496,7 +492,7 @@ string ConfigServer::getStrValue(const string &configStr, const string &directiv
 		pos = configStr.find(directive, pos);
 		presence++;
 	}
-	if(presence > 1)
+	if (presence > 1)
 	{
 		std::cout << BOLD_RED << "Error: " << directive << " can't be more than one!" << RESET << std::endl;
 		exit(1); // TODO fix the error!
@@ -618,7 +614,7 @@ std::vector<ServerData> ConfigServer::getServerData() const
 
 /**
  * @brief Print the server data one by one
- * 
+ *
  * @param data the vector<ServerData> to print
  */
 void ConfigServer::printServersData(std::vector<ServerData> &data)
@@ -669,24 +665,25 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << YELLOW << "Error pages: ";
 		for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
 		{
-			std::cout << RESET << "|" << itErrorPages->first << ": " 
-			<< itErrorPages->second << "|" << " ";
+			std::cout << RESET << "|" << itErrorPages->first << ": "
+					  << itErrorPages->second << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Locations: " << std::endl;
 		for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
 		{
-		    std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": " 
-			<< itLocations->second.root << "|" << std::endl;
-		    std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": " 
-			<< itLocations->second.autoindex << "|" << std::endl;
-		    std::cout << BOLD_MAGENTA << "|Redirection:" << RESET << itLocations->first << ": " 
-			<< itLocations->second.redirection << "|" << std::endl;
-		    for(int n = 0; n < static_cast<int>(itLocations->second.index.size()); n++)
+			std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": "
+					  << itLocations->second.root << "|" << std::endl;
+			std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": "
+					  << itLocations->second.autoindex << "|" << std::endl;
+			std::cout << BOLD_MAGENTA << "|Redirection:" << RESET << itLocations->first << ": "
+					  << itLocations->second.redirection << "|" << std::endl;
+			for (int n = 0; n < static_cast<int>(itLocations->second.index.size()); n++)
 			{
-				std::cout << BOLD_MAGENTA << "|Index:" << RESET << itLocations->second.index[n] 
-					<< "| " << std::endl;
+				std::cout << BOLD_MAGENTA << "|Index:" << RESET << itLocations->second.index[n]
+						  << "| " << std::endl;
 			}
 			std::cout << std::endl;
 		}
@@ -696,7 +693,7 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 
 /**
  * @brief Set the server data one by one after getting each element
- * 
+ *
  * @param the std::vector<string> &serverBlocks to use to set the data
  */
 void ConfigServer::setServersData(std::vector<string> &serverBlocks)
@@ -716,14 +713,13 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 
 		// Setting locations
 		std::vector<string> locations = getLocationBlocks(serverBlocks[i]);
-        for (int j = 0; j < static_cast<int>(locations.size()); j++)
-        {
-            Locations location;
+		for (int j = 0; j < static_cast<int>(locations.size()); j++)
+		{
+			Locations location;
 			string path = getLocationPath(locations[j]);
 			location = settingLocation(locations[j]);
-            servers[i]._locations[path] = location;
-        }
-    }
+			servers[i]._locations[path] = location;
+		}
+	}
 	this->_serversData = servers;
 }
-
