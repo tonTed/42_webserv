@@ -5,6 +5,7 @@
 #include <map>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 #include "../../includes/webserv.hpp"
 #include "RequestException.hpp"

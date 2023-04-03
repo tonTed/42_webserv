@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include "unistd.h"
+#include <string>
 
 Request::Request(const int client) : _client(client) {}
 
@@ -259,7 +260,8 @@ void	Request::_parseHeaders() {
 		// check if the value is a number
 	if (std::for_each(_headers["CONTENT-LENGTH"].begin(), _headers["CONTENT-LENGTH"].end(), ::isdigit))
 	{
-		int contentLength = std::stoi(_headers["CONTENT-LENGTH"]);
+		int contentLength;
+		// int contentLength = std::stoi(_headers["CONTENT-LENGTH"]);
 		(void)contentLength;
 	}
 	else

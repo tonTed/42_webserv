@@ -1,10 +1,10 @@
-# `webserv`
+# `Webserv`
 This project is about writing your ow HTTP server. You will be able to test it with an actual browser. HTTP is one of the most used protocols on the internet. Knowing its arcane will be useful, even if you won’t be working on a website.
 
 
 
 <h1 align="center">
-	42cursus' libft
+	42cursus' Webserv 
 </h1>
 
 <p align="center">
@@ -14,11 +14,11 @@ This project is about writing your ow HTTP server. You will be able to test it w
 
 <p align="center">
     <a href="https://www.cplusplus.com/"><img alt="Made with CPP" src="https://img.shields.io/badge/Made%20with-C++-1f425f.svg"/></a>
-    <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/iflis7/get_next_line?color=lightblue" />
-    <img alt="Number of lines of code" src="https://img.shields.io/tokei/lines/github/iflis7/get_next_line?color=critical" />
-    <img alt="Code language count" src="https://img.shields.io/github/languages/count/iflis7/get_next_line?color=yellow" />
-    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/iflis7/get_next_line?color=blue" />
-    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/iflis7/get_next_line?color=green" />
+    <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/tonTed/42_webserv?color=lightblue" />
+    <img alt="Number of lines of code" src="https://img.shields.io/tokei/lines/github/tonTed/42_webserv?color=critical" />
+    <img alt="Code language count" src="https://img.shields.io/github/languages/count/tonTed/42_webserv?color=yellow" />
+    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/tonTed/42_webserv?color=blue" />
+    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/tonTed/42_webserv?color=green" />
 </p>
 
 ## Mandatory part

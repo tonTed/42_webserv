@@ -8,8 +8,14 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
 #include <vector>
+#include <map>
+#include <stdlib.h>
+
+typedef std::string string;
+
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
 
 #define RESET "\033[0m"
 #define BLACK "\033[30m"
@@ -31,3 +37,4 @@
 #define BOLD_WHITE "\033[1m\033[37m"
 
 #endif
+
