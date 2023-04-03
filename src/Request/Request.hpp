@@ -1,14 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
-#include <map>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-
 #include "../../includes/webserv.hpp"
-#include "../ConfigServer/ConfigServer.hpp"
 #include "RequestException.hpp"
 
 struct startLine {

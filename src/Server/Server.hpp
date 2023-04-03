@@ -1,19 +1,9 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include <iostream>
-# include <sys/socket.h> //socket
-# include <poll.h> //pollfd
-# include <netdb.h> //struct sockaddr_in
-# include <arpa/inet.h> //htons
-# include <map>
-# include <unistd.h> //close
-
-# include "PollQueue.hpp"
-
-# include "../ConfigServer/ConfigServer.hpp"
-# include "../../includes/martin.hpp"
+# include "../../includes/webserv.hpp"
 # include "ServerException.hpp"
+# include "PollQueue.hpp"
 
 
 #define CONFIG_POLLTIMEOUT -1
@@ -35,7 +25,6 @@ typedef struct indexInfo_s
 
 //TYPEDEF ITERATOR INDEXINFO
 typedef std::map<unsigned int, indexInfo_t*>::iterator indexInfo_it;
-
 
 class Server: public PollQueue
 {
