@@ -1,10 +1,7 @@
 
 #include "../includes/webserv.hpp"
 #include "ConfigServer/ConfigServer.hpp"
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
+#include "Server/Server.hpp"
 
 // TODO: remove this
 void mock_server()
