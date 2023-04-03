@@ -438,14 +438,24 @@ TEST_CASE("Request::_parseBody"){
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
 
-	SUBCASE("Content-Length is not a number"){
+	SUBCASE("Content-Length is valid"){
 		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\n\r\nHello";
 
 		Request request(writeCloseOpen(client, buffer));
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
-//		CHECK_NOTHROW_MESSAGE(request._parseBody(), "Bode is valid");
+		CHECK_NOTHROW_MESSAGE(request._parseBody(), "Bode is valid");
+	}
+
+	SUBCASE("Content-Length is not a number"){
+		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: t\r\n\r\nHello";
+
+		Request request(writeCloseOpen(client, buffer));
+		request._readSocketData();
+		request._parseStartLine();
+		request._parseHeaders();
+		CHECK_THROWS_AS(request._parseBody(), RequestException::Header::InvalidValue);
 	}
 }
 

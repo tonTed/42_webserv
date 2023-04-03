@@ -31,7 +31,7 @@ void	Request::_init() {
 		_readSocketData();
 		_parseStartLine();
 		_parseHeaders();
-//		_parseBody();
+		_parseBody();
 	} catch (RequestException::ReadError &e) {
 		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
@@ -279,8 +279,6 @@ void	Request::_parseHeaders() {
 
 		// Add the key and value to the map
 		_headers.insert(std::pair<std::string, std::string>(key, value));
-		std::cout << "> headers: " << std::endl;
-		print_map(_headers);
 
 		// Clear the key and value
 		key.clear();
@@ -302,20 +300,13 @@ void	Request::_parseHeaders() {
  void	Request::_parseBody() {
 	std::string line;
 
-	std::cout << "headers: " << std::endl;
-	print_map(_headers);
-
 	// Check if the Content-Length header is present
 	if (_headers.find("CONTENT-LENGTH") == _headers.end())
 		throw RequestException::Header::MissingHeader();
 
-	// Get the Content-Length
-	// check if the value is a number
 	int contentLength;
 	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
-	std::cout << "contentLength: " << contentLength << std::endl;
-	std::cout << "body: " << _rawRequest.rdbuf() << std::endl;
  }
 
 Request::~Request() {}
