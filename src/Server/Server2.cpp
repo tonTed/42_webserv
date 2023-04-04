@@ -5,6 +5,16 @@ Server2::Server2(){}
 Server2::~Server2(){}
 
 
+void	Server2::resetIndexInfo()
+{
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+	{
+		_indexInfo[index]->serverNo = -1;
+		_indexInfo[index]->CGIReadIndex = -1;
+		_indexInfo[index]->ClientIndex = -1;
+	}
+}
+
 
 //PONT ENTRE CONFIG ET SERVER
 //INITIATION DE CERTAINES VARIABLE
@@ -25,8 +35,6 @@ int	Server2::RecordPort()
 		{
 			port[_nbfdPort] = static_cast<uint16_t>(*itPort);
 			_indexInfo[_nbfdPort]->serverNo = nbServer;
-			_indexInfo[_nbfdPort]->CGIReadIndex = -1;
-			_indexInfo[_nbfdPort]->ClientIndex = -1;
 			_nbfdPort++;
 		}
 	}

@@ -26,7 +26,9 @@ public:
 					Server2();
 	virtual			~Server2();
 
+	void			resetIndexInfo();
 	int				RecordPort();
+
 
 };
 
