@@ -11,10 +11,10 @@ ConfigServer *ConfigServer::singleton = NULL;
  *
  * @param paramFile the config file path
  */
-void ConfigServer::setConfigServer(string paramFile)
+void ConfigServer::setConfigServer(std::string paramFile)
 {
-	string file = getFile(paramFile);
-	string stringFile = "";
+	std::string file = getFile(paramFile);
+	std::string stringFile = "";
 	if (!readFile(file, stringFile))
 	{
 		_goodFile = false;
@@ -27,8 +27,8 @@ void ConfigServer::setConfigServer(string paramFile)
 		setServersData(serverBlocks);
 
 		// TODO COMMENT THIS TO STOP PRINTING
-		// std::vector<ServerData> data = getServerData();
-		// printServersData(data);
+		std::vector<ServerData> data = getServerData();
+		printServersData(data);
 	}
 }
 
@@ -65,9 +65,9 @@ ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 
 	* @return return the givent file Path if it works otherwise throw an error.
  */
-string ConfigServer::getFile(const string paramFile)
+std::string ConfigServer::getFile(const std::string paramFile)
 {
-	string configFile = "configFiles/default.config";
+	std::string configFile = "configFiles/default.config";
 	if (paramFile != "default")
 	{
 		std::ifstream f(paramFile.c_str());
@@ -92,7 +92,7 @@ string ConfigServer::getFile(const string paramFile)
  * @return true if not just a comment or just spaces
  * @return false otherwise
  */
-bool ConfigServer::lineNeeded(const string line)
+bool ConfigServer::lineNeeded(const std::string line)
 {
 	size_t i = line.find_first_not_of(" \t");
 	bool val = (i != string::npos && line[i] != '#');
@@ -103,9 +103,9 @@ bool ConfigServer::lineNeeded(const string line)
  * @brief Remove the spaces and comments from the line
  *
  * @param line The line to be modified
- * @return string The modified line
+ * @return std::string The modified line
  */
-string ConfigServer::cleanedLine(string line)
+std::string ConfigServer::cleanedLine(std::string line)
 {
 	int i;
 	int j;
@@ -124,7 +124,7 @@ string ConfigServer::cleanedLine(string line)
 		j--;
 	if (commentPos != string::npos && commentPos > static_cast<size_t>(i))
 		j = static_cast<int>(commentPos - 1);
-	string ret = line.substr(i, j - i + 1);
+	std::string ret = line.substr(i, j - i + 1);
 	for (string::iterator it = ret.begin(); it != ret.end();)
 	{
 		if (std::isspace(*it))
@@ -151,14 +151,14 @@ string ConfigServer::cleanedLine(string line)
  * @brief Read the file and store the data in a string
  *
  * @param inFile The path to the file
- * @param stringLine The string to store the data
+ * @param stringLine The std::string to store the data
  * @return true if the file could be open
  * @return false otherwise
  */
-bool ConfigServer::readFile(const string inFile, string &stringLine)
+bool ConfigServer::readFile(const std::string inFile, std::string &stringLine)
 {
 	std::ifstream file(inFile.c_str());
-	string line = "";
+	std::string line = "";
 
 	while (!(line = getline_with_newline(file)).empty())
 	{
@@ -172,10 +172,10 @@ bool ConfigServer::readFile(const string inFile, string &stringLine)
 /**
  * @brief Split configStr where all file is stored into blocks of servers
  *
- * @param configStr the string where readfile() stored the file it read.
+ * @param configStr the std::string where readfile() stored the file it read.
  * @return std::vector<string>  A vector of strings one by server
  */
-std::vector<string> ConfigServer::getServerBlocks(const string &configStr)
+std::vector<string> ConfigServer::getServerBlocks(const std::string &configStr)
 {
 	int braceCount;
 
@@ -200,7 +200,7 @@ std::vector<string> ConfigServer::getServerBlocks(const string &configStr)
 			}
 			if (braceCount == 0)
 			{
-				string serverBlock = configStr.substr(pos, endPos - pos);
+				std::string serverBlock = configStr.substr(pos, endPos - pos);
 				serverBlocks.push_back(serverBlock);
 				pos = endPos;
 				this->_serverNumber++;
@@ -213,12 +213,12 @@ std::vector<string> ConfigServer::getServerBlocks(const string &configStr)
 }
 
 /**
- * @brief Split the server block into a string of location
+ * @brief Split the server block into a std::string of location
  *
  * @param configStr the input, should be the sting server block
  * @return std::vector<string> the vector of locations.
  */
-std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
+std::vector<string> ConfigServer::getLocationBlocks(const std::string &configStr)
 {
 	std::vector<string> locationBlocks;
 	string::size_type pos = 0;
@@ -227,7 +227,7 @@ std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 		string::size_type endPos = configStr.find("}", pos);
 		if (endPos == string::npos)
 			break; // Handle error: closing brace not found
-		string locationBlock = configStr.substr(pos, endPos - pos + 1);
+		std::string locationBlock = configStr.substr(pos, endPos - pos + 1);
 		locationBlocks.push_back(locationBlock);
 		pos = endPos + 1;
 	}
@@ -237,15 +237,15 @@ std::vector<string> ConfigServer::getLocationBlocks(const string &configStr)
 /**
  * @brief Get every element from location and set it
  *
- * @param locString the input, should be the sting location block
+ * @param locstd::string the input, should be the sting location block
  * @return Locations the structur of location elements.
  */
-Locations ConfigServer::settingLocation(string &locString)
+Locations ConfigServer::settingLocation(std::string &locString)
 {
 	Locations location;
 	location.root = getStrValue(locString, "root");				  // TODO Check how many roots and if valid
-	location.index = getKeywordValue(locString, "index");		  // TODO Check the index extention and is path is valid
-	location.autoindex = getStrValue(locString, "autoindex");	  // TODO add check if ON or OFF and erro otherwise
+	location.index = getKeywordValue(locString, "index");
+	location.autoindex = getStrValue(locString, "autoindex");
 	location.redirection = getStrValue(locString, "redirection"); // TODO check if the redirection path is valid
 	location.methods = getMethods(locString);
 	return location;
@@ -257,13 +257,13 @@ Locations ConfigServer::settingLocation(string &locString)
  * @param configStr the input, should be the sting server block
  * @return std::vector<string> the vector of hosts.
  */
-std::vector<string> ConfigServer::getHosts(const string &configStr)
+std::vector<string> ConfigServer::getHosts(const std::string &configStr)
 {
 	std::vector<string> hosts;
 	string::size_type pos = configStr.find("listen ", 0);
 	string::size_type newPos = 0;
-	string hostLine;
-	string host;
+	std::string hostLine;
+	std::string host;
 	string::size_type endPos;
 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
 									 ? configStr.find("{", pos)
@@ -310,15 +310,15 @@ std::vector<string> ConfigServer::getHosts(const string &configStr)
  * @brief Get the port from the config string
  *
  * @param configStr The block to get the port from
- * @return string the port value
+ * @return std::string the port value
  */
-std::vector<int> ConfigServer::getPorts(const string &configStr)
+std::vector<int> ConfigServer::getPorts(const std::string &configStr)
 {
 	std::vector<int> ports;
 	string::size_type pos = configStr.find("listen ", 0);
 	string::size_type newPos = 0;
-	string portLine;
-	string strPort;
+	std::string portLine;
+	std::string strPort;
 	int port;
 	string::size_type endPos;
 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
@@ -381,12 +381,12 @@ std::vector<int> ConfigServer::getPorts(const string &configStr)
  * @param configStr The block to get the directive value from
  * @return std::vector<string> of the directive values
  */
-std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const string &directive)
+std::vector<string> ConfigServer::getKeywordValue(const std::string &configStr, const std::string &directive)
 {
 	std::vector<string> keyWord;
 	string::size_type pos = configStr.find(directive, 0);
 	string::size_type poSpace = 0;
-	string word;
+	std::string word;
 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
 									 ? configStr.find("{", pos)
 									 : configStr.find("}", pos);
@@ -412,6 +412,8 @@ std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const
 		}
 		pos = configStr.find(directive, pos);
 	}
+	if(directive == "index" && !validIndex(keyWord))
+		exit_error("Error: ", word + " is not a valid index!");
 	return (keyWord);
 }
 
@@ -419,14 +421,14 @@ std::vector<string> ConfigServer::getKeywordValue(const string &configStr, const
  * @brief Get the value depeding on the directive from the config string
  *
  * @param configStr The block to get the directive from
- * @return string of the directive value
+ * @return std::string of the directive value
  */
-string ConfigServer::getStrValue(const string &configStr, const string &directive)
+std::string ConfigServer::getStrValue(const std::string &configStr, const std::string &directive)
 {
-	string keyWord;
+	std::string keyWord;
 	string::size_type pos = configStr.find(directive, 0);
 	string::size_type poSpace = 0;
-	string word;
+	std::string word;
 	string::size_type bracePos = configStr.find("{", pos) < configStr.find("}", pos)
 									 ? configStr.find("{", pos)
 									 : configStr.find("}", pos);
@@ -456,6 +458,7 @@ string ConfigServer::getStrValue(const string &configStr, const string &directiv
 	}
 	if (presence > 1)
 		exit_error("Error: ", directive + " can't be more than one!");
+	
 	return (keyWord);
 }
 
@@ -463,9 +466,9 @@ string ConfigServer::getStrValue(const string &configStr, const string &directiv
  * @brief Get the methods from the config string
  *
  * @param configStr The block to get the methods from
- * @return string the methods value
+ * @return std::string the methods value
  */
-std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
+std::vector<enum eRequestType> ConfigServer::getMethods(const std::string &configStr)
 {
 	std::vector<enum eRequestType> methods;
 	string::size_type pos = configStr.find("methods", 0);
@@ -473,7 +476,7 @@ std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
 									 ? configStr.find("{", pos)
 									 : configStr.find("}", pos);
 	string::size_type newPos = 0;
-	string wordLine;
+	std::string wordLine;
 	std::vector<string> words;
 	while (pos != string::npos && pos < bracePos)
 	{
@@ -509,14 +512,14 @@ std::vector<enum eRequestType> ConfigServer::getMethods(const string &configStr)
  * @brief Get the value depeding on the derective from the config string
  *
  * @param configStr The block to get the server name from
- * @return string the server name value
+ * @return std::string the server name value
  */
-std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
+std::map<int, string> ConfigServer::getErrorPages(const std::string &configStr)
 {
 	std::map<int, string> errorPages;
 	string::size_type pos = 0;
 	string::size_type brace;
-	string errorStrCode;
+	std::string errorStrCode;
 	while ((pos = configStr.find("error_page", pos)) != string::npos)
 	{
 		pos += 10; // skip "error_page "
@@ -536,7 +539,7 @@ std::map<int, string> ConfigServer::getErrorPages(const string &configStr)
 			pos = poSpace;
 			if (endPos != string::npos)
 			{
-				string errorPage = configStr.substr(pos, endPos - pos);
+				std::string errorPage = configStr.substr(pos, endPos - pos);
 				if (!validErrorPage(errorPage))
 					exit_error("Error: error_page can't be empty!", "");
 				errorPages[errorCode] = errorPage;
@@ -662,7 +665,7 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		for (int j = 0; j < static_cast<int>(locations.size()); j++)
 		{
 			Locations location;
-			string path = getLocationPath(locations[j]);
+			std::string path = getLocationPath(locations[j]);
 			location = settingLocation(locations[j]);
 			servers[i]._locations[path] = location;
 		}

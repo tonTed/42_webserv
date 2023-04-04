@@ -139,4 +139,13 @@ bool validErrorPage(std::string input);
 std::string getLocationPath(const std::string& input);
 bool rootPathValid(string &path);
 
+//  AUTOINDEX PART
+bool validAutoindex(std::string input);
+
+//  REDIRECTION PART
+bool validRedirection(std::string input);
+
+//  INDEX PART
+bool validIndex(std::vector<std::string> &input);
+
 #endif

@@ -390,3 +390,34 @@ std::string getLocationPath(const std::string &locationBlock)
     }
 }
 
+/**
+ * @brief check if the indexes are valid
+ * 
+ * @param input The list of indexes
+ * @return true if valid
+ * @return false if not valid
+ */
+bool validIndex(std::vector<std::string> &input)
+{
+    for (int i = 0; i < (int)input.size(); i++)
+    {
+        if (input[i].size() < 4 && (input[i].substr(input[i].size() - 5) != ".html" 
+            || input[i].substr(input[i].size() - 4) != ".htm"))
+            return false;
+    }
+    return true;
+}
+
+/**
+ * @brief check if the redirection is valid
+ * 
+ * @param input The redirection
+ * @return true if valid
+ * @return false if not valid
+ */
+// bool validRedirection(std::string &input)
+// {
+//     return(true);
+// }
+
+
