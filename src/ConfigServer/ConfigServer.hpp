@@ -1,9 +1,6 @@
 #ifndef CONFIGSERVER_HPP
 #define CONFIGSERVER_HPP
-
 #include "../../includes/webserv.hpp"
-#include <algorithm> 
-
 
 struct Locations
 {
@@ -147,7 +144,11 @@ bool validAutoindex(std::string input);
 bool validRedirection(std::string input);
 
 //  INDEX PART
-bool validIndex(std::vector<std::string> &input);
+// bool validIndex(std::vector<std::string> &input, std::string &path);
+void validIndex(std::vector<std::string> &input, std::string &path);
 bool pathDup(std::vector<std::string> seq);
+
+bool validClientBodySize(std::string input);
+bool validFilePath(std::string input);
 
 #endif

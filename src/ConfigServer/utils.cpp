@@ -96,7 +96,13 @@ bool portDup(std::vector<int> seq)
     return false;
 }
 
-
+/**
+ * @brief check if path is duplicated
+ * 
+ * @param seq the vector of the location paths
+ * @return true if it's duplicat
+ * @return false if not duplicate
+ */
 bool pathDup(std::vector<std::string> seq)
 {
     for (int i = 0; i < static_cast<int>(seq.size()); i++)
@@ -411,15 +417,24 @@ std::string getLocationPath(const std::string &locationBlock)
  * @return true if valid
  * @return false if not valid
  */
-bool validIndex(std::vector<std::string> &input)
+void validIndex(std::vector<std::string> &input, std::string &path)
 {
     for (int i = 0; i < (int)input.size(); i++)
     {
+
         if (input[i].size() < 4 && (input[i].substr(input[i].size() - 5) != ".html" 
             || input[i].substr(input[i].size() - 4) != ".htm"))
-            return false;
+            exit_error("Error: ", input[i] + " is not a valid index!");
+        if(path == "/" || path == "/root")
+            path = "";
+        else
+
+            path = path.erase(0, 1) + "/";
+        if(!validFilePath(path + input[i]))
+            exit_error("Error: index path: |", ( path + input[i]) + "| not valid");
+
     }
-    return true;
+
 }
 
 /**
@@ -448,3 +463,35 @@ bool validAutoindex(std::string input)
     return true;
 }
 
+/**
+ * @brief check if the client body size is valid
+ * 
+ * @param input The client body size
+ * @return true if valid
+ * @return false if not valid
+ */
+// bool validClientBodySize(std::string input)
+// {
+//     if (input.size() < 1)
+//         return false;
+//     for (int i = 0; i < (int)input.size(); i++)
+//     {
+//         if (!std::isdigit(input[i]))
+//             return false;
+//     }
+//     return true;
+// }
+
+
+/**
+ * @brief check if the file path is valid
+ * 
+ * @param input The file path
+ * @return true if valid
+ * @return false if not valid
+ */
+bool validFilePath(std::string input)
+{
+  std::ifstream file(input.c_str());
+  return file.good();
+}   

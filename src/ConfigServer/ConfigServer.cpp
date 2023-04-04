@@ -409,8 +409,8 @@ std::vector<string> ConfigServer::getKeywordValue(const std::string &configStr, 
 		}
 		pos = configStr.find(directive, pos);
 	}
-	if(directive == "index" && !validIndex(keyWord))
-		exit_error("Error: ", word + " is not a valid index!");
+	// if(directive == "index" && !validIndex(keyWord))
+	// 	exit_error("Error: ", word + " is not a valid index!");
 	return (keyWord);
 }
 
@@ -671,6 +671,7 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 				servers[i]._locations[path] = settingLocation(locations[j]);
 			else
 				exit_error("Error: Location Path |", path + "| Already Exists!");
+			validIndex(servers[i]._locations[path].index, path);
 		}
 	}
 	this->_serversData = servers;
