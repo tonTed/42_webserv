@@ -3,8 +3,9 @@
 
 #include "../../includes/webserv.hpp"
 #include "../Request/Request.hpp"
+#include "CodeResponse.hpp"
 
-class Response {
+class Response : CodeResponse {
 
 public:
 	Response(const Request &request, const int status);
@@ -12,6 +13,13 @@ public:
 	void 			sendError();
 
 	std::string	resolvePath(const std::string &path);
+	bool		hasExtension(const std::string &path);
+	void		removeExtension(std::string &path, std::string &file);
+	bool		existInLocation(const std::string &path);
+	bool		existInRoot(const std::string &path);
+	bool		localRootExist(const std::string &path);
+	bool		localFileExist(const std::string &path);
+	bool		indexExist(std::string &path);
 
 public:
 		const Request & _request;

@@ -11,17 +11,125 @@ Response::Response(const Request &request, int status) : _request(request), _sta
 	}
 }
 
-void Response::sendError() {
-	std::string	path;
-	std::string errorPage;
-
-	path = resolvePath(_request._startLine.path);
-}
-
 std::string Response::resolvePath(const std::string &path) {
-	(void)path;
+	std::string resolvedPath = "Mock return" ;
+	std::string file;
+	std::string root = path;
 
-	std::string resolvedPath = "Hello" ;
+	if (hasExtension(path))
+	{
+		removeExtension(root, file);
+		if (existInLocation(root))
+		{
+			//change root with local root
+			if (localRootExist(root))
+			{
+				if (localFileExist(root))
+				{
+					resolvedPath = root + file;
+				}
+				else
+				{
+					//resolve error pages 404
+				}
+			}
+			else
+			{
+				//resolve error pages 500
+			}
+		}
+		else
+		{
+			if (existInRoot(root))
+			{
+				if (localFileExist(root))
+				{
+					resolvedPath = root + file;
+				}
+				else
+				{
+					//resolve error pages 404
+				}
+			}
+			else
+			{
+				//resolve error pages 404
+			}
+		}
+	}
+	else
+	{
+		if (existInLocation(root))
+		{
+			//change root with local root
+			if (localRootExist(root))
+			{
+				if (indexExist(root))
+					resolvedPath = root;
+				else
+				{
+					//resolve error pages 500
+				}
+			}
+			else
+			{
+				//resolve error pages 500
+			}
+		}
+		else
+		{
+			if (existInRoot(root))
+			{
+				if (indexExist(root))
+				{
+					resolvedPath = root;
+				}
+				else
+				{
+					//resolve error pages 500
+				}
+			}
+			else
+			{
+				//resolve error pages 404
+			}
+		}
+	}
 
 	return resolvedPath;
+}
+
+bool Response::hasExtension(const std::string &path) {
+	(void)path;
+	return true;
+}
+
+void Response::removeExtension(std::string &path, std::string &file) {
+	(void)path;
+	(void)file;
+}
+
+bool Response::existInLocation(const std::string &path) {
+	(void)path;
+	return true;
+}
+
+bool Response::existInRoot(const std::string &path) {
+	(void)path;
+	return true;
+}
+
+bool Response::localRootExist(const std::string &path) {
+	(void)path;
+	return true;
+}
+
+bool Response::localFileExist(const std::string &path) {
+	(void)path;
+	return true;
+}
+
+bool Response::indexExist(std::string &path) {
+	(void)path;
+	return true;
 }
