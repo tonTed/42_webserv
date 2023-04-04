@@ -46,6 +46,12 @@ enum eOriginFD
 	FROM_CGI_PARSING,
 };
 
+enum ePipeDir
+{
+	PIPE_READ,
+	PIPE_WRITE,
+};
+
 # define EXIT_SUCCESS 0
 # define EXIT_FAILURE 1
 

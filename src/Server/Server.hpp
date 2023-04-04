@@ -20,9 +20,12 @@ typedef struct indexInfo_s
 	int					origin;			//0->fromPort 1->fromCGI 2->fromCGIParsing
 	uint16_t			port;			//Structure pour bind et accept
 	int					portBacklog;	//Pour la function listen, le nombre de backlog par port (config?)
-	int					fd;
-	int					fdCGI;			//fd
-	int					fdClient;		//
+	int&				fdPort;			//fd creer par socket
+	int&				fdCGIRead;		//pipe for fdCGI
+	int					fdCGIWrite;		//
+	int					indexCGI;		//index de pollFds du CGI linked
+	int					indexClient;	//index de pollFds du client linked
+	int&				fdClient;		//fd creer par accept
 }						indexInfo_t;
 
 //TYPEDEF ITERATOR INDEXINFO
@@ -34,7 +37,9 @@ private:
 	pollfd*									_pollFds; 		//pour poll
 	std::map<unsigned int, indexInfo_t*>	_indexInfo;		//information sur chaque index de pollFds
 	int										_pollTimeOut;	//Sait pas encore si fourni par config
-	int										_nbFdServer;	//Nombre total de fd pour les servers (si index au dessus = client)
+	int										_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
+
+	void									_safePollFdsClose(const int& pollIndex);
 
 public:
 						Server();
@@ -59,6 +64,7 @@ public:
 	int					pollIndexSignal();
 
 	int					addNewClient(const int& signalIndex);
+	int					setClientCGI(const int& pollIndex);
 	void				closeClient(const int& signalIndex);
 
 	indexInfo_it		indexInfoIt(const int& pollIndex);
