@@ -22,20 +22,13 @@ std::string Response::resolvePath(const std::string &path) {
 		if (existInLocation(root))
 		{
 			//change root with local root
-			if (localRootExist(root))
+			if (localFileExist(root))
 			{
-				if (localFileExist(root))
-				{
-					resolvedPath = root + file;
-				}
-				else
-				{
-					//resolve error pages 404
-				}
+				resolvedPath = root + file;
 			}
 			else
 			{
-				//resolve error pages 500
+				//resolve error pages 404
 			}
 		}
 		else
@@ -62,10 +55,16 @@ std::string Response::resolvePath(const std::string &path) {
 		if (existInLocation(root))
 		{
 			//change root with local root
-			if (localRootExist(root))
+			//add index
+		}
+		else
+		{
+			if(localRootExist(root))
 			{
 				if (indexExist(root))
-					resolvedPath = root;
+				{
+					//resolvedPath = root + index;
+				}
 				else
 				{
 					//resolve error pages 500
@@ -74,24 +73,6 @@ std::string Response::resolvePath(const std::string &path) {
 			else
 			{
 				//resolve error pages 500
-			}
-		}
-		else
-		{
-			if (existInRoot(root))
-			{
-				if (indexExist(root))
-				{
-					resolvedPath = root;
-				}
-				else
-				{
-					//resolve error pages 500
-				}
-			}
-			else
-			{
-				//resolve error pages 404
 			}
 		}
 	}
