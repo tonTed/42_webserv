@@ -458,7 +458,8 @@ std::string ConfigServer::getStrValue(const std::string &configStr, const std::s
 	}
 	if (presence > 1)
 		exit_error("Error: ", directive + " can't be more than one!");
-	
+	if(presence && directive == "autoindex" && !validAutoindex(keyWord))
+		exit_error("Error: |", word + "| is not a valid autoindex!");		
 	return (keyWord);
 }
 

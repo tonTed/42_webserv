@@ -420,4 +420,17 @@ bool validIndex(std::vector<std::string> &input)
 //     return(true);
 // }
 
+/**
+ * @brief check if the autoindex is valid
+ * 
+ * @param input The autoindex
+ * @return true if valid
+ * @return false if not valid
+ */
+bool validAutoindex(std::string input)
+{
+    if (input != "on" && input != "off")
+        return false;
+    return true;
+}
 
