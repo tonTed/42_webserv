@@ -10,5 +10,6 @@
 # include "../src/Request/Request.hpp"
 # include "../src/CGI/Cgi.hpp"
 # include "../src/Response/Response.hpp"
+# include "../src/Response/DefaultHtml.hpp"
 
 
