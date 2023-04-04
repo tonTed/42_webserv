@@ -93,7 +93,9 @@ void Response::removeFile(std::string &path, std::string &file) {
 }
 
 bool Response::existInLocation(const std::string &path) {
-	(void)path;
+
+	try { _config->_serversData.at(_request._serverId)._locations.at(path); }
+	catch (std::out_of_range &e) { (void)e; return false; }
 	return true;
 }
 
