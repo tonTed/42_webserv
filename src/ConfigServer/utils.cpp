@@ -39,7 +39,7 @@ bool isrealspace(char c)
  */
 void exit_error(string str, string err)
 {
-    std::cout << BOLD_RED << str << err << "|" << RESET << std::endl;
+    std::cout << BOLD_RED << str << err << RESET << std::endl;
     exit(1); // TODO fix the error!
 }
 
@@ -84,6 +84,20 @@ bool validPort(int portNumb)
  * @return false if the port is not duplicated
  */
 bool portDup(std::vector<int> seq)
+{
+    for (int i = 0; i < static_cast<int>(seq.size()); i++)
+    {
+        for (int j = i + 1; j < static_cast<int>(seq.size()); j++)
+        {
+            if (seq[i] == seq[j])
+                return true;
+        }
+    }
+    return false;
+}
+
+
+bool pathDup(std::vector<std::string> seq)
 {
     for (int i = 0; i < static_cast<int>(seq.size()); i++)
     {
@@ -333,7 +347,7 @@ bool validErrorPage(std::string input)
  * @return true if the path is valid
  * @return false if the path is not valid
  */
-bool rootPathValid(string &path)
+bool lactionPathValid(string &path)
 {
     int i = 1;
     if (path.size() < 1)
@@ -367,7 +381,7 @@ std::string getLocationPath(const std::string &locationBlock)
         if (pos != std::string::npos && end_pos != std::string::npos)
         {
             std::string path = locationBlock.substr(pos, end_pos - pos);
-            if (!rootPathValid(path))
+            if (!lactionPathValid(path))
                 exit_error("Error: Invalid path: |", path);
             paths.push_back(path);
         }

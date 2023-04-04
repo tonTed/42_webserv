@@ -246,7 +246,7 @@ Locations ConfigServer::settingLocation(std::string &locString)
 	location.root = getStrValue(locString, "root");				  // TODO Check how many roots and if valid
 	location.index = getKeywordValue(locString, "index");
 	location.autoindex = getStrValue(locString, "autoindex");
-	location.redirection = getStrValue(locString, "redirection"); // TODO check if the redirection path is valid
+	location.redirection = getStrValue(locString, "return"); // TODO check if the redirection path is valid
 	location.methods = getMethods(locString);
 	return location;
 }
@@ -299,10 +299,7 @@ std::vector<string> ConfigServer::getHosts(const std::string &configStr)
 		}
 	}
 	if (hosts.size() > 2)
-	{
-		std::cout << BOLD_RED << "Error: too many hosts " << RESET << std::endl;
-		exit(1); // TODO fix the error!
-	}
+		exit_error("Error: too many hosts ", "");
 	return (hosts);
 }
 
@@ -469,7 +466,7 @@ std::string ConfigServer::getStrValue(const std::string &configStr, const std::s
  * @param configStr The block to get the methods from
  * @return std::string the methods value
  */
-std::vector<enum eRequestType> ConfigServer::getMethods(const std::string &configStr)
+std::vector<enum eRequestType> ConfigServer::getMethods(const std::string &configStr )
 {
 	std::vector<enum eRequestType> methods;
 	string::size_type pos = configStr.find("methods", 0);
@@ -649,8 +646,10 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 {
 	std::vector<ServerData> servers(serverBlocks.size());
+	
 	for (int i = 0; i < static_cast<int>(serverBlocks.size()); i++)
 	{
+		
 		servers[i]._hosts = getHosts(serverBlocks[i]);
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
@@ -663,13 +662,17 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 
 		// Setting locations
 		std::vector<string> locations = getLocationBlocks(serverBlocks[i]);
+		std::vector<std::string> paths;
 		for (int j = 0; j < static_cast<int>(locations.size()); j++)
 		{
-			Locations location;
-			std::string path = getLocationPath(locations[j]);
-			location = settingLocation(locations[j]);
-			servers[i]._locations[path] = location;
+			std::string path = getLocationPath(locations[j]);;
+			paths.push_back(path);
+			if(!pathDup(paths))
+				servers[i]._locations[path] = settingLocation(locations[j]);
+			else
+				exit_error("Error: Location Path |", path + "| Already Exists!");
 		}
 	}
 	this->_serversData = servers;
 }
+

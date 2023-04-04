@@ -2,6 +2,7 @@
 #define CONFIGSERVER_HPP
 
 #include "../../includes/webserv.hpp"
+#include <algorithm> 
 
 
 struct Locations
@@ -137,7 +138,7 @@ bool validErrorPage(std::string input);
 
 // LOCATIONS PART
 std::string getLocationPath(const std::string& input);
-bool rootPathValid(string &path);
+bool lactionPathValid(string &path);
 
 //  AUTOINDEX PART
 bool validAutoindex(std::string input);
@@ -147,5 +148,6 @@ bool validRedirection(std::string input);
 
 //  INDEX PART
 bool validIndex(std::vector<std::string> &input);
+bool pathDup(std::vector<std::string> seq);
 
 #endif
