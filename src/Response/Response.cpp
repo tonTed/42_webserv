@@ -81,8 +81,9 @@ std::string Response::resolvePath(const std::string &path) {
 }
 
 bool Response::hasExtension(const std::string &path) {
-	(void)path;
-	return true;
+	if (path.find('.') != std::string::npos && path.find('.') != path.size() - 1)
+		return true;
+	return false;
 }
 
 void Response::removeExtension(std::string &path, std::string &file) {
