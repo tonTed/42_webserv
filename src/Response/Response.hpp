@@ -14,7 +14,7 @@ public:
 
 	std::string	resolvePath(const std::string &path);
 	bool		hasExtension(const std::string &path);
-	void		removeExtension(std::string &path, std::string &file);
+	void		removeFile(std::string &path, std::string &file);
 	bool		existInLocation(const std::string &path);
 	bool		existInRoot(const std::string &path);
 	bool		localRootExist(const std::string &path);

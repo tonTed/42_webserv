@@ -31,3 +31,25 @@ TEST_CASE("Response::hasExtension")
 	path = "test/";
 	REQUIRE(response.hasExtension(path) == false);
 }
+
+TEST_CASE("Response::removeFile")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Response response(request, 200);
+
+	std::string path = "/test/test.txt";
+	std::string file = "test.txt";
+	response.removeFile(path, file);
+	REQUIRE(path == "/test/");
+	REQUIRE(file == "test.txt");
+
+	path = "/test.txt";
+	file = "test.txt";
+	response.removeFile(path, file);
+	REQUIRE(path == "/");
+	REQUIRE(file == "test.txt");
+}

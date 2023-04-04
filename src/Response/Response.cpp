@@ -18,7 +18,7 @@ std::string Response::resolvePath(const std::string &path) {
 
 	if (hasExtension(path))
 	{
-		removeExtension(root, file);
+		removeFile(root, file);
 		if (existInLocation(root))
 		{
 			//change root with local root
@@ -86,9 +86,10 @@ bool Response::hasExtension(const std::string &path) {
 	return false;
 }
 
-void Response::removeExtension(std::string &path, std::string &file) {
-	(void)path;
-	(void)file;
+void Response::removeFile(std::string &path, std::string &file) {
+	size_t pos = path.find_last_of('/');
+	file = path.substr(pos + 1);
+	path = path.substr(0, pos + 1);
 }
 
 bool Response::existInLocation(const std::string &path) {
