@@ -72,4 +72,20 @@ TEST_CASE("Response::existInLocation")
 	REQUIRE(response.existInLocation(path) == false);
 }
 
+TEST_CASE("Response::setLocalRoot")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+
+	std::string path = "/tata";
+	response.setLocalRoot(path);
+	REQUIRE(response._root == "test/data/www/toto");
+}
+
 TEST_CASE("Request::clean") { remove("test/test_data_file");}

@@ -14,17 +14,17 @@ Response::Response(const Request &request, int status) : _request(request), _sta
 std::string Response::resolvePath(const std::string &path) {
 	std::string resolvedPath = "Mock return" ;
 	std::string file;
-	std::string root = path;
+	_root = path;
 
 	if (hasExtension(path))
 	{
-		removeFile(root, file);
-		if (existInLocation(root))
+		removeFile(_root, file);
+		if (existInLocation(_root))
 		{
-			//change root with local root
-			if (localFileExist(root))
+			setLocalRoot(_root);
+			if (localFileExist(_root))
 			{
-				resolvedPath = root + file;
+				resolvedPath = _root + file;
 			}
 			else
 			{
@@ -33,11 +33,11 @@ std::string Response::resolvePath(const std::string &path) {
 		}
 		else
 		{
-			if (existInRoot(root))
+			if (existInRoot(_root))
 			{
-				if (localFileExist(root))
+				if (localFileExist(_root))
 				{
-					resolvedPath = root + file;
+					resolvedPath = _root + file;
 				}
 				else
 				{
@@ -52,16 +52,16 @@ std::string Response::resolvePath(const std::string &path) {
 	}
 	else
 	{
-		if (existInLocation(root))
+		if (existInLocation(_root))
 		{
 			//change root with local root
 			//add index
 		}
 		else
 		{
-			if(localRootExist(root))
+			if(localRootExist(_root))
 			{
-				if (indexExist(root))
+				if (indexExist(_root))
 				{
 					//resolvedPath = root + index;
 				}
@@ -117,4 +117,8 @@ bool Response::localFileExist(const std::string &path) {
 bool Response::indexExist(std::string &path) {
 	(void)path;
 	return true;
+}
+
+void Response::setLocalRoot(const std::string path) {
+	_root = _config->_serversData.at(_request._serverId)._locations.at(path).root;
 }
