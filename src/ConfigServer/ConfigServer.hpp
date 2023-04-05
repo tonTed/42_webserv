@@ -22,7 +22,8 @@ struct ServerData
 	std::vector<enum eRequestType> _methods;
 
 	// The key is the location, the value is the path to the file
-	std::vector<std::string> _root;
+	std::vector<std::string> _root; // TODO make it a string
+	// std::string _root;
 
 	// The key is the error code, the value is the path to the file
 	// Create data structure for error pages default before

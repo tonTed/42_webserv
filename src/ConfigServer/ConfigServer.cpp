@@ -409,8 +409,8 @@ std::vector<string> ConfigServer::getKeywordValue(const std::string &configStr, 
 		}
 		pos = configStr.find(directive, pos);
 	}
-	// if(directive == "index" && !validIndex(keyWord))
-	// 	exit_error("Error: ", word + " is not a valid index!");
+	if (directive == "root" && keyWord.size() != 1)
+		exit_error("Error: no ", directive + " or too many");
 	return (keyWord);
 }
 
@@ -450,7 +450,7 @@ std::string ConfigServer::getStrValue(const std::string &configStr, const std::s
 				pos++;
 			endPos = configStr.find(";", pos);
 		}
-		pos = configStr.find(directive, pos);
+		pos = configStr.find(directive, endPos);
 		presence++;
 	}
 	if (presence > 1)
@@ -607,6 +607,8 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 			std::cout << RESET << "|" << *itRoot << "|"
 					  << " ";
 		}
+			// std::cout << RESET << "|" << it->_root << "|"
+			// 		  << " ";
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Error pages: ";
@@ -657,6 +659,7 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		servers[i]._methods = getMethods(serverBlocks[i]);
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 		servers[i]._root = getKeywordValue(serverBlocks[i], "root");
+		// servers[i]._root = getStrValue(serverBlocks[i], "root"); // TODO make sure location /root not counted
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 
