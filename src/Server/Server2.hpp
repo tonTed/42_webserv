@@ -7,16 +7,24 @@
 //SERVER ERROR MESSAGES (SERR = SERVER ERROR) -> should never happen
 # define SERR_POLLINDEXSIGNAL "Server error: poll trigger but index signal not found"
 
-# define POLLFD_LIMIT 500
-# define LISTEN_BACKLOG 100
+# define POLLFD_LIMIT 50
+# define LISTEN_BACKLOG 50
 # define POLL_TIMEOUT -1
 
 typedef struct	indexLink_s
 {
-	int	serverNo;
+	int	serverNum;
 	int	CGIReadIndex;
 	int	ClientIndex;
 }				indexLink_t;
+
+typedef struct	requestInfo_s
+{
+	int			clientFd;
+	int			CGIfdRead;
+	int			CGIfdWrite;
+	int			serverNum;
+}				requestInfo_t;
 
 class Server2
 {
@@ -32,7 +40,8 @@ public:
 //*****************************BOOTING SERVER***********************************
 
 	void			booting();
-	void			resetIndexInfo();
+	void			initIndexInfo();
+	void			resetIndexInfo(const int& index);
 	int				recordPort(uint16_t port[POLLFD_LIMIT]);
 	void			setPortSocket(const uint16_t port[POLLFD_LIMIT]);
 	void			bootSocket(const int& iSocket);
@@ -44,11 +53,22 @@ public:
 //*****************************OPERATING SERVER*********************************
 
 	void			operating();
-	int				Server2::pollIndexSignal();
+	int				pollIndexSignal();
 	int				indexOrigin(const int& signalIndex);
-	int				setClient(const int& signalIndex);
+	
+//*****************************REQUEST******************************************
+
+	int				setRequest(requestInfo_t reqInfo, const int& signalIndex);
 	int				acceptClient(const int& signalIndex);
+	bool			pollFdsAvailable() const;
 	int				setPollFds(const int& fd);
+	void			setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum);
+
+//****************************CLOSE CONNECTION**********************************
+	void			closeConnection(const int& signalIndex);
+	void			safeClose(int& fdSource);
+
+	void			closePollFds();
 };
 
 

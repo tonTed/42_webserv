@@ -241,6 +241,16 @@ int	Server::setClientCGI(const int& pollIndex)
 
 	indexInfoClient->second->indexClient = pollIndex;
 
+}int	Server2::acceptClient(const int& signalIndex)
+{
+	sockaddr_in addr;
+	socklen_t addrLen = sizeof(addr);
+	
+	int clientFd = accept(_pollFds[signalIndex].fd,
+			reinterpret_cast<sockaddr*>(&addr), &addrLen);
+	if (clientFd < 0)
+		throw ServerLoopingException::FctAcceptFail();
+	return clientFd;
 }
 
 /* //Close client socket (fd) + delete infoIndex_t* + remove the map element for pollIndex

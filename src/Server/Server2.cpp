@@ -10,19 +10,22 @@ void	Server2::booting()
 {
 	uint16_t	port[POLLFD_LIMIT];
 
-	resetIndexInfo();
+	initIndexInfo();
 	recordPort(port);
 	setPortSocket(port);
 }
 
-void	Server2::resetIndexInfo()
+void	Server2::initIndexInfo()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
-	{
-		_indexInfo[index].serverNo = -1;
-		_indexInfo[index].CGIReadIndex = -1;
-		_indexInfo[index].ClientIndex = -1;
-	}
+		resetIndexInfo(index);
+}
+
+void	Server2::resetIndexInfo(const int& index)
+{
+	_indexInfo[index].serverNum = -1;
+	_indexInfo[index].CGIReadIndex = -1;
+	_indexInfo[index].ClientIndex = -1;
 }
 
 //PONT ENTRE CONFIG ET SERVER
@@ -43,7 +46,7 @@ int	Server2::recordPort(uint16_t port[POLLFD_LIMIT])
 			itPort != itServer->_serverPorts.end(); itPort++)
 		{
 			port[_nbfdPort] = static_cast<uint16_t>(*itPort);
-			_indexInfo[_nbfdPort].serverNo = nbServer;
+			_indexInfo[_nbfdPort].serverNum = nbServer;
 			_nbfdPort++;
 		}
 	}
@@ -73,7 +76,7 @@ void	Server2::bootSetSockOpt(const int& iSocket)
 	int opt = 1;
 	
 	if (setsockopt(_pollFds[iSocket].fd,
-			SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+			SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
 		throw ServerBootingException::FctSetsockoptFail();
 }
 
@@ -125,19 +128,24 @@ void	Server2::operating()
 			switch (indexOrigin(signalIndex))
 			{
 			case FROM_PORT:
-				if (addNewClient(signalIndex) == 0)
-					std::cout << "TEMP MESSAGE -> REQUESTING TO SERVER" << std::endl;
-					//TODO ADD HERE -> REQUEST(serverNo, fd) & REMOVE -> TEMP MESSAGE
+				requestInfo_t reqInfo;
+				if (setRequest(reqInfo, signalIndex) == 0)
+					//teddyrequest(reqInfo.serverNum, reqInfo.clientFd, reqInfo.CGIfdWrite, reqInfo.CGIfdRead)
+				//TODO dire a teddy qu'il doit fermer write dans parent et read dans fork
+				//TODO Demander s'il n'aimerais pas mieux recevoir la struct reqInfo
 				break;
 			
 			case FROM_CGI:
-				/* code */
+				/*TeddyCGIParsing(_indexInfo[signalIndex].serverNum,
+							_pollFds[_indexInfo[signalIndex].ClientIndex].fd,
+							_pollFds[_indexInfo[signalIndex].CGIReadIndex].fd)
+				*/
 				break;
 
 			case FROM_CGI_PARSING:
-				//TODO ADD HERE -> RESPONSE(fd) & REMOVE -> TEMP MESSAGE
-				std::cout << "TEMP MESSAGE -> RESPONDING TO CLIENT" << std::endl;
-				closeClient(signalIndex);
+				//Client been responded in CGIParsing
+				//Here we only handelling closing socket
+				closeConnection(signalIndex);
 				break;
 			}
 		}
@@ -172,42 +180,123 @@ int	Server2::indexOrigin(const int& signalIndex)
 		return FROM_PORT;
 }
 
-int	Server2::setClient(const int& signalIndex)
-{
-	int clientFd = acceptClient(signalIndex);
 
-	//set next pollfdindex
-	//CGI
+//******************************************************************************
+
+
+//*****************************REQUEST******************************************
+
+
+int	Server2::setRequest(requestInfo_t reqInfo, const int& signalIndex)
+{
+	reqInfo.clientFd = acceptClient(signalIndex);
+	reqInfo.serverNum = _indexInfo[signalIndex].serverNum;
+
+	if (reqInfo.clientFd >= 3) //client connected
+	{
+		if (pollFdsAvailable() == false) //Enough place in pollFds
+		{
+			int CGIPipe[2];
+			if (pipe(CGIPipe) != -1) //pipe status ok
+			{
+				reqInfo.CGIfdRead = CGIPipe[PIPE_READ];
+				reqInfo.CGIfdWrite = CGIPipe[PIPE_WRITE];
+
+				int clientIndex = setPollFds(reqInfo.clientFd);
+				int CGIReadIndex = setPollFds(reqInfo.CGIfdRead);
+
+				setIndexInfo(clientIndex, CGIReadIndex, reqInfo.serverNum);
+
+				return 0;
+			}
+		}
+		//busy response to clientfd
+		close(reqInfo.clientFd);
+	}
+	//Client not connected Impossible to answer
+	return -1;
 }
+
 
 int	Server2::acceptClient(const int& signalIndex)
 {
 	sockaddr_in addr;
 	socklen_t addrLen = sizeof(addr);
 	
-	int clientFd = accept(_pollFds[signalIndex].fd,
-			reinterpret_cast<sockaddr*>(&addr), &addrLen);
-	if (clientFd < 0)
-		throw ServerLoopingException::FctAcceptFail();
-	return clientFd;
+	return (accept(_pollFds[signalIndex].fd,
+			reinterpret_cast<sockaddr*>(&addr), &addrLen));
 }
+
+
+bool Server2::pollFdsAvailable() const
+{
+	int nbFdRequire = 2;
+
+	for (int index = POLLFD_LIMIT - 1; index > 0; index--)
+	{
+		if (_pollFds[index].fd == 0)
+		{
+			nbFdRequire--;
+			if (nbFdRequire == 0)
+				return true;
+		}
+	}
+	return false;
+}
+
+
+void	Server2::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum)
+{
+	_indexInfo[clientIndex].ClientIndex = clientIndex;
+	_indexInfo[clientIndex].CGIReadIndex = CGIReadIndex;
+	_indexInfo[clientIndex].serverNum = serverNum;
+	_indexInfo[CGIReadIndex].ClientIndex = clientIndex;
+	_indexInfo[CGIReadIndex].CGIReadIndex = CGIReadIndex;
+	_indexInfo[CGIReadIndex].serverNum = serverNum;
+}
+
 
 int	Server2::setPollFds(const int& fd)
 {
 	//check for next fd disponible ou poll full throw excep[tion]
-	while 
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+	{
+		if (_pollFds[index].fd == 0)
+		{
+			_pollFds[index].fd = fd;
+			_pollFds[index].events = POLLIN;
+			_pollFds[index].revents = 0;
+			return index;
+		}
+	}
 }
 
 
-	//Add client
-	if (int pollIndex = pollFdAdd(_pollFds, clientFd) < 0)
-	{
-		indexInfoInsert(pollIndex);
-		//Add CGIfd
-		return 0;
-	}
+//****************************CLOSE CONNECTION**********************************
+
+void	Server2::closeConnection(const int& signalIndex)
+{
+	int ClientIndex = _indexInfo[signalIndex].ClientIndex;
+	int CGIReadIndex = _indexInfo[signalIndex].CGIReadIndex;
 	
-	//TODO ADD HERE -> RESPONSE busy page or max client reached
-	close(clientFd);
-	return -1;
+	safeClose(_pollFds[ClientIndex].fd);
+	safeClose(_pollFds[CGIReadIndex].fd);
+	resetIndexInfo(ClientIndex);
+	resetIndexInfo(CGIReadIndex);
+}
+
+void	Server2::safeClose(int& fdSource)
+{
+	if (fdSource >= 3)
+	{
+		close(fdSource);
+		fdSource = 0;
+	}
+}
+
+
+void	Server2::closePollFds()
+{
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+		safeClose(_pollFds[index].fd);
 }
