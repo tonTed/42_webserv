@@ -33,16 +33,11 @@ std::string Response::resolvePath(const std::string &path) {
 		}
 		else
 		{
-			if (existInRoot(_root))
+			_root = _config->_serversData[_request._serverId]._root[0];
+			if (localFileExist(file))
 			{
-				if (localFileExist(_root))
-				{
-					resolvedPath = _root + file;
-				}
-				else
-				{
-					//resolve error pages 404
-				}
+				resolvedPath = _root + file;
+				//send response file
 			}
 			else
 			{
@@ -96,11 +91,6 @@ bool Response::existInLocation(const std::string &path) {
 
 	try { _config->_serversData.at(_request._serverId)._locations.at(path); }
 	catch (std::out_of_range &e) { (void)e; return false; }
-	return true;
-}
-
-bool Response::existInRoot(const std::string &path) {
-	(void)path;
 	return true;
 }
 
