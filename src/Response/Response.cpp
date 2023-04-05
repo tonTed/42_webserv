@@ -22,7 +22,7 @@ std::string Response::resolvePath(const std::string &path) {
 		if (existInLocation(_root))
 		{
 			setLocalRoot(_root);
-			if (localFileExist(_root))
+			if (localFileExist(file))
 			{
 				resolvedPath = _root + file;
 			}
@@ -109,9 +109,16 @@ bool Response::localRootExist(const std::string &path) {
 	return true;
 }
 
-bool Response::localFileExist(const std::string &path) {
-	(void)path;
-	return true;
+bool Response::localFileExist(const std::string &file) {
+	std::string path = _root + file;
+	std::ifstream fd(path.c_str());
+
+	if (fd)
+	{
+		fd.close();
+		return true;
+	}
+	return false;
 }
 
 bool Response::indexExist(std::string &path) {

@@ -18,7 +18,7 @@ public:
 	bool		existInLocation(const std::string &path);
 	bool		existInRoot(const std::string &path);
 	bool		localRootExist(const std::string &path);
-	bool		localFileExist(const std::string &path);
+	bool		localFileExist(const std::string &file);
 	bool		indexExist(std::string &path);
 	void		setLocalRoot(const std::string path);
 
