@@ -26,10 +26,13 @@ typedef struct	requestInfo_s
 	int			serverNum;
 }				requestInfo_t;
 
+class Request;
+
 class Server2
 {
 private:
 	pollfd			_pollFds[POLLFD_LIMIT]; 		//pour poll
+	std::vector<Request>	_reqs;
 	indexLink_t		_indexInfo[POLLFD_LIMIT];		//information sur chaque index de pollFds
 	int				_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
 

@@ -1,11 +1,15 @@
 #include "Server2.hpp"
 
-Server2::Server2(){}
+Server2::Server2()
+{
+	_reqs.reserve(POLLFD_LIMIT / 2);
+}
 
-Server2::~Server2(){}
+Server2::~Server2(){closePollFds();}
 
 //*****************************BOOTING SERVER***********************************
 
+//Setup le server avant utilisation
 void	Server2::booting()
 {
 	uint16_t	port[POLLFD_LIMIT];
@@ -15,12 +19,14 @@ void	Server2::booting()
 	setPortSocket(port);
 }
 
+//Initialisation à -1 des variables de l'array _indexInfo
 void	Server2::initIndexInfo()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 		resetIndexInfo(index);
 }
 
+//Initialisation à -1 des variables de _indexInfo[index]
 void	Server2::resetIndexInfo(const int& index)
 {
 	_indexInfo[index].serverNum = -1;
@@ -28,8 +34,9 @@ void	Server2::resetIndexInfo(const int& index)
 	_indexInfo[index].ClientIndex = -1;
 }
 
-//PONT ENTRE CONFIG ET SERVER
-//INITIATION DE CERTAINES VARIABLE
+//Initialise les valeurs de port des _indexInfo pour les fd de server
+//Leurs assigne le numero de server
+//Compte le nombre de fd de port
 int	Server2::recordPort(uint16_t port[POLLFD_LIMIT])
 {
 	ConfigServer&	config = *ConfigServer::getInstance();
@@ -52,6 +59,7 @@ int	Server2::recordPort(uint16_t port[POLLFD_LIMIT])
 	}
 }
 
+//Pour chaque fd de port, socket/setsockopt/bind/listen
 void	Server2::setPortSocket(const uint16_t port[POLLFD_LIMIT])
 {
 	for (int iSocket = 0; iSocket < _nbfdPort; iSocket++)
@@ -63,14 +71,15 @@ void	Server2::setPortSocket(const uint16_t port[POLLFD_LIMIT])
 	}
 }
 
-//SET SERVER SOCKET (FD)
+//Fonction socket protected by exception
 void	Server2::bootSocket(const int& iSocket)
 {
 	if ((_pollFds[iSocket].fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		throw ServerBootingException::FctSocketFail();
 }
 
-//OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
+//SO_REUSEADDR permet la reutilisation du socket
+// opt = temp de deconnexion du socket et fd
 void	Server2::bootSetSockOpt(const int& iSocket)
 {
 	int opt = 1;
@@ -80,7 +89,7 @@ void	Server2::bootSetSockOpt(const int& iSocket)
 		throw ServerBootingException::FctSetsockoptFail();
 }
 
-//BINDING PORT AND SOCKET
+//BINDING SOCKET WITH PORT
 void	Server2::bootBind(const int& iSocket, const uint16_t port[POLLFD_LIMIT])
 {
 	sockaddr_in addr;
@@ -99,7 +108,7 @@ void	Server2::setAddrServer(sockaddr_in& addr, uint16_t port)
 	addr.sin_addr.s_addr = htonl(INADDR_ANY); 
 }
 
-//LISTENING
+//Listen function protected by exception
 void	Server2::bootListen(const int& iSocket)
 {
 	if (listen(_pollFds[iSocket].fd, LISTEN_BACKLOG) < 0)
@@ -112,7 +121,7 @@ void	Server2::bootListen(const int& iSocket)
 
 //*****************************LOOPING SERVER***********************************
 
-// listen and redirection loop
+// main server loop (listen signal & redirection)
 void	Server2::operating()
 {
 	int signalIndex;
@@ -170,6 +179,7 @@ int	Server2::pollIndexSignal()
 	return -1;
 }
 
+//With the index and _indexInfo, find the origin of signal
 int	Server2::indexOrigin(const int& signalIndex)
 {
 	if (_indexInfo[signalIndex].CGIReadIndex == signalIndex)
@@ -186,7 +196,12 @@ int	Server2::indexOrigin(const int& signalIndex)
 
 //*****************************REQUEST******************************************
 
-
+/*Set reqInfo for request
+	- accept client (protected by condition)
+	- pipe for CGI (protected by condition)
+	- set pollFds with clientFd & CGIReadFd
+	- set indexInfo
+*/
 int	Server2::setRequest(requestInfo_t reqInfo, const int& signalIndex)
 {
 	reqInfo.clientFd = acceptClient(signalIndex);
@@ -194,7 +209,7 @@ int	Server2::setRequest(requestInfo_t reqInfo, const int& signalIndex)
 
 	if (reqInfo.clientFd >= 3) //client connected
 	{
-		if (pollFdsAvailable() == false) //Enough place in pollFds
+		if (pollFdsAvailable() == true) //Enough place in pollFds
 		{
 			int CGIPipe[2];
 			if (pipe(CGIPipe) != -1) //pipe status ok
