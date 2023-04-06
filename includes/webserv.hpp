@@ -23,6 +23,7 @@
 # include <netdb.h>			//struct sockaddr_in
 # include <arpa/inet.h>		//htons
 # include <unistd.h>		//close
+# include <errno.h>			//errno for poll
 
 typedef std::string string;
 
