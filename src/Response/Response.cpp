@@ -45,12 +45,12 @@ std::string Response::resolvePath(const std::string &path) {
 			}
 		}
 	}
-	else
+	else //no extension
 	{
 		if (existInLocation(_root))
 		{
-			//change root with local root
-			//add index
+			setLocalRoot(_root);
+			resolvedPath = _root + _config->_serversData[_request._serverId]._locations[_root].index[0];
 		}
 		else
 		{
@@ -94,13 +94,15 @@ bool Response::existInLocation(const std::string &path) {
 	return true;
 }
 
-bool Response::localRootExist(const std::string &path) {
+bool Response::localRootExist(const std::string path) {
 	(void)path;
-	return true;
+	return localFileExist("index.html");
+	return localFileExist(_config->_serversData.at(_request._serverId)._index[0]);
 }
 
 bool Response::localFileExist(const std::string &file) {
-	std::string path = _root + file;
+
+	std::string path = _root +  "/" + file;
 	std::ifstream fd(path.c_str());
 
 	if (fd)

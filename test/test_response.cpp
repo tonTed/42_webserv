@@ -99,11 +99,33 @@ TEST_CASE("Response::localFileExist")
 	ConfigServer *config = ConfigServer::getInstance();
 	config->setConfigServer("test/default.conf");
 
-	std::string path = "test/data/www/toto/index.html";
-	REQUIRE(response.localFileExist(path) == true);
+	std::string file = "index.html";
+	response._root = "test/data/www/toto";
+	REQUIRE(response.localFileExist(file) == true);
 
-	path = "test/data/www/toto/test";
-	REQUIRE(response.localFileExist(path) == false);
+	file = "test.txt";
+	response._root = "test/data/www/tata";
+	REQUIRE(response.localFileExist(file) == false);
+}
+
+TEST_CASE("Response::localRootExist")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+
+	std::string path = "test/data/www/toto";
+	response._root = path;
+	REQUIRE(response.localRootExist(path) == true);
+
+	path = "test/data/www/tata";
+	response._root = path;
+	REQUIRE(response.localRootExist(path) == false);
 }
 
 TEST_CASE("Request::clean") { remove("test/test_data_file");}
