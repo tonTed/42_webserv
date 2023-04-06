@@ -56,14 +56,7 @@ std::string Response::resolvePath(const std::string &path) {
 		{
 			if(localRootExist(_root))
 			{
-				if (indexExist(_root))
-				{
-					//resolvedPath = root + index;
-				}
-				else
-				{
-					//resolve error pages 500
-				}
+				resolvedPath = _root + _config->_serversData[_request._serverId]._locations[_root].index[0];
 			}
 			else
 			{
@@ -113,11 +106,8 @@ bool Response::localFileExist(const std::string &file) {
 	return false;
 }
 
-bool Response::indexExist(std::string &path) {
-	(void)path;
-	return true;
-}
-
 void Response::setLocalRoot(const std::string path) {
 	_root = _config->_serversData.at(_request._serverId)._locations.at(path).root;
 }
+
+
