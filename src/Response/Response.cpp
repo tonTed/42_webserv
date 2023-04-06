@@ -11,9 +11,32 @@ Response::Response(const Request &request, int status) : _request(request), _sta
 	}
 }
 
+std::string Response::getLocation() {
+	std::string	location;
+
+	// check if path has a slash
+	if (_request._startLine.path.find_first_of('/', 1) == std::string::npos)
+		location = _request._startLine.path;
+	else
+		location = _request._startLine.path.substr(0, _request._startLine.path.find_first_of('/', 1));
+
+	return location;
+}
+
+std::string	Response::resolvePath() {
+
+	std::string location = getLocation();
+
+	return resolvePath(_request._startLine.path);
+}
+
 std::string Response::resolvePath(const std::string &path) {
 	std::string resolvedPath = "Mock return" ;
 	std::string file;
+	std::string location;
+
+	location = "/" + _root.substr(0, _root.find_first_of('/'));
+	std::cout << BOLD_BLUE << "location: " << location << RESET << std::endl;
 	_root = path;
 
 	if (hasExtension(path))
@@ -108,6 +131,12 @@ bool Response::localFileExist(const std::string &file) {
 
 void Response::setLocalRoot(const std::string path) {
 	_root = _config->_serversData.at(_request._serverId)._locations.at(path).root;
+}
+
+void Response::resolveErrorPages(const int status) {
+	_status = status;
+
+
 }
 
 

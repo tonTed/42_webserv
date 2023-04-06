@@ -21,6 +21,11 @@ public:
 	bool		localFileExist(const std::string &file);
 	void		setLocalRoot(const std::string path);
 
+	void 		resolveErrorPages(const int status);
+
+	std::string	resolvePath();
+	std::string getLocation();
+
 public:
 		const Request & _request;
 		int 			_status;

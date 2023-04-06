@@ -128,4 +128,28 @@ TEST_CASE("Response::localRootExist")
 	REQUIRE(response.localRootExist(path) == false);
 }
 
+TEST_CASE("Response::getLocation")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+
+	request._startLine.path = "/toto";
+	std::string ret = response.getLocation();
+	CHECK_MESSAGE(ret == "/toto", "should be /toto");
+
+	request._startLine.path = "/toto/tata";
+	ret = response.getLocation();
+	CHECK_MESSAGE(ret == "/toto", "should be /toto");
+
+	request._startLine.path = "/";
+	ret = response.getLocation();
+	CHECK_MESSAGE(ret == "/", "should be /");
+}
+
 TEST_CASE("Request::clean") { remove("test/test_data_file");}
