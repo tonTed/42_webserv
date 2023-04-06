@@ -19,6 +19,7 @@ struct startLine {
  * */
 class Request {
 public:
+	Request();
 	Request(const int client);
 	~Request();
 
@@ -43,7 +44,6 @@ public:
 	std::string							_body;
 
 private:
-	Request();
 
 	const int 							_client;
 
