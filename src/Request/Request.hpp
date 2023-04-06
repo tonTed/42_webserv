@@ -19,12 +19,15 @@ struct startLine {
  * */
 class Request {
 public:
-	Request(const int client, const int cgiFd, const int serverId);
+	Request(const int client, const int serverId);
+	Request();
+
 	~Request();
 
+	void resetRequest();
 
 public:
-	void _init();
+	void _initRequest();
 
 	void _readSocketData();
 
@@ -37,17 +40,17 @@ public:
 
 	void _parseBody();
 
+	void _resetRequest();
+
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;
 
-	const int 							_client;
-	const int 							_cgiFd;
-	const int 							_serverId;
+	int 								_client;
+	int 								_serverId;
 
 private:
-	Request();
 
 
 };

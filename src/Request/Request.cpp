@@ -14,7 +14,21 @@ std::string getPath(const std::string &uri, const eRequestType method) {
 	return "";
 }
 
-Request::Request(const int client, const int cgiFd, const int serverId) : _client(client), _cgiFd(cgiFd), _serverId(serverId) {}
+Request::Request() : _client(-1), _serverId(-1) {}
+
+void Request::resetRequest() {
+	_rawRequest.str("");
+	_rawRequest.clear();
+	_startLine.type = UNKNOWN;
+	_startLine.path = "";
+	_startLine.version = "";
+	_headers.clear();
+	_body.clear();
+	_serverId = -1;
+	_client = -1;
+}
+
+Request::Request(const int client, const int serverId) : _client(client), _serverId(serverId) {}
 
 /**
  * @brief	Initialise the request.
@@ -26,7 +40,7 @@ Request::Request(const int client, const int cgiFd, const int serverId) : _clien
  * 	@note if an error occurs, the server will send an error to the client.
  *
  */
-void	Request::_init() {
+void	Request::_initRequest() {
 	try {
 		_readSocketData();
 		_parseStartLine();

@@ -16,7 +16,7 @@ TEST_CASE("Response::hasExtension")
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
 	char buffer[MAX_REQUEST_SIZE];
-	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Request request(writeCloseOpen(client, buffer), 0);
 	Response response(request, 200);
 
 	std::string path = "test/test.txt";
@@ -38,7 +38,7 @@ TEST_CASE("Response::removeFile")
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
 	char buffer[MAX_REQUEST_SIZE];
-	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Request request(writeCloseOpen(client, buffer), 0);
 	Response response(request, 200);
 
 	std::string path = "/test/test.txt";
@@ -60,7 +60,7 @@ TEST_CASE("Response::existInLocation")
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
 	char buffer[MAX_REQUEST_SIZE];
-	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Request request(writeCloseOpen(client, buffer), 0);
 	Response response(request, 200);
 	ConfigServer *config = ConfigServer::getInstance();
 	config->setConfigServer("test/default.conf");
@@ -78,7 +78,7 @@ TEST_CASE("Response::setLocalRoot")
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
 	char buffer[MAX_REQUEST_SIZE];
-	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Request request(writeCloseOpen(client, buffer), 0);
 	Response response(request, 200);
 	ConfigServer *config = ConfigServer::getInstance();
 	config->setConfigServer("test/default.conf");
@@ -94,7 +94,7 @@ TEST_CASE("Response::localFileExist")
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
 	char buffer[MAX_REQUEST_SIZE];
-	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Request request(writeCloseOpen(client, buffer), 0);
 	Response response(request, 200);
 	ConfigServer *config = ConfigServer::getInstance();
 	config->setConfigServer("test/default.conf");
@@ -114,7 +114,7 @@ TEST_CASE("Response::localRootExist")
 	remove("test/test_data_file");
 	client = creat("test/test_data_file", 0666);
 	char buffer[MAX_REQUEST_SIZE];
-	Request request(writeCloseOpen(client, buffer), 0, 0);
+	Request request(writeCloseOpen(client, buffer), 0);
 	Response response(request, 200);
 	ConfigServer *config = ConfigServer::getInstance();
 	config->setConfigServer("test/default.conf");
