@@ -6,6 +6,7 @@ bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
+// TODO set a path or throw, .., ., //, etc
 std::string getPath(const std::string &uri, const eRequestType method) {
 	(void)uri;
 	(void)method;
