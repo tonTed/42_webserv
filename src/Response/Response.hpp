@@ -25,6 +25,7 @@ public:
 
 	std::string	resolvePath();
 	std::string getLocation();
+	void 		setRoot(const std::string &location);
 
 public:
 		const Request & _request;

@@ -23,6 +23,21 @@ std::string Response::getLocation() {
 	return location;
 }
 
+void 		Response::setRoot(const std::string &location) {
+
+	try
+	{
+		_config->_serversData[_request._serverId]._locations.at(location);
+		_root = _config->_serversData[_request._serverId]._locations[location].root;
+	}
+	catch (const std::out_of_range& e)
+	{
+		(void)e;
+	}
+
+	_root = _config->_serversData[_request._serverId]._root[0];
+}
+
 std::string	Response::resolvePath() {
 
 	std::string location = getLocation();
