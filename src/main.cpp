@@ -79,9 +79,6 @@ void mock_server()
 	close(sock_server);
 }
 
-
-
-
 int main(int ac, char **av)
 {
 
@@ -104,7 +101,7 @@ int main(int ac, char **av)
 		ConfigServer::getInstance()->setConfigServer("default");
 
 	Server	WebServer;
-	WebServer.routine(); 
+	WebServer.serverRoutine(); 
 
 	return (EXIT_SUCCESS);
 }

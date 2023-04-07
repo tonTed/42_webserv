@@ -84,7 +84,7 @@ void	Server::bootBind(const int& iSocket, const uint16_t port[POLLFD_LIMIT])
 		throw ServerBootingException::FctBindFail();
 }
 
-//set addr for server socket purposes (bind )
+//set addr for server socket purposes (bind)
 void	Server::setAddrServer(sockaddr_in& addr, uint16_t port)
 {
 	addr.sin_family = AF_INET; 
@@ -104,7 +104,7 @@ void	Server::bootListen(const int& iSocket)
 
 //*****************************LOOPING SERVER***********************************
 
-
+//main function of server
 void	Server::serverRoutine()
 {
 	try
@@ -116,7 +116,7 @@ void	Server::serverRoutine()
 }
 
 
-// main server loop (listen signal & redirection)
+// server loop (listen signal & redirection)
 void	Server::operating()
 {
 	_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
@@ -177,6 +177,7 @@ int	Server::pollIndexSignal()
 	return -1;
 }
 
+//return the POLLIN signal origin
 int	Server::indexOrigin(const int& signalIndex) const
 {
 	if (signalIndex < _nbfdPort)
@@ -230,7 +231,7 @@ int	Server::setRequest(Request& req, const int& signalIndex)
 	return -1;
 }
 
-
+//accept function with stuct sockaddr_in
 int	Server::acceptClient(const int& signalIndex)
 {
 	sockaddr_in addr;
@@ -240,7 +241,7 @@ int	Server::acceptClient(const int& signalIndex)
 			reinterpret_cast<sockaddr*>(&addr), &addrLen));
 }
 
-
+//Return true if pollFds have at least 2 disponibles fd
 bool Server::pollFdsAvailable() const
 {
 	int nbFdRequire = 2;
@@ -257,9 +258,9 @@ bool Server::pollFdsAvailable() const
 	return false;
 }
 
+//set the next disponible fd of _pollFds (fd at 0) and return the index
 int	Server::setPollFds(const int& fd)
 {
-	//check for next fd disponible ou poll full throw excep[tion]
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
 		if (_pollFds[index].fd == 0)
@@ -273,6 +274,7 @@ int	Server::setPollFds(const int& fd)
 	return -1;
 }
 
+//bridge between signalIndex and _reqs index
 int	Server::reqIndex(const int& signalIndex) const
 {
 	return ((signalIndex - _nbfdPort) / 2);
@@ -283,12 +285,14 @@ int	Server::reqIndex(const int& signalIndex) const
 
 //****************************INDEXINFO*****************************************
 
+//Reset all indexInfo
 void	Server::initIndexInfo()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 		resetIndexInfo(index);
 }
 
+//reset _indexInfo[index]
 void	Server::resetIndexInfo(const int& index)
 {
 	_indexInfo[index].serverNum = -1;
@@ -296,7 +300,7 @@ void	Server::resetIndexInfo(const int& index)
 	_indexInfo[index].clientIndex = -1;
 }
 
-
+//Set a new client cgi in _indexInfo
 void	Server::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum)
 {
 	_indexInfo[clientIndex].clientIndex = clientIndex;
@@ -312,6 +316,9 @@ void	Server::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const
 
 //****************************CLOSE CONNECTION**********************************
 
+//- Reset _indexInfo for the current request
+//- Close clienFd and CGIReadFd in _pollFds
+//- Reset _reqs[reqIndex(signalIndex)]
 void	Server::closeConnection(const int& signalIndex)
 {
 	int	clientIndex = _indexInfo[signalIndex].clientIndex;
@@ -326,6 +333,7 @@ void	Server::closeConnection(const int& signalIndex)
 	_reqs[reqIndex(signalIndex)].resetRequest();
 }
 
+//Close _pollFds[index] if >= 3 and reset it to 0
 void	Server::safeClose(int& fdSource)
 {
 	if (fdSource >= 3)
@@ -335,6 +343,7 @@ void	Server::safeClose(int& fdSource)
 	}
 }
 
+//Close all _pollFds != 0
 void	Server::closePollFds()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
