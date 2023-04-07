@@ -114,14 +114,8 @@ void	Server::operating()
 	{
 		//TODO NEED TEST FOR ERRNO SIGNAL SIGINT
 		//poll signal launcher
-		if (poll(_pollFds, _nbfdPort, POLL_TIMEOUT) < 0 && errno != SIGINT)
-		{
-			if (errno != SIGINT)
+		if (poll(_pollFds, POLLFD_LIMIT, POLL_TIMEOUT) < 0)
 				throw ServerLoopingException::FctPollFail();
-			else
-				throw ServerBootingException::FctSocketFail();
-			//TODO replace above exception for closing program	
-		}
 
 		//find the index of the signal find by poll in pollfds
 		if ((signalIndex = pollIndexSignal()) >= 0)
@@ -130,14 +124,16 @@ void	Server::operating()
 			{
 				if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) != -1)
 					_reqs[reqIndex(signalIndex)].initRequest();
-				break;
 			}
 			else
 			{
 				//Here we only handelling closing socket
 				closeConnection(signalIndex);
-				break;
 			}
+		}
+		else
+		{
+			//TODO closing program
 		}
 	}
 }
@@ -178,9 +174,14 @@ int	Server::setRequest(Request& req, const int& signalIndex)
 
 	if (clientFd >= 3) //client connected
 	{
+			//TODO set request values noServer et clientfd
 			int clientIndex = setPollFds(clientFd);
 			if (clientIndex != -1)
+			{
+				_reqs[clientIndex].setClientFd(clientFd);
+				_reqs[clientIndex].setServerId(signalIndex);
 				return clientIndex;
+			}
 			else
 			{
 				//busy response to clientfd
