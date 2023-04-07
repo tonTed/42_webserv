@@ -24,6 +24,10 @@ void ConfigServer::setConfigServer(std::string paramFile)
 	{
 		_goodFile = true;
 		std::vector<string> serverBlocks = getServerBlocks(stringFile);
+		for(size_t i = 0; i < serverBlocks.size(); i++)
+		{
+			std::cout << BOLD_YELLOW << "serverBlocks:  " << RESET << serverBlocks[i] << std::endl << std::endl;
+		}
 		setServersData(serverBlocks);
 
 		// TODO COMMENT THIS TO STOP PRINTING
@@ -83,20 +87,6 @@ std::string ConfigServer::getFile(const std::string paramFile)
 			throw std::runtime_error("Default config file not found or no permissions! ⛔️");
 	}
 	return (configFile);
-}
-
-/**
- * @brief Check if the line is neeeded and not just a comment or just spaces
- *
- * @param file The path to the file
- * @return true if not just a comment or just spaces
- * @return false otherwise
- */
-bool ConfigServer::lineNeeded(const std::string line)
-{
-	size_t i = line.find_first_not_of(" \t");
-	bool val = (i != string::npos && line[i] != '#');
-	return val;
 }
 
 /**
@@ -240,11 +230,15 @@ std::vector<string> ConfigServer::getLocationBlocks(const std::string &configStr
  * @param locstd::string the input, should be the sting location block
  * @return Locations the structur of location elements.
  */
-Locations ConfigServer::settingLocation(std::string &locString)
+Locations ConfigServer::settingLocation(std::string &locString, ServerData &serverBlock)
 {
 	Locations location;
 	location.root = getStrValue(locString, "root");				  // TODO Check how many roots and if valid
+	if(location.root.empty())
+		location.root = serverBlock._root[0];
 	location.index = getKeywordValue(locString, "index");
+	if(location.index.empty())
+		location.index = serverBlock._index;
 	location.autoindex = getStrValue(locString, "autoindex");
 	location.redirection = getStrValue(locString, "return"); // TODO check if the redirection path is valid
 	location.methods = getMethods(locString);
@@ -409,8 +403,10 @@ std::vector<string> ConfigServer::getKeywordValue(const std::string &configStr, 
 		}
 		pos = configStr.find(directive, pos);
 	}
-	if (directive == "root" && keyWord.size() != 1)
+	if (directive == "root" && directive == "index" && keyWord.size() != 1)
 		exit_error("Error: no ", directive + " or too many");
+	if (directive == "root"  && !validRoot(keyWord.at(0)))
+		exit_error("Error: bad format |", directive + "|");
 	return (keyWord);
 }
 
@@ -623,11 +619,11 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << YELLOW << "Locations: " << std::endl;
 		for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
 		{
-			std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": "
+			std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": |"
 					  << itLocations->second.root << "|" << std::endl;
-			std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": "
+			std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": |"
 					  << itLocations->second.autoindex << "|" << std::endl;
-			std::cout << BOLD_MAGENTA << "|Redirection:" << RESET << itLocations->first << ": "
+			std::cout << BOLD_MAGENTA << "|Redirection:" << RESET << itLocations->first << ": |"
 					  << itLocations->second.redirection << "|" << std::endl;
 			for (int n = 0; n < static_cast<int>(itLocations->second.index.size()); n++)
 			{
@@ -659,8 +655,7 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		servers[i]._methods = getMethods(serverBlocks[i]);
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 		servers[i]._root = getKeywordValue(serverBlocks[i], "root");
-		// servers[i]._root = getStrValue(serverBlocks[i], "root"); // TODO make sure location /root not counted
-		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
+		servers[i]._index = getKeywordValue(serverBlocks[i], "index");
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 
 		// Setting locations
@@ -671,10 +666,11 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 			std::string path = getLocationPath(locations[j]);;
 			paths.push_back(path);
 			if(!pathDup(paths))
-				servers[i]._locations[path] = settingLocation(locations[j]);
+				servers[i]._locations[path] = settingLocation(locations[j], servers[i]);
 			else
 				exit_error("Error: Location Path |", path + "| Already Exists!");
-			validIndex(servers[i]._locations[path].index, path);
+			// std::cout << "Out !" << std::endl;
+			validIndex(servers[i]._locations[path]);
 		}
 	}
 	this->_serversData = servers;

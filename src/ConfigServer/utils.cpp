@@ -1,6 +1,20 @@
 #include "../../includes/webserv.hpp"
 
 /**
+ * @brief Check if the line is neeeded and not just a comment or just spaces
+ *
+ * @param file The path to the file
+ * @return true if not just a comment or just spaces
+ * @return false otherwise
+ */
+bool lineNeeded(const std::string line)
+{
+	size_t i = line.find_first_not_of(" \t");
+	bool val = (i != string::npos && line[i] != '#');
+	return val;
+}
+
+/**
  * @brief Get the line without newline
  *
  * @param input the string to parse
@@ -417,21 +431,24 @@ std::string getLocationPath(const std::string &locationBlock)
  * @return true if valid
  * @return false if not valid
  */
-void validIndex(std::vector<std::string> &input, std::string &path)
+void validIndex(Locations &input)
 {
-    for (int i = 0; i < (int)input.size(); i++)
+    // Check if the index + root is valid
+    // std::vector<std::string> indexes = input.index;
+    std::string path = "";
+    for (int i = 0; i < (int)input.index.size(); i++)
     {
 
-        if (input[i].size() < 4 && (input[i].substr(input[i].size() - 5) != ".html" 
-            || input[i].substr(input[i].size() - 4) != ".htm"))
-            exit_error("Error: ", input[i] + " is not a valid index!");
-        if(path == "/" || path == "/root")
-            path = "";
-        else
-
-            path = path.erase(0, 1) + "/";
-        if(!validFilePath(path + input[i]))
-            exit_error("Error: index path: |", ( path + input[i]) + "| not valid");
+        if (input.index[i].size() < 4 && (input.index[i].substr(input.index[i].size() - 5) != ".html" 
+            || input.index[i].substr(input.index[i].size() - 4) != ".htm"))
+            exit_error("Error:: ", input.index[i] + " is not a valid index!");
+        if(input.root == "/" || input.root == "/root")
+            path = "/";
+        // else
+        //     path = path.erase(0, 1) + "/";
+        std::cout << "input.index[i]: " << input.index[i] << std::endl;
+        if(!validFilePath(path + input.index[i]))
+            exit_error("Error: index path:-: |", (path + input.index[i]) + "| not valid");
 
     }
 
@@ -492,6 +509,23 @@ bool validAutoindex(std::string input)
  */
 bool validFilePath(std::string input)
 {
-  std::ifstream file(input.c_str());
-  return file.good();
-}   
+    // std::cout << "Input path: " << input << std::endl;
+    std::ifstream file(input.c_str());
+    return file.good();
+}
+
+
+// data/www; #data/www/  /
+
+bool validRoot(std::string input)
+{
+    // TODO check the path is valid!
+    // std::cout << "input:: " << input << std::endl;
+    if (input.size() < 1)
+        return false;
+    if (input[0] == '/' && input.size() > 1)
+        return false;
+    if (input[1] == '/')
+        return false;
+    return true;
+}

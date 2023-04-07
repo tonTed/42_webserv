@@ -23,6 +23,7 @@ struct ServerData
 
 	// The key is the location, the value is the path to the file
 	std::vector<std::string> _root; // TODO make it a string
+	std::vector<std::string> _index; // TODO add index directive
 	// std::string _root;
 
 	// The key is the error code, the value is the path to the file
@@ -77,7 +78,6 @@ public:
 
 	// PARSING METHODS
 	std::string getFile(const std::string paramFile);
-	bool lineNeeded(const std::string line);
 	std::string cleanedLine(std::string line);
 	bool readFile(const std::string inFile, std::string &stringLine);
 	std::vector<std::string> getServerBlocks(const std::string &configStr);
@@ -92,8 +92,7 @@ public:
 	string getStrValue(const string &configStr, const string &directive);
 	std::map<int, std::string> getErrorPages(const std::string &configStr);
 	std::vector<enum eRequestType> getMethods(const string &configStr);
-	struct Locations settingLocation(string &locString);
-
+	Locations settingLocation(std::string &locString, ServerData &serverBlock);
 
 	std::vector<ServerData> getServerData() const;
 	void setServersData(std::vector<string> &serverBlocks);
@@ -106,6 +105,7 @@ std::ostream &operator<<(std::ostream &o, const ConfigServer &config);
 
 /* The functons utils */
 // GENERAL UTILS FUNCTIONS
+bool lineNeeded(const std::string line);
 std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
 std::string trim(const std::string &str);
@@ -146,10 +146,11 @@ bool validRedirection(std::string input);
 
 //  INDEX PART
 // bool validIndex(std::vector<std::string> &input, std::string &path);
-void validIndex(std::vector<std::string> &input, std::string &path);
+void validIndex(Locations &input);
 bool pathDup(std::vector<std::string> seq);
 
 bool validClientBodySize(std::string input);
 bool validFilePath(std::string input);
+bool validRoot(std::string input);
 
 #endif
