@@ -13,6 +13,13 @@
 # define LISTEN_BACKLOG 50
 # define POLL_TIMEOUT -1
 
+typedef struct	indexInfo_s
+{
+	int	serverNum;
+	int	CGIReadIndex;
+	int	clientIndex;
+}				indexInfo_t;
+
 class Request;
 
 class Server
@@ -20,6 +27,7 @@ class Server
 private:
 	pollfd			_pollFds[POLLFD_LIMIT]; 		//pour poll
 	int				_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
+	indexInfo_s		_indexInfo[POLLFD_LIMIT];
 	Request*		_reqs;
 
 public:
@@ -39,20 +47,28 @@ public:
 
 //*****************************OPERATING SERVER*********************************
 
+	void			serverRoutine();
 	void			operating();
 	int				pollIndexSignal();
+	int				indexOrigin(const int& signalIndex) const;
 	
 //*****************************REQUEST******************************************
 
 	int				setRequest(Request& req, const int& signalIndex);
 	int				acceptClient(const int& signalIndex);
+	bool			pollFdsAvailable() const;
 	int				setPollFds(const int& fd);
 	int				reqIndex(const int& signalIndex) const;
+
+//****************************INDEXINFO*****************************************
+
+	void			initIndexInfo();
+	void			resetIndexInfo(const int& index);
+	void			setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum);
 
 //****************************CLOSE CONNECTION**********************************
 	void			closeConnection(const int& signalIndex);
 	void			safeClose(int& fdSource);
-
 	void			closePollFds();
 };
 
