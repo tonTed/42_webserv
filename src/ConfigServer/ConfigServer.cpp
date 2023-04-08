@@ -410,7 +410,6 @@ std::vector<string> ConfigServer::getKeywordValue(const std::string &configStr, 
 		if (!validRoot(keyWord.at(0)))
 			exit_error("Error: bad format |", directive + "|");
 		keyWord.at(0) = format_string(keyWord.at(0));
-		std::cout << " Valid: " << keyWord.at(0) << std::endl;
 	}
 
 	return (keyWord);
@@ -663,8 +662,9 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		servers[i]._index = getKeywordValue(serverBlocks[i], "index");
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
 
-		if(!validFilePath(servers[i]._root[0] + servers[i]._index[0]))
-			exit_error("Error: Invalid File Path |", servers[i]._root[0] + servers[i]._index[0] + "|");
+		if(!validFilePath(servers[i]._root[0] + "/" + servers[i]._index[0]))
+			exit_error("Error: Invalid File Path |", 
+				servers[i]._root[0] + "/" + servers[i]._index[0] + "|");
 
 		// Setting locations
 		std::vector<string> locations = getLocationBlocks(serverBlocks[i]);

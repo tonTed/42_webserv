@@ -434,37 +434,20 @@ std::string getLocationPath(const std::string &locationBlock)
 void validIndex(Locations &input)
 {
     // Check if the index + root is valid
-    // std::vector<std::string> indexes = input.index;
     std::string path = "";
     for (int i = 0; i < (int)input.index.size(); i++)
     {
-
         if (input.index[i].size() < 4 && (input.index[i].substr(input.index[i].size() - 5) != ".html" 
             || input.index[i].substr(input.index[i].size() - 4) != ".htm"))
             exit_error("Error:: ", input.index[i] + " is not a valid index!");
-        if(input.root == "/" || input.root == "/root")
-            path = "/";
-        // else
-        //     path = path.erase(0, 1) + "/";
-        std::cout << "input.index[i]: " << input.index[i] << std::endl;
-        if(!validFilePath(path + input.index[i]))
+        if(input.root == "/")
+            path = "";
+        else
+            path = input.root;
+        if(!validFilePath(path + "/" + input.index[i]))
             exit_error("Error: index path:-: |", (path + input.index[i]) + "| not valid");
-
     }
-
 }
-
-/**
- * @brief check if the redirection is valid
- * 
- * @param input The redirection
- * @return true if valid
- * @return false if not valid
- */
-// bool validRedirection(std::string &input)
-// {
-//     return(true);
-// }
 
 /**
  * @brief check if the autoindex is valid
@@ -480,27 +463,7 @@ bool validAutoindex(std::string input)
     return true;
 }
 
-/**
- * @brief check if the client body size is valid
- * 
- * @param input The client body size
- * @return true if valid
- * @return false if not valid
- */
-// bool validClientBodySize(std::string input)
-// {
-//     if (input.size() < 1)
-//         return false;
-//     for (int i = 0; i < (int)input.size(); i++)
-//     {
-//         if (!std::isdigit(input[i]))
-//             return false;
-//     }
-//     return true;
-// }
-
-
-/**
+/** 
  * @brief check if the file path is valid
  * 
  * @param input The file path
@@ -509,60 +472,38 @@ bool validAutoindex(std::string input)
  */
 bool validFilePath(std::string input)
 {
-    // std::cout << "Input path: " << input << std::endl;
     std::ifstream file(input.c_str());
     return file.good();
 }
 
-
-// data/www; #data/www/  /
-
 bool validRoot(std::string input)
 {
-    // TODO check the path is valid!
-    // std::cout << "input:: " << input << std::endl;
+    size_t i = 0;
     if (input.size() < 1)
         return false;
     if (input[0] == '/' && input.size() > 1)
         return false;
-    // if (input[input.size() - 1] == '/')
-    //     // return false;
+    while(i < input.size())
+    {
+        if (!std::isalpha(input[i]) && input[i] != '/')
+            return false;
+        if(input[i] == '/' && input[i + 1] == '/')
+            return false;
+        i++;
+    }
     return true;
 }
-
-std::string fixRoot(std::string &input)
-{
-    // TODO check the path is valid!
-    if (input[input.size() - 1] == '/')
-        input.erase(input.size() - 1);
-    return input;
-}
-
 
 std::string format_string(const std::string& str)
 {
     std::string result = str;
 
-    // remove trailing slashes
-    while (!result.empty() && result[result.size()-1] == '/') {
-        result.resize(result.size()-1);
+    if (result.size() == 1 && result[0] == '/')
+        return result;
+    else if (result.size() > 1 )
+    {
+        while (result[result.size()-1] == '/')
+            result.erase(result.size()-1);
     }
-
-    // split the string into two parts
-    std::string::size_type pos = result.find('/');
-    if (pos == std::string::npos || pos == 0 || pos == result.size()-1) {
-        // invalid format, return empty string
-        result.clear();
-    } else {
-        // check if the first part is "data"
-        if (result.substr(0, pos) != "data") {
-            // invalid format, return empty string
-            result.clear();
-        } else {
-            // valid format, return the string
-            result = result.substr(0, pos+1);
-        }
-    }
-
     return result;
 }
