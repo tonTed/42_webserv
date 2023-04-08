@@ -1,4 +1,4 @@
-#include <unordered_map>
+// #include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
 
@@ -150,7 +150,6 @@ void	Request::_setType(std::string &type) {
 	type.clear();
 }
 
-
 /**
  * @brief	Set the path of the request.
  * 			Store the path in _startLine.
@@ -171,7 +170,6 @@ void	Request::_setPath(std::string &path) {
 		throw RequestException::StartLine::InvalidURI();
 	path.clear();
 }
-
 
 /**
  * @brief	Set the version of the request.
@@ -258,8 +256,8 @@ void	Request::_parseHeaders() {
 		key = line.substr(0, i);
 
 		// Check if the key as white spaces
-		if (std::any_of(key.begin(), key.end(), ::isspace))
-			throw RequestException::Header::InvalidKey();
+		// if (std::any_of(key.begin(), key.end(), ::isspace))
+		// 	throw RequestException::Header::InvalidKey();
 
 		// Uppercase the key
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
@@ -304,16 +302,16 @@ void	Request::_parseHeaders() {
 	if (_headers.find("CONTENT-LENGTH") == _headers.end())
 		throw RequestException::Header::MissingHeader();
 
-	int contentLength;
-	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
-	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
+// 	int contentLength;
+// 	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
+// 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
 
-	// Read the body
-	while (std::getline(_rawRequest, line)) {
-		_body += line;
-	}
-	if (_body.size() > static_cast<unsigned long>(contentLength))
-		_body.erase(contentLength, _body.size() - contentLength);
+// 	// Read the body
+// 	while (std::getline(_rawRequest, line)) {
+// 		_body += line;
+// 	}
+// 	if (_body.size() > static_cast<unsigned long>(contentLength))
+// 		_body.erase(contentLength, _body.size() - contentLength);
  }
 
 Request::~Request() {}

@@ -405,8 +405,14 @@ std::vector<string> ConfigServer::getKeywordValue(const std::string &configStr, 
 	}
 	if (directive == "root" && directive == "index" && keyWord.size() != 1)
 		exit_error("Error: no ", directive + " or too many");
-	if (directive == "root"  && !validRoot(keyWord.at(0)))
-		exit_error("Error: bad format |", directive + "|");
+	if (directive == "root")
+	{	
+		if (!validRoot(keyWord.at(0)))
+			exit_error("Error: bad format |", directive + "|");
+		keyWord.at(0) = format_string(keyWord.at(0));
+		std::cout << " Valid: " << keyWord.at(0) << std::endl;
+	}
+
 	return (keyWord);
 }
 
@@ -647,7 +653,6 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 	
 	for (int i = 0; i < static_cast<int>(serverBlocks.size()); i++)
 	{
-		
 		servers[i]._hosts = getHosts(serverBlocks[i]);
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
 		servers[i]._serverPorts = getPorts(serverBlocks[i]);
@@ -657,6 +662,9 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 		servers[i]._root = getKeywordValue(serverBlocks[i], "root");
 		servers[i]._index = getKeywordValue(serverBlocks[i], "index");
 		servers[i]._errorPages = getErrorPages(serverBlocks[i]);
+
+		if(!validFilePath(servers[i]._root[0] + servers[i]._index[0]))
+			exit_error("Error: Invalid File Path |", servers[i]._root[0] + servers[i]._index[0] + "|");
 
 		// Setting locations
 		std::vector<string> locations = getLocationBlocks(serverBlocks[i]);
@@ -669,7 +677,6 @@ void ConfigServer::setServersData(std::vector<string> &serverBlocks)
 				servers[i]._locations[path] = settingLocation(locations[j], servers[i]);
 			else
 				exit_error("Error: Location Path |", path + "| Already Exists!");
-			// std::cout << "Out !" << std::endl;
 			validIndex(servers[i]._locations[path]);
 		}
 	}

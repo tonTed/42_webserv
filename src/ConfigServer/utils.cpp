@@ -525,7 +525,44 @@ bool validRoot(std::string input)
         return false;
     if (input[0] == '/' && input.size() > 1)
         return false;
-    if (input[1] == '/')
-        return false;
+    // if (input[input.size() - 1] == '/')
+    //     // return false;
     return true;
+}
+
+std::string fixRoot(std::string &input)
+{
+    // TODO check the path is valid!
+    if (input[input.size() - 1] == '/')
+        input.erase(input.size() - 1);
+    return input;
+}
+
+
+std::string format_string(const std::string& str)
+{
+    std::string result = str;
+
+    // remove trailing slashes
+    while (!result.empty() && result[result.size()-1] == '/') {
+        result.resize(result.size()-1);
+    }
+
+    // split the string into two parts
+    std::string::size_type pos = result.find('/');
+    if (pos == std::string::npos || pos == 0 || pos == result.size()-1) {
+        // invalid format, return empty string
+        result.clear();
+    } else {
+        // check if the first part is "data"
+        if (result.substr(0, pos) != "data") {
+            // invalid format, return empty string
+            result.clear();
+        } else {
+            // valid format, return the string
+            result = result.substr(0, pos+1);
+        }
+    }
+
+    return result;
 }

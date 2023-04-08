@@ -152,5 +152,7 @@ bool pathDup(std::vector<std::string> seq);
 bool validClientBodySize(std::string input);
 bool validFilePath(std::string input);
 bool validRoot(std::string input);
+std::string format_string(const std::string& str);
 
 #endif
+
