@@ -1,7 +1,13 @@
 #include "test_header.hpp"
 
-TEST_CASE("Server")
+
+TEST_CASE("Server::booting independant function")
 {
+		//record port simulation
+	uint16_t	port[POLLFD_LIMIT];
+	port[0] = 9000;
+	port[1] = 9001;
+	
 	//test booting process
 	Server serverTest;
 
@@ -13,22 +19,110 @@ TEST_CASE("Server")
 		CHECK(serverTest.getIICGIReadIndex(index) == -1);
 	}
 
-	//record port simulation
-	uint16_t	port[POLLFD_LIMIT];
-	port[0] = 8080;
-	port[1] = 8081;
+
 	serverTest.setNbFdPort(2);
 	CHECK(serverTest.getNbFdPort() == 2);
 	try
 	{
-		serverTest.setPortSocket(port);
+		serverTest.bootSocket(0);
+		CHECK(serverTest.getPFFd(0) >= 3);
 	}
 	catch(const std::exception& e)
 	{
-		CHECK("EXCEPTION ON GOOD SETPORTPARAMETER" == 1);
+		CHECK(1 == 2);
 	}
 	
+	try
+	{
+		serverTest.bootSetSockOpt(0);
+		CHECK(1 == 1);
+	}
+	catch(const std::exception& e)
+	{
+		CHECK(1 == 2);
+	}
+
+	try
+	{
+		serverTest.bootSetSockOpt(-1);
+		CHECK(1 == 2);
+	}
+	catch(const std::exception& e)
+	{
+		CHECK(1 == 1);
+	}
+
+	try
+	{
+		serverTest.bootBind(0, port);
+		CHECK(1 == 1);
+	}
+	catch(const std::exception& e)
+	{
+		CHECK(1 == 2);
+	}
 	
 
+	try
+	{
+		serverTest.bootListen(0);
+		CHECK(1 == 1);
+	}
+	catch(const std::exception& e)
+	{
+		CHECK(1 == 2);
+	}
+
+}
+
+TEST_CASE("Server::setPortSocket")
+{
+		//record port simulation
+	uint16_t	port[POLLFD_LIMIT];
+	port[0] = 9000;
+	port[1] = 9001;
+	
+	//test booting process
+	Server serverTest;
+
+	serverTest.initIndexInfo();
+	serverTest.setNbFdPort(2);
+
+	try
+	{
+		serverTest.setPortSocket(port);
+		CHECK(1 == 1);
+	}
+	catch(const std::exception& e)
+	{
+		CHECK(1 == 2);
+	}
+
+}
+
+TEST_CASE("Server::setPortSocket2")
+{
+		//record port simulation
+	uint16_t	port[POLLFD_LIMIT];
+	port[0] = 9000;
+	port[1] = 9001;
+	
+	//test booting process
+	Server serverTest;
+
+	serverTest.initIndexInfo();
+	serverTest.setNbFdPort(2);
+
+	try
+	{
+		serverTest.setPortSocket(port);
+		CHECK(1 == 1);
+	}
+	catch(const std::exception& e)
+	{
+		CHECK(1 == 2);
+	}
+
+	
 
 }

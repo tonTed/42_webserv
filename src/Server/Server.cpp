@@ -98,7 +98,8 @@ void	Server::bootBind(const int& iSocket, const uint16_t port[POLLFD_LIMIT])
 
 	setAddrServer(addr, port[iSocket]);
 	if (bind(_pollFds[iSocket].fd,
-			reinterpret_cast<const sockaddr*>(&addr), sizeof(addr) < 0))
+			reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) < 0)
+
 		throw ServerBootingException::FctBindFail();
 }
 
