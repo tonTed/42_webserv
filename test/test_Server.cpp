@@ -1,5 +1,5 @@
 #include "test_header.hpp"
-
+#include <curl/curl.h>
 
 TEST_CASE("Server::booting independant function")
 {
@@ -11,7 +11,8 @@ TEST_CASE("Server::booting independant function")
 	//test booting process
 	Server serverTest;
 
-	serverTest.initIndexInfo();
+	serverTest.indexInfoInit();
+	serverTest.pollFdsInit();
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
 		CHECK(serverTest.getIIServerNum(index) == -1);
@@ -19,6 +20,13 @@ TEST_CASE("Server::booting independant function")
 		CHECK(serverTest.getIICGIReadIndex(index) == -1);
 	}
 
+	serverTest.pollFdsInit();
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+	{
+		CHECK(serverTest.getPFFd(index) == -1);
+		CHECK(serverTest.getPFEvents(index) == POLLIN);
+		CHECK(serverTest.getPFRevents(index) == 0);
+	}
 
 	serverTest.setNbFdPort(2);
 	CHECK(serverTest.getNbFdPort() == 2);
@@ -85,13 +93,17 @@ TEST_CASE("Server::setPortSocket")
 	//test booting process
 	Server serverTest;
 
-	serverTest.initIndexInfo();
+	serverTest.indexInfoInit();
+	serverTest.pollFdsInit();
 	serverTest.setNbFdPort(2);
 
 	try
 	{
 		serverTest.setPortSocket(port);
-		CHECK(1 == 1);
+		CHECK(serverTest.getPFFd(0) >= 3);
+		CHECK(serverTest.getPFFd(1) >= 3);
+		CHECK(serverTest.getPFFd(2) == -1);
+
 	}
 	catch(const std::exception& e)
 	{
@@ -110,19 +122,16 @@ TEST_CASE("Server::setPortSocket2")
 	//test booting process
 	Server serverTest;
 
-	serverTest.initIndexInfo();
+	serverTest.indexInfoInit();
+	serverTest.pollFdsInit();
 	serverTest.setNbFdPort(2);
+	serverTest.setPortSocket(port);
 
-	try
-	{
-		serverTest.setPortSocket(port);
-		CHECK(1 == 1);
-	}
-	catch(const std::exception& e)
-	{
-		CHECK(1 == 2);
-	}
+	CHECK(serverTest.pollIndexSignal() == -1);
 
-	
+	serverTest.setPFRevents(1, POLLIN);
+	int signalIndex = serverTest.pollIndexSignal();
+	CHECK(signalIndex == 1);
+	CHECK(serverTest.getPFRevents(1) == 0);
 
 }

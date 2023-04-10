@@ -34,11 +34,21 @@ void	Server::booting()
 {
 	uint16_t	port[POLLFD_LIMIT];
 
-	initIndexInfo();
+	indexInfoInit();
+	pollFdsInit();
 	recordPort(port);
 	setPortSocket(port);
 }
 
+void	Server::pollFdsInit()
+{
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+	{
+		_pollFds[index].fd = -1;
+		_pollFds[index].events = POLLIN;
+		_pollFds[index].revents = 0;
+	}
+}
 
 //Initialise les valeurs de port
 //Compte le nombre de fd de port
@@ -137,11 +147,11 @@ void	Server::operating()
 	//TODO UNMUTED UNDER
 	//_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
 	
-
+	_activeFds= _nbfdPort;
 	int signalIndex;
 	while (1)
 	{
-		if (poll(_pollFds, POLLFD_LIMIT, POLL_TIMEOUT) < 0)
+		if (poll(_pollFds, _activeFds, POLL_TIMEOUT) < 0)
 				std::cout << "poll return < 0: should never append" << std::endl;
 
 		//find the index of the signal find by poll in pollfds
@@ -150,7 +160,7 @@ void	Server::operating()
 			switch (indexOrigin(signalIndex))
 			{
 				case FROM_PORT:
-					if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) != -1)
+					if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) >= 3)
 						std::cout << "Request made" << std::endl;
 						//TODO UNMUTED UNDER, REMOVE OVER
 						//_reqs[reqIndex(signalIndex)].initRequest();
@@ -289,6 +299,7 @@ int	Server::setPollFds(const int& fd)
 			_pollFds[index].fd = fd;
 			_pollFds[index].events = POLLIN;
 			_pollFds[index].revents = 0;
+			_activeFds += 1;
 			return index;
 		}
 	}
@@ -307,7 +318,7 @@ int	Server::reqIndex(const int& signalIndex) const
 //****************************INDEXINFO*****************************************
 
 //Reset all indexInfo
-void	Server::initIndexInfo()
+void	Server::indexInfoInit()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 		resetIndexInfo(index);
@@ -350,6 +361,7 @@ void	Server::closeConnection(const int& signalIndex)
 
 	safeClose(_pollFds[clientIndex].fd);
 	safeClose(_pollFds[CGIReadIndex].fd);
+	_activeFds -= 2;
 
 	//TODO UNMUTED AFTER MERGE
 	//_reqs[reqIndex(signalIndex)].resetRequest();
@@ -361,7 +373,7 @@ void	Server::safeClose(int& fdSource)
 	if (fdSource >= 3)
 	{
 		close(fdSource);
-		fdSource = 0;
+		fdSource = -1;
 	}
 }
 

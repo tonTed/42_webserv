@@ -29,6 +29,7 @@ private:
 	int				_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
 	indexInfo_s		_indexInfo[POLLFD_LIMIT];
 	Request*		_reqs;
+	int				_activeFds;
 
 public:
 					Server();
@@ -56,6 +57,7 @@ public:
 //*****************************BOOTING SERVER***********************************
 
 	void			booting();
+	void			pollFdsInit();
 	void			recordPort(uint16_t port[POLLFD_LIMIT]);
 	void			setPortSocket(const uint16_t port[POLLFD_LIMIT]);
 	void			bootSocket(const int& iSocket);
@@ -81,7 +83,7 @@ public:
 
 //****************************INDEXINFO*****************************************
 
-	void			initIndexInfo();
+	void			indexInfoInit();
 	void			resetIndexInfo(const int& index);
 	void			setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum);
 
