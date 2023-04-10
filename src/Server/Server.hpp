@@ -34,10 +34,29 @@ public:
 					Server();
 	virtual			~Server();
 
+//*****************************SET/GET/TERS*************************************
+	void			setNbFdPort(const int& nbPort);
+	int				getNbFdPort() const;
+	//II -> IndexInfo
+	void			setIIServerNum(const int& index, const int& serverNum);
+	int				getIIServerNum(const int& index) const;
+	void			setIICGIReadIndex(const int& index, const int& CGIReadIndex);
+	int				getIICGIReadIndex(const int& index) const;
+	void			setIIClientIndex(const int& index, const int& ClientIndex);
+	int				getIIClientIndex(const int& index) const;
+	//PF -> pollFds
+	void			setPFFd(const int& index, const int& fd);
+	int				getPFFd(const int& index) const;
+	void			setPFEvents(const int& index, const int& events);
+	int				getPFEvents(const int& index) const;
+	void			setPFRevents(const int& index, const int& revents);
+	int				getPFRevents(const int& index) const;
+	
+
 //*****************************BOOTING SERVER***********************************
 
 	void			booting();
-	int				recordPort(uint16_t port[POLLFD_LIMIT]);
+	void			recordPort(uint16_t port[POLLFD_LIMIT]);
 	void			setPortSocket(const uint16_t port[POLLFD_LIMIT]);
 	void			bootSocket(const int& iSocket);
 	void			bootSetSockOpt(const int& iSocket);

@@ -9,6 +9,24 @@ Server::~Server()
 		delete [] _reqs;
 }
 
+//*****************************SET/GET/TERS*************************************
+void	Server::setNbFdPort(const int& nbPort)	{_nbfdPort = nbPort;}
+int		Server::getNbFdPort() const				{return _nbfdPort;}
+//II -> IndexInfo
+void	Server::setIIServerNum(const int& index, const int& serverNum)		{_indexInfo[index].serverNum = serverNum;}
+int		Server::getIIServerNum(const int& index) const						{return _indexInfo[index].serverNum;}
+void	Server::setIICGIReadIndex(const int& index, const int& CGIReadIndex){_indexInfo[index].CGIReadIndex = CGIReadIndex;}
+int		Server::getIICGIReadIndex(const int& index) const					{return _indexInfo[index].CGIReadIndex;}
+void	Server::setIIClientIndex(const int& index, const int& ClientIndex)	{_indexInfo[index].clientIndex = ClientIndex;}
+int		Server::getIIClientIndex(const int& index) const					{return _indexInfo[index].clientIndex;}
+//PF -> pollFds
+void	Server::setPFFd(const int& index, const int& fd)				{_pollFds[index].fd = fd;}
+int		Server::getPFFd(const int& index) const							{return _pollFds[index].fd;}
+void	Server::setPFEvents(const int& index, const int& events)		{_pollFds[index].events = events;}
+int		Server::getPFEvents(const int& index) const						{return _pollFds[index].events;}
+void	Server::setPFRevents(const int& index, const int& revents)		{_pollFds[index].revents = revents;}
+int		Server::getPFRevents(const int& index) const					{return _pollFds[index].revents;}
+
 //*****************************BOOTING SERVER***********************************
 
 //Setup le server avant utilisation
@@ -24,7 +42,7 @@ void	Server::booting()
 
 //Initialise les valeurs de port
 //Compte le nombre de fd de port
-int	Server::recordPort(uint16_t port[POLLFD_LIMIT])
+void	Server::recordPort(uint16_t port[POLLFD_LIMIT])
 {
 	ConfigServer&	config = *ConfigServer::getInstance();
 	std::vector<ServerData>	serversData = config.getServerData();
@@ -107,19 +125,16 @@ void	Server::bootListen(const int& iSocket)
 //main function of server
 void	Server::serverRoutine()
 {
-	try
-	{
-		booting();
-		operating();
-	}
-	catch (std::exception& e){std::cout << e.what() << std::endl;}
+	booting();
+	operating();
 }
 
 
 // server loop (listen signal & redirection)
 void	Server::operating()
 {
-	_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
+	//TODO UNMUTED UNDER
+	//_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
 	
 
 	int signalIndex;
@@ -135,11 +150,15 @@ void	Server::operating()
 			{
 				case FROM_PORT:
 					if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) != -1)
-						_reqs[reqIndex(signalIndex)].initRequest();
+						std::cout << "Request made" << std::endl;
+						//TODO UNMUTED UNDER, REMOVE OVER
+						//_reqs[reqIndex(signalIndex)].initRequest();
 					break;
 				
 				case FROM_CGI:
 					//PARSE CGI && RESPOND
+					//TODO MAKE A RESPOND CALL AND REMOVE UNDER COUT
+					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
 					break;
 				
 				case FROM_CGI_PARSING:
@@ -153,9 +172,7 @@ void	Server::operating()
 			}
 		}
 		else
-		{
-			//TODO throwing exception to closing program
-		}
+			throw ServerOperatingException::EndServer();
 	}
 }
 
@@ -173,7 +190,6 @@ int	Server::pollIndexSignal()
 			return index;
 		}
 	}
-	std::cout << SERR_POLLINDEXSIGNAL << std::endl;
 	return -1;
 }
 
@@ -203,6 +219,8 @@ int	Server::indexOrigin(const int& signalIndex) const
 */
 int	Server::setRequest(Request& req, const int& signalIndex)
 {
+	//TODO REMOVE VOID UNDER
+	(void)req;
 	int clientFd = acceptClient(signalIndex);
 
 	if (clientFd >= 3) //client connected
@@ -216,11 +234,13 @@ int	Server::setRequest(Request& req, const int& signalIndex)
 				int	CGIReadIndex = setPollFds(CGIPipe[PIPE_READ]);
 				
 				setIndexInfo(clientIndex, CGIReadIndex, signalIndex);
-
-				_reqs[reqIndex(clientIndex)].setClientFd(clientFd);
+				
+				//TODO UNMUTED UNDER AFTER MERGE
+				/* _reqs[reqIndex(clientIndex)].setClientFd(clientFd);
 				_reqs[reqIndex(clientIndex)].setServerId(signalIndex);
 				_reqs[reqIndex(clientIndex)].setCGIFd(CGIPipe);
-				
+				 */
+
 				return clientIndex;
 			}
 			//busy response to clientfd
@@ -330,7 +350,8 @@ void	Server::closeConnection(const int& signalIndex)
 	safeClose(_pollFds[clientIndex].fd);
 	safeClose(_pollFds[CGIReadIndex].fd);
 
-	_reqs[reqIndex(signalIndex)].resetRequest();
+	//TODO UNMUTED AFTER MERGE
+	//_reqs[reqIndex(signalIndex)].resetRequest();
 }
 
 //Close _pollFds[index] if >= 3 and reset it to 0
