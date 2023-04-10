@@ -152,4 +152,42 @@ TEST_CASE("Response::getLocation")
 	CHECK_MESSAGE(ret == "/", "should be /");
 }
 
+TEST_CASE("Response::setRoot")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+	std::string location;
+
+	request._startLine.path = "/tata";
+	location = response.getLocation();
+	response.setRoot(location);
+	CHECK_MESSAGE(response._root == "test/data/www/toto", "should be test/data/www/toto");
+
+	request._startLine.path = "/tata/dali";
+	location = response.getLocation();
+	response.setRoot(location);
+	CHECK_MESSAGE(response._root == "test/data/www/toto/dali", "should be test/data/www/toto/dali");
+
+	request._startLine.path = "/";
+	location = response.getLocation();
+	response.setRoot(location);
+	CHECK_MESSAGE(response._root == "test/data/www", "should be test/data/www");
+
+	request._startLine.path = "/dali";
+	location = response.getLocation();
+	response.setRoot(location);
+	CHECK_MESSAGE(response._root == "test/data/www/dali", "should be test/data/www/dali");
+
+	request._startLine.path = "/dali/index.html";
+	location = response.getLocation();
+	response.setRoot(location);
+	CHECK_MESSAGE(response._root == "test/data/www/dali/index.html", "should be test/data/www/dali/index.html");
+}
+
 TEST_CASE("Request::clean") { remove("test/test_data_file");}

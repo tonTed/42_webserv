@@ -11,6 +11,12 @@ Response::Response(const Request &request, int status) : _request(request), _sta
 	}
 }
 
+
+/**
+ * @brief   If the location exists in the config file, set the root to the location root
+ * 			Else, set the root to the server root using the first root in the vector
+ *
+ */
 std::string Response::getLocation() {
 	std::string	location;
 
@@ -25,22 +31,26 @@ std::string Response::getLocation() {
 
 void 		Response::setRoot(const std::string &location) {
 
-	try
+	// set the root to the location root if it exists
+	if (_config->_serversData[_request._serverId]._locations.find(location) != _config->_serversData[_request._serverId]._locations.end())\
 	{
-		_config->_serversData[_request._serverId]._locations.at(location);
 		_root = _config->_serversData[_request._serverId]._locations[location].root;
+		_root += _request._startLine.path.substr(location.length());
 	}
-	catch (const std::out_of_range& e)
+	else
 	{
-		(void)e;
+		_root = _config->_serversData[_request._serverId]._root[0];
+		if (_request._startLine.path.length() > 1)
+			_root += _request._startLine.path.substr();
 	}
-
-	_root = _config->_serversData[_request._serverId]._root[0];
 }
 
 std::string	Response::resolvePath() {
 
-	std::string location = getLocation();
+	std::string location;
+
+	location = getLocation();
+	setRoot(location);
 
 	return resolvePath(_request._startLine.path);
 }
@@ -128,7 +138,7 @@ bool Response::existInLocation(const std::string &path) {
 bool Response::localRootExist(const std::string path) {
 	(void)path;
 	return localFileExist("index.html");
-	return localFileExist(_config->_serversData.at(_request._serverId)._index[0]);
+//	return localFileExist(_config->_serversData.at(_request._serverId).index[0]);
 }
 
 bool Response::localFileExist(const std::string &file) {
