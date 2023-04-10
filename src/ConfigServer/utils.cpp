@@ -9,9 +9,9 @@
  */
 bool lineNeeded(const std::string line)
 {
-	size_t i = line.find_first_not_of(" \t");
-	bool val = (i != string::npos && line[i] != '#');
-	return val;
+    size_t i = line.find_first_not_of(" \t");
+    bool val = (i != string::npos && line[i] != '#');
+    return val;
 }
 
 /**
@@ -47,7 +47,7 @@ bool isrealspace(char c)
 
 /**
  * @brief Print an error and exit
- * 
+ *
  * @param str the error string
  * @param err the error object
  */
@@ -59,7 +59,7 @@ void exit_error(string str, string err)
 
 /**
  * @brief Validate that the braces are even
- * 
+ *
  * @param str The string to check
  * @return true if the braces are even
  * @return false if they're odd
@@ -87,8 +87,137 @@ bool validBraces(const string &str)
 bool validPort(int portNumb)
 {
     return (portNumb == 80 || (portNumb > 1024 && portNumb < 65535));
-
 }
+
+/**
+ * @brief Check if the host is valid
+ *
+ * @param host the host to check
+ * @return true if the host is valid
+ * @return false if the host is not valid
+ */
+bool validHost(std::string host)
+{
+    return (host == "127.0.0.1" || host == "localhost");
+}
+
+/**
+ * @brief Check if the server name is valid
+ *
+ * @param serverName the server name to check
+ * @return true if the server name is valid
+ * @return false if the server name is not valid
+ */
+bool validServerName(std::string serverName) // TODO check if the server name is duplicate in 2 diffrent servers
+{
+    return (serverName != "");
+}
+
+/**
+ * @brief check if the error pages are valid
+ *
+ * @param input the error page string
+ * @return true if the input is valid
+ * @return false if the input is not valid
+ */
+bool validErrorPage(int code, std::string input)
+{ 
+     if (static_cast<int>(input.size()) < 5 ||
+        input.substr(static_cast<int>(input.size()) - 5) != ".html")
+        return false;
+    if (code < 400 || code > 599)
+        return false;
+    return true; // TODO add the path checking 
+}
+
+
+
+
+
+
+
+/**
+ * @brief check if the file path is valid
+ *
+ * @param input The file path
+ * @return true if valid
+ * @return false if not valid
+ */
+bool validFilePath(std::string input)
+{
+    std::ifstream file(input.c_str());
+    return file.good();
+}
+
+bool validRoot(std::string input)
+{
+    size_t i = 0;
+    if (input.size() < 1)
+        return false;
+    if (input[0] == '/' && input.size() > 1)
+        return false;
+    while (i < input.size())
+    {
+        if (!std::isalpha(input[i]) && input[i] != '/')
+            return false;
+        if (input[i] == '/' && input[i + 1] == '/')
+            return false;
+        i++;
+    }
+    return true;
+}
+
+std::string format_string(const std::string &str)
+{
+    if (!validRoot(str))
+        exit_error("Error: Bad Root |", str + "|");
+
+    std::string result = str;
+
+    if (result.size() == 1 && result[0] == '/')
+        return result;
+    else if (result.size() > 1)
+    {
+        while (result[result.size() - 1] == '/')
+            result.erase(result.size() - 1);
+    }
+    if (!validFilePath(result))
+        exit_error("Error: Bad Root Path |", result + "|");
+    return result;
+}
+
+
+
+std::vector<enum eRequestType> validMethods(std::vector<std::string> words)
+{
+    std::vector<enum eRequestType> methods;
+    for (int i = 0; i < static_cast<int>(words.size()); i++) // loop until all words have been returned
+    {
+        if (words[i].empty())
+            exit_error("Error: methods can't be empty!", "");
+        else if (words[i] == "GET")
+            methods.push_back(GET);
+        else if (words[i] == "POST")
+            methods.push_back(POST);
+        else if (words[i] == "DELETE")
+            methods.push_back(DELETE);
+        else
+            exit_error("Error: Invalid HTTP method: ", words[i]);
+    }
+    return methods;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * @brief Check if the port is duplicated
@@ -112,7 +241,7 @@ bool portDup(std::vector<int> seq)
 
 /**
  * @brief check if path is duplicated
- * 
+ *
  * @param seq the vector of the location paths
  * @return true if it's duplicat
  * @return false if not duplicate
@@ -154,29 +283,7 @@ bool validBodySize(int bodySize)
     return (bodySize > 0);
 }
 
-/**
- * @brief Check if the server name is valid
- *
- * @param serverName the server name to check
- * @return true if the server name is valid
- * @return false if the server name is not valid
- */
-bool validServerName(std::string serverName) // TODO check if the server name is duplicate in 2 diffrent servers
-{
-    return (serverName != "");
-}
 
-/**
- * @brief Check if the host is valid
- *
- * @param host the host to check
- * @return true if the host is valid
- * @return false if the host is not valid
- */
-bool validHost(std::string host)
-{
-    return (host == "127.0.0.1" || host == "localhost");
-}
 
 /**
  * @brief trim a tring from the spaces
@@ -193,139 +300,6 @@ std::string trim(const std::string &str)
     return str.substr(start, end - start + 1);
 }
 
-/**
- * @brief Get the Host Line object
- *
- * @param str the string to get the Hostline from
- * @param startPos the position to start from
- * @param newPos the posiion of the last (';')
- * @return std::string the string line fron start to end
- */
-std::string getHostLine(const std::string &str,
-                        string::size_type &startPos, string::size_type *newPos)
-{
-    startPos += 6;
-    string::size_type endPos = str.find(";", startPos);
-    if (endPos == string::npos)
-        return "";
-    string::size_type colonPos = str.find_last_of(":", startPos, endPos - startPos);
-    if (colonPos != string::npos && startPos - 6 < colonPos && colonPos < endPos)
-    {
-        if (newPos)
-            *newPos = endPos;
-        return str.substr(startPos, endPos - startPos);
-    }
-    else
-        return "";
-}
-
-/**
- * @brief Get the Host Part object
- *
- * @param input the string to get the host part from
- * @return std::string the host part
- */
-std::string getHostPart(const std::string &input)
-{
-    std::stringstream ss(input);
-    std::string token;
-
-    while (std::getline(ss, token, ' '))
-    {
-        std::string::size_type pos = token.find(':');
-        if (pos != std::string::npos)
-        {
-            std::string host = token.substr(0, pos);
-            return host;
-        }
-    }
-    return "";
-}
-
-/**
- * @brief Get the Port Line object
- *
- * @param str the string to get the Portline from
- * @param startPos the position to start from
- * @param newPos the posiion of the last (';')
- * @return std::string the string line fron start to end
- */
-std::string getPortLine(const std::string &str,
-                        string::size_type &startPos, string::size_type *newPos)
-{
-    startPos += 6;
-    string::size_type endPos = str.find(";", startPos);
-    if (endPos == string::npos)
-        return "";
-    string::size_type colonPos = str.find_last_of(":", startPos, endPos - startPos);
-    if (colonPos != string::npos && startPos - 6 < colonPos && colonPos < endPos)
-    {
-        if (newPos)
-            *newPos = endPos;
-        // std::cout << "    "; // TODO How the hell is this even possible??
-        return str.substr(startPos, endPos - startPos);
-    }
-    else if (colonPos != string::npos)
-        {
-            if (newPos)
-            *newPos = endPos;
-
-        return str.substr(startPos, endPos - startPos);
-        }
-    else
-        return "";
-}
-
-/**
- * @brief Get the Port Part object
- *
- * @param input the string to get the port part from
- * @return std::string the port part
- */
-std::string getPortPart(const std::string &input)
-{
-    std::stringstream ss(input);
-    std::string token;
-
-    while (std::getline(ss, token, ' '))
-    {
-        std::string::size_type pos = token.find(':');
-        if (pos != std::string::npos)
-        {
-            std::string port = token.substr(pos + 1);
-            return port;
-        }
-        else if (pos == std::string::npos)
-        {
-            std::string port = token.substr(pos + 1);
-            return port;
-        }
-    }
-    return "";
-}
-
-/**
- * @brief Get the Methods Line object
- *
- * @param str the string to get the Methodsline from
- * @param startPos the position to start from
- * @param newPos the posiion of the last (';')
- * @return std::string the string line fron start to end
- */
-std::string getMethodsLine(const std::string &str,
-                           string::size_type &startPos, string::size_type *newPos)
-{
-    startPos += 8;
-    string::size_type endPos = str.find(";", startPos);
-    if (endPos != string::npos)
-    {
-        if (newPos)
-            *newPos = endPos;
-        return str.substr(startPos, endPos - startPos);
-    }
-    else
-        return "";
-}
 
 /**
  * @brief split the string into parts and return it in a vector of strings
@@ -345,20 +319,6 @@ std::vector<std::string> splitString(std::string input)
     return result;
 }
 
-/**
- * @brief check if the error pages are valid
- *
- * @param input the error page string
- * @return true if the input is valid
- * @return false if the input is not valid
- */
-bool validErrorPage(std::string input)
-{
-    if (static_cast<int>(input.size()) < 5 ||
-        input.substr(static_cast<int>(input.size()) - 5) != ".html")
-        return false;
-    return true;
-}
 
 /**
  * @brief check if the path is valid
@@ -426,7 +386,7 @@ std::string getLocationPath(const std::string &locationBlock)
 
 /**
  * @brief check if the indexes are valid
- * 
+ *
  * @param input The list of indexes
  * @return true if valid
  * @return false if not valid
@@ -437,21 +397,20 @@ void validIndex(Locations &input)
     std::string path = "";
     for (int i = 0; i < (int)input.index.size(); i++)
     {
-        if (input.index[i].size() < 4 && (input.index[i].substr(input.index[i].size() - 5) != ".html" 
-            || input.index[i].substr(input.index[i].size() - 4) != ".htm"))
+        if (input.index[i].size() < 4 && (input.index[i].substr(input.index[i].size() - 5) != ".html" || input.index[i].substr(input.index[i].size() - 4) != ".htm"))
             exit_error("Error:: ", input.index[i] + " is not a valid index!");
-        if(input.root == "/")
+        if (input.root == "/")
             path = "";
         else
             path = input.root;
-        if(!validFilePath(path + "/" + input.index[i]))
+        if (!validFilePath(path + "/" + input.index[i]))
             exit_error("Error: index path:-: |", (path + input.index[i]) + "| not valid");
     }
 }
 
 /**
  * @brief check if the autoindex is valid
- * 
+ *
  * @param input The autoindex
  * @return true if valid
  * @return false if not valid
@@ -463,47 +422,10 @@ bool validAutoindex(std::string input)
     return true;
 }
 
-/** 
- * @brief check if the file path is valid
- * 
- * @param input The file path
- * @return true if valid
- * @return false if not valid
- */
-bool validFilePath(std::string input)
-{
-    std::ifstream file(input.c_str());
-    return file.good();
-}
 
-bool validRoot(std::string input)
-{
-    size_t i = 0;
-    if (input.size() < 1)
-        return false;
-    if (input[0] == '/' && input.size() > 1)
-        return false;
-    while(i < input.size())
-    {
-        if (!std::isalpha(input[i]) && input[i] != '/')
-            return false;
-        if(input[i] == '/' && input[i + 1] == '/')
-            return false;
-        i++;
-    }
-    return true;
-}
 
-std::string format_string(const std::string& str)
-{
-    std::string result = str;
 
-    if (result.size() == 1 && result[0] == '/')
-        return result;
-    else if (result.size() > 1 )
-    {
-        while (result[result.size()-1] == '/')
-            result.erase(result.size()-1);
-    }
-    return result;
-}
+
+
+
+

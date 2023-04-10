@@ -9,6 +9,7 @@ struct Locations
 	std::string autoindex; // ON or OFF
 	std::string redirection;
 	std::vector<enum eRequestType> methods;
+
 };
 
 struct ServerData
@@ -45,10 +46,24 @@ struct ServerData
 	*/ 
 };
 
+struct ServerBlocks
+{
+	// Server port and name
+	std::vector<std::string> _listen;
+	std::vector<std::string> _serverNames;
+	std::vector<std::string> _root; 
+	std::vector<std::string> _methods;
+	std::vector<std::string> _index;
+	std::vector<std::string> _errorPages;
+	std::vector<std::string> _locations;
+};
+
 class ConfigServer
 {
 private:
 	std::vector<ServerData> _serversData;
+	std::vector<ServerBlocks> _serverBlocks;
+	std::string _configString;
 	bool _goodFile;
 	unsigned int _serverNumber;
 	static ConfigServer *singleton;
@@ -76,26 +91,58 @@ public:
 
 	ConfigServer &operator=(const ConfigServer &Config);
 
+	void setServerBlocks();
+	void setConfigString(const std::string &configStr);
+
+
+	std::string getConfigString();
+	std::vector<ServerBlocks> getServerBlocks() const;
+	std::vector<string> getLocationBlocks(std::string &configStr);
+	std::vector<std::string> getDirective(std::string &configStr, std::string directive);
+
+
+	std::vector<std::string> getHosts(const std::string &configStr);
+	std::vector<int> getPorts(const std::string &configStr);
+	std::vector<std::string> getDirectiveVal(const std::string &configStr, std::string directive);
+	std::map<int, std::string> getErrorPages(const std::string &configStr);
+
+
+	void printServerBlocks();
+
+
+
+
+
+
+
+
+
+
+
+
 	// PARSING METHODS
 	std::string getFile(const std::string paramFile);
 	std::string cleanedLine(std::string line);
 	bool readFile(const std::string inFile, std::string &stringLine);
-	std::vector<std::string> getServerBlocks(const std::string &configStr);
-	std::vector<std::string> getLocationBlocks(const std::string &configStr);
+	std::vector<std::string> getServerBlocksData(const std::string &configStr);
+
+
+
 
 	// PARSE HOSTS
-	std::vector<std::string> getHosts(const std::string &configStr);
+	// std::vector<std::string> getHosts(const std::string &configStr);
 	void setHosts(std::vector<std::string> &hosts);
 
-	std::vector<int> getPorts(const std::string &configStr);
+	// std::vector<int> getPorts(const std::string &configStr);
 	std::vector<std::string> getKeywordValue(const std::string &configStr, const std::string &derective);
 	string getStrValue(const string &configStr, const string &directive);
-	std::map<int, std::string> getErrorPages(const std::string &configStr);
+	// std::map<int, std::string> getErrorPages(const std::string &configStr);
 	std::vector<enum eRequestType> getMethods(const string &configStr);
 	Locations settingLocation(std::string &locString, ServerData &serverBlock);
 
 	std::vector<ServerData> getServerData() const;
-	void setServersData(std::vector<string> &serverBlocks);
+	// void setServersData(std::vector<string> &serverBlocks);
+	void setServersData(std::vector<ServerBlocks> &blocks);
 	void printServersData(std::vector<ServerData> &data);
 
 };
@@ -132,7 +179,7 @@ std::string getMethodsLine(const std::string &str,
 std::string get_next_word(const std::string& input);
 
 //  ERROR PAGE PART
-bool validErrorPage(std::string input);
+bool validErrorPage(int code, std::string input);
 
 // LOCATIONS PART
 std::string getLocationPath(const std::string& input);
@@ -153,6 +200,12 @@ bool validClientBodySize(std::string input);
 bool validFilePath(std::string input);
 bool validRoot(std::string input);
 std::string format_string(const std::string& str);
+
+
+
+
+
+std::vector<enum eRequestType> validMethods(std::vector<std::string> words);
 
 #endif
 
