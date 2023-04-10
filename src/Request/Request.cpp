@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
+#include "../Utils/ft.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
@@ -305,7 +306,7 @@ void	Request::_parseHeaders() {
 		throw RequestException::Header::MissingHeader();
 
 	int contentLength;
-	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
+	try { contentLength = FT::atoi(_headers["CONTENT-LENGTH"]); }
 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
 
 	// Read the body
