@@ -133,5 +133,13 @@ TEST_CASE("Server::setPortSocket2")
 	int signalIndex = serverTest.pollIndexSignal();
 	CHECK(signalIndex == 1);
 	CHECK(serverTest.getPFRevents(1) == 0);
+	/* std::cout << "Before accepting" << std::endl;
+	write (serverTest.getPFFd(0), "http://localhost:9000/", 22);
+	int clientFd = serverTest.acceptClient(0);
+	std::cout << "after accepting" << std::endl;
+	CHECK(clientFd >= 3);
+
+	close(clientFd);
+ */
 
 }
