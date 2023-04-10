@@ -46,6 +46,16 @@ struct ServerData
 	*/ 
 };
 
+struct ServerLocation
+{
+	std::string _path;
+	std::vector<std::string> _root; 
+	std::vector<std::string> _index;
+	std::vector<std::string> _autoindex;
+	std::vector<std::string> _redirection;
+	std::vector<std::string> _methods;
+};
+
 struct ServerBlocks
 {
 	// Server port and name
@@ -55,7 +65,8 @@ struct ServerBlocks
 	std::vector<std::string> _methods;
 	std::vector<std::string> _index;
 	std::vector<std::string> _errorPages;
-	std::vector<std::string> _locations;
+	// std::vector<std::string> _locations;
+	std::vector<ServerLocation> _locations;
 };
 
 class ConfigServer
@@ -98,8 +109,8 @@ public:
 	std::string getConfigString();
 	std::vector<ServerBlocks> getServerBlocks() const;
 	std::vector<string> getLocationBlocks(std::string &configStr);
+	std::vector<ServerLocation> getLocationPart(std::vector<std::string> locations);
 	std::vector<std::string> getDirective(std::string &configStr, std::string directive);
-
 
 	std::vector<std::string> getHosts(const std::string &configStr);
 	std::vector<int> getPorts(const std::string &configStr);
@@ -138,7 +149,8 @@ public:
 	string getStrValue(const string &configStr, const string &directive);
 	// std::map<int, std::string> getErrorPages(const std::string &configStr);
 	std::vector<enum eRequestType> getMethods(const string &configStr);
-	Locations settingLocation(std::string &locString, ServerData &serverBlock);
+	// Locations settingLocation(std::string &locString, ServerData &serverBlock);
+	Locations settingLocation(ServerLocation &locStruct, ServerData &serverBlock);
 
 	std::vector<ServerData> getServerData() const;
 	// void setServersData(std::vector<string> &serverBlocks);

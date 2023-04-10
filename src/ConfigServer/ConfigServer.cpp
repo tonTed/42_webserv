@@ -255,31 +255,63 @@ std::vector<string> ConfigServer::getServerBlocksData(const std::string &configS
 				continue;
 			}
 		}
+
 		std::cout << BOLD_RED << "Error: opening brace not found! " << RESET << std::endl;
+		// exit_error("Error: opening brace not found! |", "");
+			
 	}
 	return (serverBlocks);
 }
 
+
+
+
+
+
+
+
+
+
+std::vector<ServerLocation> ConfigServer::getLocationPart(std::vector<std::string> locations)
+{
+	std::vector<ServerLocation> locationPart(locations.size());
+	for (size_t i = 0; i < locations.size(); i++)
+	{
+		std::string confStr = locations[i];
+		locationPart[i]._root = getDirective(confStr, "root");
+		locationPart[i]._index = getDirective(confStr, "index");
+		locationPart[i]._autoindex = getDirective(confStr, "autoindex");
+		locationPart[i]._methods = getDirective(confStr, "methods");
+		// locationPart[i]._redirection = getDirective(confStr, "return");
+	}
+	return (locationPart);	
+}
+
+
+
+
+
+
+
+
+
 void ConfigServer::setServerBlocks()
 {
-	// std::string confStr = getConfigString();
 	std::vector<std::string> blocks = getServerBlocksData(getConfigString());
 	std::vector<ServerBlocks> serverBlocks(blocks.size());
 	for (size_t i = 0; i < blocks.size(); i++)
 	{
 		std::string confStr = blocks[i];
-		// std::cout << "confStr: " << confStr << std::endl;
-		serverBlocks[i]._locations = getLocationBlocks(confStr);
+		std::vector<std::string> locationBlocks = getLocationBlocks(confStr);
+		serverBlocks[i]._locations = getLocationPart(locationBlocks);
+		// serverBlocks[i]._locations = getLocationBlocks(confStr);
 		serverBlocks[i]._listen = getDirective(confStr, "listen");
 		serverBlocks[i]._serverNames = getDirective(confStr, "server_name");
 		serverBlocks[i]._root = getDirective(confStr, "root");
 		serverBlocks[i]._methods = getDirective(confStr, "methods");
 		serverBlocks[i]._index = getDirective(confStr, "index");
 		serverBlocks[i]._errorPages = getDirective(confStr, "error_page");
-
-		// std::cout << "confStr: " << confStr << std::endl;
 	}
-	// return(serverBlocks);
 	this->_serverBlocks = serverBlocks;
 }
 
@@ -296,9 +328,12 @@ std::vector<std::string> ConfigServer::getDirective(std::string &configStr, std:
 			std::string directivesStr = configStr.substr(pos, endPos - pos + 1);
 			directives.push_back(directivesStr);
 			configStr.erase(pos, endPos - pos + 1);
-			continue;
+			// continue;
 		}
-		std::cout << BOLD_RED << "Error: opening brace not found! " << RESET << std::endl;
+		else
+		{
+			exit_error("Error: ; not found! |", "");
+		}
 	}
 	return directives;
 }
@@ -316,7 +351,6 @@ std::vector<string> ConfigServer::getLocationBlocks(std::string &configStr)
 		locationBlocks.push_back(locationBlock);
 		configStr.erase(pos, endPos - pos + 1);
 	}
-	// setConfigString(configStr);
 	return (locationBlocks);
 }
 
@@ -374,10 +408,16 @@ void ConfigServer::printServerBlocks()
 		}
 		std::cout << std::endl;
 
+		// std::cout << YELLOW << "Locations: ";
+		// for (std::vector<std::string>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
+		// {
+		// 	std::cout << RESET << "|" << *itLocations << "|"
+		// 			  << " ";
+		// }
 		std::cout << YELLOW << "Locations: ";
-		for (std::vector<std::string>::iterator itLocations = it->_locations.begin(); itLocations != it->_locations.end(); ++itLocations)
+		for (size_t i = 0; i < it->_locations.size(); i++)
 		{
-			std::cout << RESET << "|" << *itLocations << "|"
+			std::cout << RESET << "|" << it->_locations[i]._root[0] << "|"
 					  << " ";
 		}
 		std::cout << RESET << std::endl
@@ -474,18 +514,38 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 		// 	servers[i]._root[0] + "/" + servers[i]._index[0] + "|");
 
 
+		// // SETTING LOCATIONS
+		// for (int j = 0; j < static_cast<int>(blocks[i]._locations.size()); j++)
+		// {
+		// 	std::vector<string> locations = getLocationBlocks(blocks[i]._locations[j]);
+		// 	for (int n = 0; n < static_cast<int>(locations.size()); n++)
+		// 	{
+		// 		std::string path = getLocationPath(locations[n]);
+		// 		servers[i]._locations[path] = settingLocation(locations[n], servers[i]);
+		// 	}
+		// }
+
 		// SETTING LOCATIONS
-		for (int j = 0; j < static_cast<int>(blocks[i]._locations.size()); j++)
+		for (size_t j = 0; j < blocks[i]._locations.size(); j++)
 		{
-			std::vector<string> locations = getLocationBlocks(blocks[i]._locations[j]);
-			for (int n = 0; n < static_cast<int>(locations.size()); n++)
-			{
-				std::string path = getLocationPath(locations[n]);
-				servers[i]._locations[path] = settingLocation(locations[n], servers[i]);
-			}
+			// std::vector<ServerBlocks> locations = getLocationBlocks(blocks[i]._locations[j]);
+			// std::string path = getLocationPath(locations[n]);
+			std::string path = "/path" + std::to_string(j); // TODO fix the path
+			servers[i]._locations[path] = settingLocation(blocks[i]._locations[j], servers[i]);
+			// for (size_t n = 0; n < blocks[i]._locations[j]; n++)
+			// {
+			// 	servers[i]._locations[path] = settingLocation(locations[n], servers[i]);
+			// }
 		}
-
-
+		// for (int j = 0; j < static_cast<int>(blocks[i]._locations.size()); j++)
+		// {
+		// 	std::vector<string> locations = getLocationBlocks(blocks[i]._locations[j]);
+		// 	for (int n = 0; n < static_cast<int>(locations.size()); n++)
+		// 	{
+		// 		std::string path = getLocationPath(locations[n]);
+		// 		servers[i]._locations[path] = settingLocation(locations[n], servers[i]);
+		// 	}
+		// }
 
 		// MORE NECESSARY CHECKS
 		if(portDup(servers[i]._serverPorts))
@@ -608,28 +668,63 @@ std::vector<std::string> ConfigServer::getDirectiveVal(const std::string &config
  * @param locstd::string the input, should be the sting location block
  * @return Locations the structur of location elements.
  */
-Locations ConfigServer::settingLocation(std::string &locString, ServerData &serverBlock)
+// Locations ConfigServer::settingLocation(std::string &locString, ServerData &serverBlock)
+// {
+// 	Locations location;
+// 	std::vector<std::string> roots = getDirectiveVal(locString, "root");
+// 	location.root = roots[0]; // TODO Check how many roots and if valid
+// 	if (location.root.empty())
+// 		location.root = serverBlock._root[0];
+// 	location.index = getDirectiveVal(locString, "index");
+// 	if (location.index.empty())
+// 		location.index = serverBlock._index;
+// 	std::vector<std::string> autoIndex = getDirectiveVal(locString, "autoIndex");
+// 	if (!autoIndex.empty())
+// 		location.autoindex = autoIndex[0];
+// 	std::vector<std::string> redirection = getDirectiveVal(locString, "return");
+// 	if (!redirection.empty())
+// 		location.redirection = redirection[0];
+// 	// std::map<int, std::string> redirection = getErrorPages(locString);
+// 	// location.redirection  = getErrorPages(locString);
+// 	// location.redirection = getStrValue(locString, "return"); // TODO check if the redirection path is valid
+// 	std::vector<std::string> methods = getDirectiveVal(locString, "methods");
+// 	location.methods = validMethods(methods);
+// 	// location.methods = getMethods(locString);
+// 	return location;
+// }
+
+Locations ConfigServer::settingLocation(ServerLocation &locStruct, ServerData &serverBlock)
 {
 	Locations location;
-	std::vector<std::string> roots = getDirectiveVal(locString, "root");
-	location.root = roots[0]; // TODO Check how many roots and if valid
-	if (location.root.empty())
-		location.root = serverBlock._root[0];
-	location.index = getDirectiveVal(locString, "index");
-	if (location.index.empty())
-		location.index = serverBlock._index;
-	std::vector<std::string> autoIndex = getDirectiveVal(locString, "autoIndex");
-	if (!autoIndex.empty())
-		location.autoindex = autoIndex[0];
-	std::vector<std::string> redirection = getDirectiveVal(locString, "return");
-	if (!redirection.empty())
-		location.redirection = redirection[0];
-	// std::map<int, std::string> redirection = getErrorPages(locString);
-	// location.redirection  = getErrorPages(locString);
-	// location.redirection = getStrValue(locString, "return"); // TODO check if the redirection path is valid
-	std::vector<std::string> methods = getDirectiveVal(locString, "methods");
-	location.methods = validMethods(methods);
-	// location.methods = getMethods(locString);
+	for(size_t i = 0; i < locStruct._root.size(); i++)
+	{
+		std::vector<std::string> roots = getDirectiveVal(locStruct._root[i], "root");
+		location.root = roots[0]; // TODO Check how many roots and if valid
+		if (location.root.empty())
+			location.root = serverBlock._root[0];
+	}
+	for(size_t i = 0; i < locStruct._root.size(); i++)
+	{
+		std::vector<std::string> indexes = getDirectiveVal(locStruct._index[i], "index");
+		location.index = indexes; // TODO Check how many roots and if valid
+		if (location.index.empty())
+			location.index = serverBlock._index;
+	}
+		// location.index = getDirectiveVal(locString, "index");
+		// if (location.index.empty())
+		// 	location.index = serverBlock._index;
+		// std::vector<std::string> autoIndex = getDirectiveVal(locString, "autoIndex");
+		// if (!autoIndex.empty())
+		// 	location.autoindex = autoIndex[0];
+		// std::vector<std::string> redirection = getDirectiveVal(locString, "return");
+		// if (!redirection.empty())
+		// 	location.redirection = redirection[0];
+		// // std::map<int, std::string> redirection = getErrorPages(locString);
+		// // location.redirection  = getErrorPages(locString);
+		// // location.redirection = getStrValue(locString, "return"); // TODO check if the redirection path is valid
+		// std::vector<std::string> methods = getDirectiveVal(locString, "methods");
+		// location.methods = validMethods(methods);
+		// // location.methods = getMethods(locString);
 	return location;
 }
 
