@@ -81,35 +81,22 @@ void	Response::resolvePath() {
 	hasLocation = setRoot(location);
 	if (hasExtension(_root))
 	{
-		if (isRootValid())
-		{
-			//send file
-		}
-		else
-		{
-			//resolve error pages 404
-		}
+		if (!isRootValid())
+			_status = 404;
 	}
 	else //no extension
 	{
 		addIndex(hasLocation, location);
-		if (isRootValid())
+		if (!isRootValid())
 		{
-			//send file
-		}
-		else if (hasLocation)
-		{
-			//resolve error pages 500
-		}
-		else
-		{
-			//resolve error pages 404
+			if (hasLocation)
+				_status = 404;
+			else
+				_status = 500;
 		}
 	}
-}
-
-void Response::resolveErrorPages(const int status) {
-	_status = status;
+	if (_status != 200)
+		;//send error
 }
 
 

@@ -10,9 +10,6 @@ class Response : CodeResponse {
 public:
 	Response(const Request &request, const int status);
 
-
-	void 		resolveErrorPages(const int status);
-
 	void		resolvePath();
 	std::string 	getLocation();
 	bool 			setRoot(const std::string &location);
