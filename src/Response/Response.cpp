@@ -29,28 +29,30 @@ std::string Response::getLocation() {
 	return location;
 }
 
-void 		Response::setRoot(const std::string &location) {
+bool 		Response::setRoot(const std::string &location) {
 
 	// set the root to the location root if it exists
 	if (_config->_serversData[_request._serverId]._locations.find(location) != _config->_serversData[_request._serverId]._locations.end())\
 	{
 		_root = _config->_serversData[_request._serverId]._locations[location].root;
 		_root += _request._startLine.path.substr(location.length());
+		return true;
 	}
-	else
-	{
-		_root = _config->_serversData[_request._serverId]._root[0];
-		if (_request._startLine.path.length() > 1)
-			_root += _request._startLine.path.substr();
-	}
+	_root = _config->_serversData[_request._serverId]._root[0];
+	if (_request._startLine.path.length() > 1)
+		_root += _request._startLine.path.substr();
+	return false;
 }
 
 std::string	Response::resolvePath() {
 
 	std::string location;
+	bool 		hasLocation = false;
+
+	(void)hasLocation;
 
 	location = getLocation();
-	setRoot(location);
+	hasLocation = setRoot(location);
 	if (hasExtension(_root))
 	{
 		if (localFileExist(_root))
