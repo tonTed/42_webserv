@@ -158,6 +158,24 @@ TEST_CASE("Response::setHeader")
 	CHECK(response.setHeader(50) == expected );
 }
 
+TEST_CASE("Response::setBody")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+
+	std::string expected;
+
+	expected = "<!DOCTYPE html><html lang=\"en\"><head> <meta charset=\"UTF-8\"> <title>42 webserv</title></head><body> <h1>42 webserv</h1> <p>42 webserv is a web server written in C++.</p> <p>It is a project of the 42 cursus.</p> <p>Write by Hafid, Martin and Teddy</p></body></html>";
+	response._root = "test/data/www/index.html";
+	REQUIRE(response.setBody() == expected);
+}
+
 
 
 TEST_CASE("Request::clean") { remove("test/test_data_file");}
