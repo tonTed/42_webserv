@@ -17,11 +17,16 @@ public:
 	bool 			isRootValid();
 	void 			addIndex(bool hasLocation, std::string location);
 
+	void 		formatResponse();
+	std::string 	setBody();
+	std::string 	setHeader(int bodyLength);
+
 public:
 		const Request & _request;
 		int 			_status;
 		ConfigServer	*_config;
 		std::string		_root;
+		std::string 	_response;
 };
 
 

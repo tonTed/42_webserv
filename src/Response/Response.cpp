@@ -95,8 +95,53 @@ void	Response::resolvePath() {
 				_status = 500;
 		}
 	}
-	if (_status != 200)
-		;//send error
+	if (_status == 200)
+	{
+		formatResponse();
+	}
+	else
+	{
+		//send error
+	}
+
+}
+
+std::string 	Response::setBody() {
+	std::ifstream fd(_root.c_str());
+	std::string line;
+	std::string body;
+
+	while (std::getline(fd, line))
+		body += line;
+
+	fd.close();
+
+	return body;
+}
+
+std::string 	Response::setHeader(int bodyLength) {
+	std::string headers;
+
+	headers = "HTTP/1.1 " + std::to_string(_status) + " " + CodeResponse::_codeResponse[_status] + "\r\n";
+	headers += "Content-Type: text/html\r\n";
+
+	if (bodyLength > 0)
+		headers += "Content-Length: " + std::to_string(bodyLength) + "\r\n";
+
+	headers += "Connection: close\r\n";
+	headers += "\r\n";
+
+	return headers;
+}
+
+void	Response::formatResponse() {
+
+	std::string body;
+
+	body = setBody();
+
+	_response = setHeader(body.length());
+	_response += body;
 }
 
 
