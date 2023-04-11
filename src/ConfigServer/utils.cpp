@@ -169,6 +169,7 @@ bool validRoot(std::string input)
 
 std::string format_string(const std::string &str)
 {
+    // std::cout << std::endl <<  "str: " << str << std::endl << std::endl;
     if (!validRoot(str))
         exit_error("Error: Bad Root |", str + "|");
 
@@ -185,8 +186,6 @@ std::string format_string(const std::string &str)
         exit_error("Error: Bad Root Path |", result + "|");
     return result;
 }
-
-
 
 std::vector<enum eRequestType> validMethods(std::vector<std::string> words)
 {
@@ -206,18 +205,6 @@ std::vector<enum eRequestType> validMethods(std::vector<std::string> words)
     }
     return methods;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * @brief Check if the port is duplicated
@@ -259,6 +246,11 @@ bool pathDup(std::vector<std::string> seq)
     return false;
 }
 
+
+
+
+
+
 /**
  * @brief Check if the client size is valid
  *
@@ -299,7 +291,6 @@ std::string trim(const std::string &str)
     std::string::size_type end = str.find_last_not_of(" ");
     return str.substr(start, end - start + 1);
 }
-
 
 /**
  * @brief split the string into parts and return it in a vector of strings
@@ -370,9 +361,7 @@ std::string getLocationPath(const std::string &locationBlock)
     }
 
     if (paths.empty())
-    {
         return "";
-    }
     else
     {
         std::string result = paths[0];

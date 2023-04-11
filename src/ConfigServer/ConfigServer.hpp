@@ -65,7 +65,6 @@ struct ServerBlocks
 	std::vector<std::string> _methods;
 	std::vector<std::string> _index;
 	std::vector<std::string> _errorPages;
-	// std::vector<std::string> _locations;
 	std::vector<ServerLocation> _locations;
 };
 
