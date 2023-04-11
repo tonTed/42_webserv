@@ -44,6 +44,28 @@ bool 		Response::setRoot(const std::string &location) {
 	return false;
 }
 
+bool 		Response::isRootValid() {
+	std::ifstream fd(_root.c_str());
+
+	if (fd)
+	{
+		fd.close();
+		return true;
+	}
+	return false;
+}
+
+void 		Response::addIndex(bool hasLocation, std::string location) {
+	std::string index;
+
+	if (hasLocation)
+		index = _config->_serversData[_request._serverId]._locations[location].index[0];
+	else
+		index = _config->_serversData[_request._serverId]._index[0];
+
+	_root += "/" + index;
+}
+
 std::string	Response::resolvePath() {
 
 	std::string location;
@@ -55,7 +77,7 @@ std::string	Response::resolvePath() {
 	hasLocation = setRoot(location);
 	if (hasExtension(_root))
 	{
-		if (localFileExist(_root))
+		if (isRootValid())
 		{
 			//send file
 		}
@@ -66,7 +88,8 @@ std::string	Response::resolvePath() {
 	}
 	else //no extension
 	{
-		if (localRootExist(_root))
+		addIndex(hasLocation, location);
+		if (isRootValid())
 		{
 			//send file
 		}

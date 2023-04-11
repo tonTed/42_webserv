@@ -25,7 +25,9 @@ public:
 
 	std::string	resolvePath();
 	std::string getLocation();
+	bool 		isRootValid();
 	bool 		setRoot(const std::string &location);
+	void 		addIndex(bool hasLocation, std::string location);
 
 public:
 		const Request & _request;

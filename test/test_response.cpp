@@ -190,4 +190,47 @@ TEST_CASE("Response::setRoot")
 	CHECK_MESSAGE(response._root == "test/data/www/dali/index.html", "should be test/data/www/dali/index.html");
 }
 
+
+TEST_CASE("Response::isRootValid")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+
+	response._root = "test/data/www/toto/index.html";
+	REQUIRE(response.isRootValid() == true);
+
+	response._root = "test/data/www/tata/test.txt";
+	REQUIRE(response.isRootValid() == false);
+}
+
+TEST_CASE("Response::addIndex")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+
+	//TODO remove this when config is done
+	config->_serversData[0]._index.push_back("index.html");
+
+	response._root = "test/data/www/toto";
+	response.addIndex(false, response.getLocation());
+	REQUIRE_MESSAGE(response._root == "test/data/www/toto/index.html", "should be test/data/www/toto/index.html");
+
+	response._root = "test/data/www/toto";
+	response.addIndex(true, "/tata");
+	REQUIRE_MESSAGE(response._root == "test/data/www/toto/index.html", "should be test/data/www/toto/index.html");
+
+}
+
 TEST_CASE("Request::clean") { remove("test/test_data_file");}
