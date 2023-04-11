@@ -66,6 +66,18 @@ std::string	Response::resolvePath() {
 	}
 	else //no extension
 	{
+		if (localRootExist(_root))
+		{
+			//send file
+		}
+		else if (hasLocation)
+		{
+			//resolve error pages 500
+		}
+		else
+		{
+			//resolve error pages 404
+		}
 	}
 
 	return resolvePath(_request._startLine.path);
