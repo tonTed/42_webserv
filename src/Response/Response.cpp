@@ -44,6 +44,12 @@ bool 		Response::setRoot(const std::string &location) {
 	return false;
 }
 
+bool 		Response::hasExtension(const std::string &path) {
+	if (path.find('.') != std::string::npos && path.find('.') != path.size() - 1)
+		return true;
+	return false;
+}
+
 bool 		Response::isRootValid() {
 	std::ifstream fd(_root.c_str());
 
@@ -66,12 +72,10 @@ void 		Response::addIndex(bool hasLocation, std::string location) {
 	_root += "/" + index;
 }
 
-std::string	Response::resolvePath() {
+void	Response::resolvePath() {
 
 	std::string location;
 	bool 		hasLocation = false;
-
-	(void)hasLocation;
 
 	location = getLocation();
 	hasLocation = setRoot(location);
@@ -102,117 +106,10 @@ std::string	Response::resolvePath() {
 			//resolve error pages 404
 		}
 	}
-
-	return resolvePath(_request._startLine.path);
-}
-
-std::string Response::resolvePath(const std::string &path) {
-	std::string resolvedPath = "Mock return" ;
-	std::string file;
-	std::string location;
-
-	location = "/" + _root.substr(0, _root.find_first_of('/'));
-	std::cout << BOLD_BLUE << "location: " << location << RESET << std::endl;
-	_root = path;
-
-	if (hasExtension(path))
-	{
-		removeFile(_root, file);
-		if (existInLocation(_root))
-		{
-			setLocalRoot(_root);
-			if (localFileExist(file))
-			{
-				resolvedPath = _root + file;
-			}
-			else
-			{
-				//resolve error pages 404
-			}
-		}
-		else
-		{
-			_root = _config->_serversData[_request._serverId]._root[0];
-			if (localFileExist(file))
-			{
-				resolvedPath = _root + file;
-				//send response file
-			}
-			else
-			{
-				//resolve error pages 404
-			}
-		}
-	}
-	else //no extension
-	{
-		if (existInLocation(_root))
-		{
-			setLocalRoot(_root);
-			resolvedPath = _root + _config->_serversData[_request._serverId]._locations[_root].index[0];
-		}
-		else
-		{
-			if(localRootExist(_root))
-			{
-				resolvedPath = _root + _config->_serversData[_request._serverId]._locations[_root].index[0];
-			}
-			else
-			{
-				//resolve error pages 500
-			}
-		}
-	}
-
-	return resolvedPath;
-}
-
-bool Response::hasExtension(const std::string &path) {
-	if (path.find('.') != std::string::npos && path.find('.') != path.size() - 1)
-		return true;
-	return false;
-}
-
-void Response::removeFile(std::string &path, std::string &file) {
-	size_t pos = path.find_last_of('/');
-	file = path.substr(pos + 1);
-	path = path.substr(0, pos + 1);
-}
-
-bool Response::existInLocation(const std::string &path) {
-
-	try { _config->_serversData.at(_request._serverId)._locations.at(path); }
-	catch (std::out_of_range &e) { (void)e; return false; }
-	return true;
-}
-
-bool Response::localRootExist(const std::string path) {
-	(void)path;
-	return localFileExist("index.html");
-//	return localFileExist(_config->_serversData.at(_request._serverId).index[0]);
-}
-
-bool Response::localFileExist(const std::string &file) {
-
-	std::string path = _root +  "/" + file;
-	std::ifstream fd(path.c_str());
-
-	if (fd)
-	{
-		fd.close();
-		return true;
-	}
-	return false;
-}
-
-void Response::setLocalRoot(const std::string path) {
-	_root = _config->_serversData.at(_request._serverId)._locations.at(path).root;
 }
 
 void Response::resolveErrorPages(const int status) {
 	_status = status;
-
-
 }
 
 

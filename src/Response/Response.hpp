@@ -10,24 +10,15 @@ class Response : CodeResponse {
 public:
 	Response(const Request &request, const int status);
 
-	void 			sendError();
-
-	std::string	resolvePath(const std::string &path);
-
-	bool		hasExtension(const std::string &path);
-	void		removeFile(std::string &path, std::string &file);
-	bool		existInLocation(const std::string &path);
-	bool		localRootExist(const std::string path);
-	bool		localFileExist(const std::string &file);
-	void		setLocalRoot(const std::string path);
 
 	void 		resolveErrorPages(const int status);
 
-	std::string	resolvePath();
-	std::string getLocation();
-	bool 		isRootValid();
-	bool 		setRoot(const std::string &location);
-	void 		addIndex(bool hasLocation, std::string location);
+	void		resolvePath();
+	std::string 	getLocation();
+	bool 			setRoot(const std::string &location);
+	bool			hasExtension(const std::string &path);
+	bool 			isRootValid();
+	void 			addIndex(bool hasLocation, std::string location);
 
 public:
 		const Request & _request;
