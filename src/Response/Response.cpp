@@ -51,6 +51,20 @@ std::string	Response::resolvePath() {
 
 	location = getLocation();
 	setRoot(location);
+	if (hasExtension(_root))
+	{
+		if (localFileExist(_root))
+		{
+			//send file
+		}
+		else
+		{
+			//resolve error pages 404
+		}
+	}
+	else //no extension
+	{
+	}
 
 	return resolvePath(_request._startLine.path);
 }
