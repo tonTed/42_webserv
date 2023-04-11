@@ -12,6 +12,7 @@
 # define POLLFD_LIMIT 50
 # define LISTEN_BACKLOG 50
 # define POLL_TIMEOUT -1
+# define UNSET -1
 
 typedef struct	indexInfo_s
 {

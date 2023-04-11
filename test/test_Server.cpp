@@ -15,15 +15,15 @@ TEST_CASE("Server::booting independant function")
 	serverTest.pollFdsInit();
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
-		CHECK(serverTest.getIIServerNum(index) == -1);
-		CHECK(serverTest.getIIClientIndex(index) == -1);
-		CHECK(serverTest.getIICGIReadIndex(index) == -1);
+		CHECK(serverTest.getIIServerNum(index) == UNSET);
+		CHECK(serverTest.getIIClientIndex(index) == UNSET);
+		CHECK(serverTest.getIICGIReadIndex(index) == UNSET);
 	}
 
 	serverTest.pollFdsInit();
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
-		CHECK(serverTest.getPFFd(index) == -1);
+		CHECK(serverTest.getPFFd(index) == UNSET);
 		CHECK(serverTest.getPFEvents(index) == POLLIN);
 		CHECK(serverTest.getPFRevents(index) == 0);
 	}
@@ -102,7 +102,7 @@ TEST_CASE("Server::setPortSocket")
 		serverTest.setPortSocket(port);
 		CHECK(serverTest.getPFFd(0) >= 3);
 		CHECK(serverTest.getPFFd(1) >= 3);
-		CHECK(serverTest.getPFFd(2) == -1);
+		CHECK(serverTest.getPFFd(2) == UNSET);
 
 	}
 	catch(const std::exception& e)
@@ -129,17 +129,20 @@ TEST_CASE("Server::setPortSocket2")
 
 	CHECK(serverTest.pollIndexSignal() == -1);
 
-	serverTest.setPFRevents(1, POLLIN);
+	serverTest.setPFRevents(0, POLLIN);
 	int signalIndex = serverTest.pollIndexSignal();
+	CHECK(signalIndex == 0);
+	CHECK(serverTest.getPFRevents(0) == 0);
+
+	serverTest.setPFRevents(1, POLLIN);
+	signalIndex = serverTest.pollIndexSignal();
 	CHECK(signalIndex == 1);
 	CHECK(serverTest.getPFRevents(1) == 0);
-	/* std::cout << "Before accepting" << std::endl;
-	write (serverTest.getPFFd(0), "http://localhost:9000/", 22);
-	int clientFd = serverTest.acceptClient(0);
-	std::cout << "after accepting" << std::endl;
-	CHECK(clientFd >= 3);
 
-	close(clientFd);
- */
+	CHECK(serverTest.pollFdsAvailable() == true);
+	for (int index = 2; index < POLLFD_LIMIT; index++)
+		serverTest.setPFFd(index, 10);
+	CHECK(serverTest.pollFdsAvailable() == false);
+	
 
 }

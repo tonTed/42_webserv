@@ -44,7 +44,7 @@ void	Server::pollFdsInit()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
-		_pollFds[index].fd = -1;
+		_pollFds[index].fd = UNSET;
 		_pollFds[index].events = POLLIN;
 		_pollFds[index].revents = 0;
 	}
@@ -188,7 +188,7 @@ void	Server::operating()
 }
 
 /*Return the first index of pollFds that have revents = POLLIN
-  Set server socket revents to 0
+  Set server socket revents to 0 value
   Return -1 if no fd found
 */
 int	Server::pollIndexSignal()
@@ -279,7 +279,7 @@ bool Server::pollFdsAvailable() const
 
 	for (int index = POLLFD_LIMIT - 1; index > 0; index--)
 	{
-		if (_pollFds[index].fd == 0)
+		if (_pollFds[index].fd == UNSET)
 		{
 			nbFdRequire--;
 			if (nbFdRequire == 0)
@@ -289,12 +289,12 @@ bool Server::pollFdsAvailable() const
 	return false;
 }
 
-//set the next disponible fd of _pollFds (fd at 0) and return the index
+//set the next disponible fd of _pollFds (fd at UNSET) and return the index
 int	Server::setPollFds(const int& fd)
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
-		if (_pollFds[index].fd == 0)
+		if (_pollFds[index].fd == UNSET)
 		{
 			_pollFds[index].fd = fd;
 			_pollFds[index].events = POLLIN;
@@ -327,9 +327,9 @@ void	Server::indexInfoInit()
 //reset _indexInfo[index]
 void	Server::resetIndexInfo(const int& index)
 {
-	_indexInfo[index].serverNum = -1;
-	_indexInfo[index].CGIReadIndex = -1;
-	_indexInfo[index].clientIndex = -1;
+	_indexInfo[index].serverNum = UNSET;
+	_indexInfo[index].CGIReadIndex = UNSET;
+	_indexInfo[index].clientIndex = UNSET;
 }
 
 //Set a new client cgi in _indexInfo
@@ -367,17 +367,17 @@ void	Server::closeConnection(const int& signalIndex)
 	//_reqs[reqIndex(signalIndex)].resetRequest();
 }
 
-//Close _pollFds[index] if >= 3 and reset it to 0
+//Close _pollFds[index] if >= 3 and reset it to UNSET
 void	Server::safeClose(int& fdSource)
 {
 	if (fdSource >= 3)
 	{
 		close(fdSource);
-		fdSource = -1;
+		fdSource = UNSET;
 	}
 }
 
-//Close all _pollFds != 0
+//Close all _pollFds != UNSET
 void	Server::closePollFds()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
