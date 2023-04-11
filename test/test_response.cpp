@@ -94,7 +94,6 @@ TEST_CASE("Response::setRoot")
 	CHECK_MESSAGE(response._root == "test/data/www/dali/index.html", "should be test/data/www/dali/index.html");
 }
 
-
 TEST_CASE("Response::isRootValid")
 {
 	int client;
@@ -136,5 +135,29 @@ TEST_CASE("Response::addIndex")
 	REQUIRE_MESSAGE(response._root == "test/data/www/toto/index.html", "should be test/data/www/toto/index.html");
 
 }
+
+TEST_CASE("Response::setHeader")
+{
+	int client;
+	remove("test/test_data_file");
+	client = creat("test/test_data_file", 0666);
+	char buffer[MAX_REQUEST_SIZE];
+	Request request(writeCloseOpen(client, buffer), 0);
+	Response response(request, 200);
+	ConfigServer *config = ConfigServer::getInstance();
+	config->setConfigServer("test/default.conf");
+
+	std::string expected;
+
+	expected = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 10\r\nConnection: close\r\n\r\n";
+	response._status = 200;
+	CHECK(response.setHeader(10) == expected );
+
+	expected = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 50\r\nConnection: close\r\n\r\n";
+	response._status = 500;
+	CHECK(response.setHeader(50) == expected );
+}
+
+
 
 TEST_CASE("Request::clean") { remove("test/test_data_file");}
