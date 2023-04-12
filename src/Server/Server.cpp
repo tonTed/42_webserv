@@ -1,126 +1,119 @@
 #include "Server.hpp"
 
-Server::Server()
-{
-	std::cout << "Server booting" << std::endl;
-	_pollFds = NULL;
-	configToServer(); //SET CONFIGURATIONS VARIABLES
-}
+Server::Server():_reqs(NULL) {serverRoutine();}
 
 Server::~Server()
 {
-	std::cout << "Server stop!" << std::endl;
-		
-	//Close all remaining fd (all server and not close client "on error")
-	if (_pollFds != NULL)
-	{
-		for (uint index = 0; index < pollFdSize; index++)
-		{
-			if (_pollFds[index].fd >= 3)
-				close(_pollFds[index].fd);
-		}
-		delete _pollFds;
-	}
-	// delete all indexInfo_t* dans _indexInfo
-	for (indexInfo_it it = _indexInfo.begin(); it != _indexInfo.end(); it++)
-		delete it->second;
+	closePollFds();
+	if (_reqs != NULL)
+		delete [] _reqs;
 }
 
-//PONT ENTRE CONFIG ET SERVER
-//INITIATION DE CERTAINES VARIABLE
-void	Server::configToServer()
+//*****************************SET/GET/TERS*************************************
+void	Server::setNbFdPort(const int& nbPort)	{_nbfdPort = nbPort;}
+int		Server::getNbFdPort() const				{return _nbfdPort;}
+//II -> IndexInfo
+void	Server::setIIServerNum(const int& index, const int& serverNum)		{_indexInfo[index].serverNum = serverNum;}
+int		Server::getIIServerNum(const int& index) const						{return _indexInfo[index].serverNum;}
+void	Server::setIICGIReadIndex(const int& index, const int& CGIReadIndex){_indexInfo[index].CGIReadIndex = CGIReadIndex;}
+int		Server::getIICGIReadIndex(const int& index) const					{return _indexInfo[index].CGIReadIndex;}
+void	Server::setIIClientIndex(const int& index, const int& ClientIndex)	{_indexInfo[index].clientIndex = ClientIndex;}
+int		Server::getIIClientIndex(const int& index) const					{return _indexInfo[index].clientIndex;}
+//PF -> pollFds
+void	Server::setPFFd(const int& index, const int& fd)				{_pollFds[index].fd = fd;}
+int		Server::getPFFd(const int& index) const							{return _pollFds[index].fd;}
+void	Server::setPFEvents(const int& index, const int& events)		{_pollFds[index].events = events;}
+int		Server::getPFEvents(const int& index) const						{return _pollFds[index].events;}
+void	Server::setPFRevents(const int& index, const int& revents)		{_pollFds[index].revents = revents;}
+int		Server::getPFRevents(const int& index) const					{return _pollFds[index].revents;}
+
+//*****************************BOOTING SERVER***********************************
+
+//Setup le server avant utilisation
+void	Server::booting()
+{
+	uint16_t	port[POLLFD_LIMIT];
+
+	indexInfoInit();
+	pollFdsInit();
+	recordPort(port);
+	setPortSocket(port);
+}
+
+void	Server::pollFdsInit()
+{
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+	{
+		_pollFds[index].fd = UNSET;
+		_pollFds[index].events = POLLIN;
+		_pollFds[index].revents = 0;
+	}
+}
+
+//Initialise les valeurs de port
+//Compte le nombre de fd de port
+void	Server::recordPort(uint16_t port[POLLFD_LIMIT])
 {
 	ConfigServer&	config = *ConfigServer::getInstance();
 	std::vector<ServerData>	serversData = config.getServerData();
 
-	maxClient = CONFIG_MAX_CLIENT;
-	_pollTimeOut = CONFIG_POLLTIMEOUT;
-	_nbFdServer = 0;
-	nbServer = -1;
+	_nbfdPort = 0;
 
 	for (std::vector<ServerData>::iterator itServer = serversData.begin();
 			itServer != serversData.end(); itServer++)
 	{
-		nbServer++;
 		for (std::vector<int>::iterator itPort = itServer->_serverPorts.begin();
 			itPort != itServer->_serverPorts.end(); itPort++)
 		{
-			indexInfoInsert(_nbFdServer);
-			indexInfoIt(_nbFdServer)->second->serverNo = nbServer;
-			indexInfoIt(_nbFdServer)->second->isServer = true;
-			indexInfoIt(_nbFdServer)->second->portBacklog = LISTEN_BACKLOG;
-			indexInfoIt(_nbFdServer)->second->port =  static_cast<uint16_t>(*itPort);
-			_nbFdServer++;
+			port[_nbfdPort] = static_cast<uint16_t>(*itPort);
+			_nbfdPort++;
 		}
 	}
-	pollFdSize = _nbFdServer + maxClient;
 }
 
-//main server process
-void	Server::routine()
+//Pour chaque fd de port, socket/setsockopt/bind/listen
+void	Server::setPortSocket(const uint16_t port[POLLFD_LIMIT])
 {
-	while (1)
+	for (int iSocket = 0; iSocket < _nbfdPort; iSocket++)
 	{
-		try
-		{
-			ServerBooting();
-			std::cout << "Server on" << std::endl;
-			ServerPollLoop();
-		}
-		catch (const ServerLoopingException::FctAcceptFail& e) {std::cout << e.what() << std::endl;}
-		catch (const ServerLoopingException::FctPollFail& e) {std::cout << e.what() << std::endl;}
-		catch (const ServerLoopingException::FindFail& e) {std::cout << e.what() << std::endl;}
-		catch (const ServerLoopingException::InsertFail& e) {std::cout << e.what() << std::endl;}
-		catch (const std::exception& e) {std::cout << e.what() << std::endl << "Server stop" << std::endl; break;}
+		bootSocket(iSocket);		//SET SERVER SOCKET (FD)
+		bootSetSockOpt(iSocket);	//OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
+		bootBind(iSocket, port);	//BINDING PORT AND SOCKET
+		bootListen(iSocket);		//LISTENING
 	}
 }
 
-
-
-//***********************BOOTING SERVER******************************
-//Creation des servers socket (listen socket)
-void	Server::ServerBooting()
+//Fonction socket protected by exception
+void	Server::bootSocket(const int& iSocket)
 {
-	//for all server socket
-	for (int iSocket = 0; iSocket < _nbFdServer; iSocket++)
-	{
-		bootingSocket(iSocket);		//SET SERVER SOCKET (FD)
-		bootingSetSockOpt(iSocket);	//OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
-		bootingBind(iSocket);		//BINDING PORT AND SOCKET
-		bootingListen(iSocket);		//LISTENING
-		pollFdSetFd(_pollFds, indexInfoIt(iSocket)->second->fd, iSocket); //ADDING SOCKET TO pollFds
-	}
-}
-
-//SET SERVER SOCKET (FD)
-void	Server::bootingSocket(const int& iSocket)
-{
-	if ((indexInfoIt(iSocket)->second->fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	if ((_pollFds[iSocket].fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		throw ServerBootingException::FctSocketFail();
 }
 
-//OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
-void	Server::bootingSetSockOpt(const int& iSocket)
+//SO_REUSEADDR permet la reutilisation du socket
+// opt = temp de deconnexion du socket et fd
+void	Server::bootSetSockOpt(const int& iSocket)
 {
 	int opt = 1;
 	
-	if (setsockopt(indexInfoIt(iSocket)->second->fd,
-			SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+	if (setsockopt(_pollFds[iSocket].fd,
+			SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
 		throw ServerBootingException::FctSetsockoptFail();
 }
 
-//BINDING PORT AND SOCKET
-void	Server::bootingBind(const int& iSocket)
+//BINDING SOCKET WITH PORT
+void	Server::bootBind(const int& iSocket, const uint16_t port[POLLFD_LIMIT])
 {
 	sockaddr_in addr;
 
-	setAddrServer(addr, indexInfoIt(iSocket)->second->port);
-	if (bind(indexInfoIt(iSocket)->second->fd,
-			reinterpret_cast<const sockaddr*>(&addr), sizeof(addr) < 0))
+	setAddrServer(addr, port[iSocket]);
+	if (bind(_pollFds[iSocket].fd,
+			reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) < 0)
+
 		throw ServerBootingException::FctBindFail();
 }
 
-//set addr for server socket purposes (bind )
+//set addr for server socket purposes (bind)
 void	Server::setAddrServer(sockaddr_in& addr, uint16_t port)
 {
 	addr.sin_family = AF_INET; 
@@ -128,54 +121,79 @@ void	Server::setAddrServer(sockaddr_in& addr, uint16_t port)
 	addr.sin_addr.s_addr = htonl(INADDR_ANY); 
 }
 
-//LISTENING
-void	Server::bootingListen(const int& iSocket)
+//Listen function protected by exception
+void	Server::bootListen(const int& iSocket)
 {
-	if (listen(indexInfoIt(iSocket)->second->fd,
-			indexInfoIt(iSocket)->second->portBacklog) < 0)
+	if (listen(_pollFds[iSocket].fd, LISTEN_BACKLOG) < 0)
 		throw ServerBootingException::FctBindFail();
 }
-//**************************************************************************
+
+//******************************************************************************
 
 
+//*****************************LOOPING SERVER***********************************
 
-// listen and redirection loop
-void	Server::ServerPollLoop()
+//main function of server
+void	Server::serverRoutine()
 {
+	try
+	{
+		booting();
+		operating();
+	}
+	catch (std::exception& e){std::cout << e.what() << std::endl;}	
+}
+
+
+// server loop (listen signal & redirection)
+void	Server::operating()
+{
+	_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
+	
+	_activeFds= _nbfdPort;
 	int signalIndex;
 	while (1)
 	{
-		//poll signal launcher
-		if (poll(_pollFds, _nbFdServer, _pollTimeOut) < 0)
-			throw ServerLoopingException::FctPollFail();
-		
+		if (poll(_pollFds, _activeFds, POLL_TIMEOUT) < 0)
+				std::cout << "poll return < 0: should never append" << std::endl;
+
 		//find the index of the signal find by poll in pollfds
 		if ((signalIndex = pollIndexSignal()) >= 0)
 		{
-			if (indexInfoIt(signalIndex)->second->isServer == true)	//REQUEST TO SERVER
+			switch (indexOrigin(signalIndex))
 			{
-				if (addNewClient(signalIndex) == 0)
-					std::cout << "TEMP MESSAGE -> REQUESTING TO SERVER" << std::endl;
-					//TODO ADD HERE -> REQUEST(serverNo, fd) & REMOVE -> TEMP MESSAGE
-			}
-			else 													//RESPONSE TO CLIENT
-			{
-				//TODO ADD HERE -> RESPONSE(fd) & REMOVE -> TEMP MESSAGE
-				std::cout << "TEMP MESSAGE -> RESPONDING TO CLIENT" << std::endl;
-				closeClient(signalIndex);
+				case FROM_PORT:
+					if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) >= 3)
+						std::cout << "Request made" << std::endl;
+						_reqs[reqIndex(signalIndex)].initRequest();
+					break;
+				
+				case FROM_CGI:
+					Response	respond(_reqs[reqIndex(signalIndex)]);
+					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
+					break;
+				
+				case FROM_CGI_PARSING:
+					closeConnection(signalIndex);
+					break;
+
+				default:
+					//Dev & debug purpose
+					std::cout << "indexInfo data corrupt" << std::endl;
 			}
 		}
+		else
+			throw ServerOperatingException::EndServer();
 	}
 }
 
-
 /*Return the first index of pollFds that have revents = POLLIN
-  Set server socket revents to 0
+  Set server socket revents to 0 value
   Return -1 if no fd found
 */
 int	Server::pollIndexSignal()
 {
-	for (unsigned int index = 0; index < pollFdSize; index++)
+	for (unsigned int index = 0; index < POLLFD_LIMIT; index++)
 	{
 		if (_pollFds[index].revents & POLLIN)
 		{
@@ -183,59 +201,181 @@ int	Server::pollIndexSignal()
 			return index;
 		}
 	}
-	std::cout << SERR_POLLINDEXSIGNAL << std::endl;
 	return -1;
 }
 
+//return the POLLIN signal origin
+int	Server::indexOrigin(const int& signalIndex) const
+{
+	if (signalIndex < _nbfdPort)
+		return FROM_PORT;
+	else if (_indexInfo[signalIndex].clientIndex == signalIndex)
+		return FROM_CGI_PARSING;
+	else if (_indexInfo[signalIndex].CGIReadIndex == signalIndex)
+		return FROM_CGI;
+	else
+		return -1;
+}
 
-//set pollfd et add new indexInfo
-int	Server::addNewClient(const int& signalIndex)
+//******************************************************************************
+
+
+//*****************************REQUEST******************************************
+
+/*Set reqInfo for request
+	- accept client (protected by condition)
+	- pipe for CGI (protected by condition)
+	- set pollFds with clientFd & CGIReadFd
+	- set indexInfo
+*/
+int	Server::setRequest(Request& req, const int& signalIndex)
+{
+	int clientFd = acceptClient(signalIndex);
+
+	if (clientFd >= 3) //client connected
+	{
+		if (pollFdsAvailable() == false) //Enough place in pollFds
+		{
+			int CGIPipe[2];
+			if (pipe(CGIPipe) != -1) //pipe status ok
+			{
+				int	clientIndex = setPollFds(clientFd);
+				int	CGIReadIndex = setPollFds(CGIPipe[PIPE_READ]);
+				
+				setIndexInfo(clientIndex, CGIReadIndex, signalIndex);
+				
+				_reqs[reqIndex(clientIndex)].setClient(clientFd);
+				_reqs[reqIndex(clientIndex)].setServerId(signalIndex);
+				_reqs[reqIndex(clientIndex)].setCGIFd(CGIPipe);
+
+				return clientIndex;
+			}
+			std::string	HTMLBusy = DefaultHTML::getHTMLError(500);
+			send(clientFd, &HTMLBusy, HTMLBusy.length(), NULL);
+			close(clientFd);
+		}
+	}
+	//Client not connected Impossible to answer
+	return -1;
+}
+
+//accept function with stuct sockaddr_in
+int	Server::acceptClient(const int& signalIndex)
 {
 	sockaddr_in addr;
 	socklen_t addrLen = sizeof(addr);
-	indexInfo_it indexInfoServer = indexInfoIt(signalIndex);
 	
-	int clientFd = accept(indexInfoServer->second->fd,
-			reinterpret_cast<sockaddr*>(&addr), &addrLen);
-	if (clientFd < 0)
-		throw ServerLoopingException::FctAcceptFail();
-	
-	if (int pollIndex = pollFdAdd(_pollFds, clientFd) < 0)
+	return (accept(_pollFds[signalIndex].fd,
+			reinterpret_cast<sockaddr*>(&addr), &addrLen));
+}
+
+//Return true if pollFds have at least 2 disponibles fd
+bool Server::pollFdsAvailable() const
+{
+	int nbFdRequire = 2;
+
+	for (int index = POLLFD_LIMIT - 1; index > 0; index--)
 	{
-		indexInfoInsert(pollIndex);
-		return 0;
+		if (_pollFds[index].fd == UNSET)
+		{
+			nbFdRequire--;
+			if (nbFdRequire == 0)
+				return true;
+		}
 	}
-	//TODO ADD HERE -> RESPONSE busy page or max client reached
-	close(clientFd);
+	return false;
+}
+
+//set the next disponible fd of _pollFds (fd at UNSET) and return the index
+int	Server::setPollFds(const int& fd)
+{
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+	{
+		if (_pollFds[index].fd == UNSET)
+		{
+			_pollFds[index].fd = fd;
+			_pollFds[index].events = POLLIN;
+			_pollFds[index].revents = 0;
+			_activeFds += 1;
+			return index;
+		}
+	}
 	return -1;
 }
 
-//Close client socket (fd) + delete infoIndex_t* + remove the map element for pollIndex
-void	Server::closeClient(const int& signalIndex)
+//bridge between signalIndex and _reqs index
+int	Server::reqIndex(const int& signalIndex) const
 {
-	indexInfo_it indexInfoClient = indexInfoIt(signalIndex);
-	
-	close(indexInfoClient->second->fd);
-	delete indexInfoClient->second;
-	_indexInfo.erase(indexInfoClient);
-	pollFdResetFd(_pollFds, signalIndex);
+	return ((signalIndex - _nbfdPort) / 2);
 }
 
-//return the iterator on _indexinfo (map) from index of pollFds
-indexInfo_it	Server::indexInfoIt(const int& pollIndex)
+//******************************************************************************
+
+
+//****************************INDEXINFO*****************************************
+
+//Reset all indexInfo
+void	Server::indexInfoInit()
 {
-	if (_indexInfo.find(pollIndex) == _indexInfo.end())
-		throw ServerLoopingException::FindFail();
-	return _indexInfo.find(pollIndex);
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+		resetIndexInfo(index);
 }
 
-void	Server::indexInfoInsert(const int& pollIndex)
+//reset _indexInfo[index]
+void	Server::resetIndexInfo(const int& index)
 {
-	_indexInfo.insert(std::pair<unsigned int, indexInfo_t*>(pollIndex, new indexInfo_t));
-	if (_indexInfo.find(pollIndex) == _indexInfo.end())
-		throw ServerLoopingException::InsertFail();
+	_indexInfo[index].serverNum = UNSET;
+	_indexInfo[index].CGIReadIndex = UNSET;
+	_indexInfo[index].clientIndex = UNSET;
 }
 
+//Set a new client cgi in _indexInfo
+void	Server::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum)
+{
+	_indexInfo[clientIndex].clientIndex = clientIndex;
+	_indexInfo[clientIndex].CGIReadIndex = CGIReadIndex;
+	_indexInfo[clientIndex].serverNum = serverNum;
+	_indexInfo[CGIReadIndex].clientIndex = clientIndex;
+	_indexInfo[CGIReadIndex].CGIReadIndex = CGIReadIndex;
+	_indexInfo[CGIReadIndex].serverNum = serverNum;
+}
+
+//******************************************************************************
 
 
+//****************************CLOSE CONNECTION**********************************
 
+//- Reset _indexInfo for the current request
+//- Close clienFd and CGIReadFd in _pollFds
+//- Reset _reqs[reqIndex(signalIndex)]
+void	Server::closeConnection(const int& signalIndex)
+{
+	int	clientIndex = _indexInfo[signalIndex].clientIndex;
+	int	CGIReadIndex = _indexInfo[signalIndex].CGIReadIndex;
+
+	resetIndexInfo(clientIndex);
+	resetIndexInfo(CGIReadIndex);
+
+	safeClose(_pollFds[clientIndex].fd);
+	safeClose(_pollFds[CGIReadIndex].fd);
+	_activeFds -= 2;
+
+	_reqs[reqIndex(signalIndex)].resetRequest();
+}
+
+//Close _pollFds[index] if >= 3 and reset it to UNSET
+void	Server::safeClose(int& fdSource)
+{
+	if (fdSource >= 3)
+	{
+		close(fdSource);
+		fdSource = UNSET;
+	}
+}
+
+//Close all _pollFds != UNSET
+void	Server::closePollFds()
+{
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+		safeClose(_pollFds[index].fd);
+}

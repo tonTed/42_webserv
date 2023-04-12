@@ -23,6 +23,7 @@
 # include <netdb.h>			//struct sockaddr_in
 # include <arpa/inet.h>		//htons
 # include <unistd.h>		//close
+# include <errno.h>			//errno for poll
 
 typedef std::string string;
 
@@ -38,6 +39,19 @@ enum eRequestType
 	TRACE,
 	PATCH,
 	UNKNOWN
+};
+
+enum eOriginFD
+{
+	FROM_PORT,
+	FROM_CGI,
+	FROM_CGI_PARSING,
+};
+
+enum ePipeDir
+{
+	PIPE_READ,
+	PIPE_WRITE,
 };
 
 # define EXIT_SUCCESS 0
