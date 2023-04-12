@@ -11,6 +11,12 @@ class Response : CodeResponse {
 public:
 	Response(const Request &request, const int status);
 
+	// Pour envoyer une erreur
+	Response(int client, int status);
+
+	// Pour envoyer une réponse provenant d'un CGI
+	Response(const Request &request);
+
 	void		resolvePath();
 	std::string 	getLocation();
 	bool 			setRoot(const std::string &location);
