@@ -24,12 +24,11 @@ void ConfigServer::setConfigServer(std::string paramFile)
 	{
 		_goodFile = true;
 		setConfigString(stringFile);
-		setServerBlocks(); // Assign Directive ligne into each ServerBlock element 
+		setServerBlocks(); // Assign Directive ligne into each ServerBlock element
 		std::vector<ServerBlocks> serverBlocks = getServerBlocks();
 		setServersData(serverBlocks); // Assign every directive value to the right ServerData Structure element
 
 		// printServerBlocks();
-
 
 		// TODO COMMENT THIS TO STOP PRINTING
 		std::vector<ServerData> data = getServerData();
@@ -65,8 +64,10 @@ ConfigServer &ConfigServer::operator=(const ConfigServer &config)
 	return (*this);
 }
 
-
-
+/**
+ * @brief Set the Config String object
+ *
+ */
 void ConfigServer::setConfigString(const std::string &configStr)
 {
 	this->_configString = configStr;
@@ -169,14 +170,21 @@ bool ConfigServer::readFile(const std::string inFile, std::string &stringLine)
 	return (true);
 }
 
-
-
-
+/**
+ * @brief Get the Config String object
+ *
+ * @return std::string the private Config string
+ */
 std::string ConfigServer::getConfigString()
 {
 	return (this->_configString);
 }
 
+/**
+ * @brief Get the Server Blocks private member
+ *
+ * @return std::vector<ServerBlocks> the server blocks vector
+ */
 std::vector<ServerBlocks> ConfigServer::getServerBlocks() const
 {
 	return (this->_serverBlocks);
@@ -191,9 +199,6 @@ std::vector<ServerData> ConfigServer::getServerData() const
 {
 	return this->_serversData;
 }
-
-
-
 
 /**
  * @brief Split configStr where all file is stored into blocks of servers
@@ -236,11 +241,16 @@ std::vector<string> ConfigServer::getServerBlocksData(const std::string &configS
 
 		std::cout << BOLD_RED << "Error: opening brace not found! " << RESET << std::endl;
 		// exit_error("Error: opening brace not found! |", "");
-			
 	}
 	return (serverBlocks);
 }
 
+/**
+ * @brief Split configStr where the server blocks are stored into blocks of location
+ *
+ * @param configStr the std::string every block server
+ * @return std::vector<string>  A vector of strings one by location
+ */
 std::vector<string> ConfigServer::getLocationBlocks(std::string &configStr)
 {
 	std::vector<string> locationBlocks;
@@ -257,8 +267,12 @@ std::vector<string> ConfigServer::getLocationBlocks(std::string &configStr)
 	return (locationBlocks);
 }
 
-
-
+/**
+ * @brief Get every part of every location block
+ *
+ * @param locations the vector of strings where every location block is saved
+ * @return std::vector<ServerLocation> the vector of location data is saved
+ */
 std::vector<ServerLocation> ConfigServer::getLocationPart(std::vector<std::string> locations)
 {
 	std::vector<ServerLocation> locationPart(locations.size());
@@ -273,14 +287,21 @@ std::vector<ServerLocation> ConfigServer::getLocationPart(std::vector<std::strin
 		locationPart[i]._methods = getDirective(confStr, " methods ");
 		locationPart[i]._redirection = getDirective(confStr, " return ");
 	}
-	return (locationPart);	
+	return (locationPart);
 }
 
-
+/**
+ * @brief Get the location directive line
+ *
+ * @param configStr the string where the directive line is saved
+ * @param directive the directive to get from configStr
+ * @returnstd::vector<std::string> the vector of strings of the directive
+ */
 std::vector<std::string> ConfigServer::getDirective(std::string &configStr, std::string directive)
 {
 	std::vector<std::string> directives;
 	std::string::size_type pos = 0;
+	int present = 0;
 	while ((pos = configStr.find(directive, pos)) != std::string::npos)
 	{
 		std::string::size_type endPos = configStr.find(";", pos);
@@ -293,119 +314,157 @@ std::vector<std::string> ConfigServer::getDirective(std::string &configStr, std:
 			// continue;
 		}
 		else
-		{
 			exit_error("Error: ; not found! |", "");
-		}
+		present++;
 	}
+	if (present && directives.empty())
+		exit_error("Error: Directive: " + directive + " present but value is empty!", "");
 	return directives;
 }
 
+/**
+ * @brief Get the location directive value
+ *
+ * @param configStr the string where the directive line is saved
+ * @param directive the directive value to get from configStr
+ * @returnstd::vector<std::string> the vector of strings of the directive values
+ */
 std::vector<std::string> ConfigServer::getDirectiveVal(const std::string &configStr, std::string directive)
 {
-    std::vector<std::string> valList;
-    size_t pos = configStr.find(directive);
+	std::vector<std::string> valList;
+	size_t pos = configStr.find(directive);
 	int present = 0;
-    if (pos != std::string::npos) 
+	if (pos != std::string::npos)
 	{
-        pos += directive.length();
-        size_t endPos = configStr.find(';', pos);
-        if (endPos != std::string::npos) {
-            std::string valStr = configStr.substr(pos, endPos - pos);
-            std::stringstream ss(valStr);
-            std::string val;
-            while (ss >> val) {
-                valList.push_back(val);
-            }
-        }
+		pos += directive.length();
+		size_t endPos = configStr.find(';', pos);
+		if (endPos != std::string::npos)
+		{
+			std::string valStr = configStr.substr(pos, endPos - pos);
+			std::stringstream ss(valStr);
+			std::string val;
+			while (ss >> val)
+			{
+				valList.push_back(val);
+			}
+		}
 		present++;
-    }
-	if(directive == " root ")
+	}
+	if (present && valList.empty())
+		exit_error("Error: Directive:   |" + directive + "|   present but value is empty!", "");
+	if (directive == " root ")
 	{
-		if(valList.size() != 1)
+		if (valList.size() != 1)
 			exit_error("Error: Too many or no root |", "|");
 		valList.at(0) = format_string(valList.at(0));
 	}
-	if(directive == " autoIndex " && present)
+	if (directive == " autoindex " && present)
 	{
-		if(valList.size() != 1 || !validAutoindex(valList.at(0)))
-			exit_error("Error: Bad or no autoIndex |", "|");
+		if (valList.size() != 1 || !validAutoindex(valList.at(0)))
+			exit_error("Error: Bad or no autoIndex |", valList.at(0) + "|");
 	}
-    return valList;
+	return valList;
 }
 
-
+/**
+ * @brief Get the hosts from the listen directive
+ *
+ * @param configStr the string where the directive line is saved
+ * @return std::vector<std::string> the vector of strings of the hosts
+ */
 std::vector<std::string> ConfigServer::getHosts(const std::string &configStr)
 {
-    std::vector<std::string> hosts;
-    std::istringstream iss(configStr);
-    std::string token;
+	std::vector<std::string> hosts;
+	std::istringstream iss(configStr);
+	std::string token;
 
-    while (iss >> token) {
-        size_t colonPos = token.find(":");
-        if (colonPos != std::string::npos) {
-            std::string host = token.substr(0, colonPos);
-			if(!validHost(host))
+	while (iss >> token)
+	{
+		size_t colonPos = token.find(":");
+		if (colonPos != std::string::npos)
+		{
+			std::string host = token.substr(0, colonPos);
+			if (!validHost(host))
 				exit_error("Error: Invalid Host |", host + "|");
-            hosts.push_back(host);
-        }
-    }
-    return hosts;
+			hosts.push_back(host);
+		}
+	}
+	return hosts;
 }
 
+/**
+ * @brief Get the ports from the listen directive
+ *
+ * @param configStr the string where the directive line is saved
+ * @return std::vector<std::string> the vector of strings of the ports
+ */
 std::vector<int> ConfigServer::getPorts(const std::string &configStr)
 {
-    std::vector<int> ports;
+	std::vector<int> ports;
 
-    std::istringstream iss(configStr);
-    std::string token;
+	std::istringstream iss(configStr);
+	std::string token;
 
-    while (iss >> token) 
+	while (iss >> token)
 	{
-        if (token.find(':') != std::string::npos) {
-            // Token contains a colon, so extract port number
-            size_t colon_pos = token.find(':');
-            std::string port_str = token.substr(colon_pos + 1);
-            int port = atoi(port_str.c_str());
-			if(!validPort(port))
-				exit_error("Error: Invalid Port |", port_str + "|");
-            ports.push_back(port);
-        }
-		else if (isdigit(token[0])) 
+		if (token.find(':') != std::string::npos)
 		{
-            // Token is a standalone port number
-            int port = atoi(token.c_str());
-			if(!validPort(port))
+			// Token contains a colon, so extract port number
+			size_t colon_pos = token.find(':');
+			std::string port_str = token.substr(colon_pos + 1);
+			int port = atoi(port_str.c_str());
+			if (!validPort(port))
+				exit_error("Error: Invalid Port |", port_str + "|");
+			ports.push_back(port);
+		}
+		else if (isdigit(token[0]))
+		{
+			// Token is a standalone port number
+			int port = atoi(token.c_str());
+			if (!validPort(port))
 				exit_error("Error: Invalid Port |", token + "|");
-            ports.push_back(port);
-        }
-    }
-    return ports;
+			ports.push_back(port);
+		}
+	}
+	return ports;
 }
 
+/**
+ * @brief Get the error pages from the error_page directive
+ *
+ * @param configStr the string where the directive line is saved
+ * @return std::map<int, std::string> the map of error codes and error pages
+ */
 std::map<int, std::string> ConfigServer::getErrorPages(const std::string &configStr)
 {
-    std::map<int, std::string> errorPages;
-    std::istringstream iss(configStr);
-    std::string line;
-    while (std::getline(iss, line)) {
-        if (line.substr(0, 12) == " error_page ") 
+	std::map<int, std::string> errorPages;
+	std::istringstream iss(configStr);
+	std::string line;
+	while (std::getline(iss, line))
+	{
+		if (line.substr(0, 12) == " error_page ")
 		{
-            std::istringstream lineIss(line.substr(11));
-            int errorCode;
-            std::string errorPage;
-            while (lineIss >> errorCode >> errorPage) {
-                // Remove semicolon from error page if present
-                if (errorPage.size() > 0 && errorPage[errorPage.size()-1] == ';') 
-                    errorPage = errorPage.substr(0, errorPage.size()-1);
-				if(!validErrorPage(errorCode, errorPage))
-					exit_error("Error: Invalid Error Code |", std::to_string(errorCode) + "|");
-                errorPages[errorCode] = errorPage;
-            }
-        }
-    }
-    return errorPages;
+			std::istringstream lineIss(line.substr(11));
+			int errorCode;
+			std::string errorPage;
+			while (lineIss >> errorCode >> errorPage)
+			{
+				// Remove semicolon from error page if present
+				if (errorPage.size() > 0 && errorPage[errorPage.size() - 1] == ';')
+					errorPage = errorPage.substr(0, errorPage.size() - 1);
+				if (!validErrorPage(errorCode, errorPage))
+				{
+					std::stringstream ss;
+					ss << errorCode;
+					exit_error("Error: Invalid Error Code |", ss.str() + "|");
+				}
+				// exit_error("Error: Invalid Error Code |", std::to_string(errorCode) + "|");
+				errorPages[errorCode] = errorPage;
+			}
+		}
+	}
+	return errorPages;
 }
-
 
 /**
  * @brief Get every element from location and set it
@@ -417,7 +476,7 @@ Locations ConfigServer::settingLocation(ServerLocation &locStruct, ServerData &s
 {
 	Locations location;
 	// // ROOT
-	for(size_t i = 0; i < locStruct._root.size(); i++)
+	for (size_t i = 0; i < locStruct._root.size(); i++)
 	{
 		std::vector<std::string> roots = getDirectiveVal(locStruct._root[i], " root ");
 		location.root = roots[0]; // TODO Check how many roots and if valid
@@ -426,9 +485,13 @@ Locations ConfigServer::settingLocation(ServerLocation &locStruct, ServerData &s
 	}
 
 	// // INDEXES
-	for(size_t i = 0; i < locStruct._root.size(); i++)
+	for (size_t i = 0; i < locStruct._root.size(); i++)
 	{
 		std::vector<std::string> indexes = getDirectiveVal(locStruct._index[i], " index ");
+		for (size_t i = 0; i < indexes.size(); i++)
+		{
+			validIndex(indexes[i], location.root);
+		}
 		location.index = indexes; // TODO Check how many roots and if valid
 		if (location.index.empty())
 			location.index = serverBlock._index;
@@ -459,6 +522,10 @@ Locations ConfigServer::settingLocation(ServerLocation &locStruct, ServerData &s
 	return location;
 }
 
+/**
+ * @brief Save directives from the file into ServerBlocks to parse from
+ *
+ */
 void ConfigServer::setServerBlocks()
 {
 	std::vector<std::string> blocks = getServerBlocksData(getConfigString());
@@ -505,7 +572,7 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 				servers[i]._serverPorts.push_back(ports[x]);
 			}
 		}
-		
+
 		// SERVER NAMES
 		for (int j = 0; j < static_cast<int>(blocks[i]._serverNames.size()); j++)
 		{
@@ -532,6 +599,7 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			std::vector<std::string> indexes = getDirectiveVal(blocks[i]._index[j], " index ");
 			for (int n = 0; n < static_cast<int>(indexes.size()); n++)
 			{
+				validIndex(indexes[n], servers[i]._root[0]);
 				servers[i]._index.push_back(indexes[n]);
 			}
 		}
@@ -553,29 +621,36 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			}
 		}
 
-
 		// SETTING LOCATIONS
 		std::vector<std::string> paths;
 		for (size_t j = 0; j < blocks[i]._locations.size(); j++)
 		{
 			paths.push_back(blocks[i]._locations[j]._path);
-			if(pathDup(paths))
+			if (pathDup(paths))
 				exit_error("Error: Duplicate Path |", blocks[i]._locations[j]._path + "|");
 			servers[i]._locations[blocks[i]._locations[j]._path] = settingLocation(blocks[i]._locations[j], servers[i]);
 		}
 
 		// MORE NECESSARY CHECKS
-		if(portDup(servers[i]._serverPorts))
-			exit_error("Error: Duplicate Port |", std::to_string(servers[i]._serverPorts[0]) + "|");
-		// if(!validFilePath(servers[i]._root[0] + "/" + servers[i]._index[0])) // TODO to fix find a better way 
+		if (portDup(servers[i]._serverPorts))
+		{
+			std::stringstream ss;
+			ss << servers[i]._serverPorts[0];
+			exit_error("Error: Invalid Error Code |", ss.str() + "|");
+			// exit_error("Error: Duplicate Port |", std::to_string(servers[i]._serverPorts[0]) + "|");
+		}
+
+		// if(!validFilePath(servers[i]._root[0] + "/" + servers[i]._index[0])) // TODO to fix find a better way
 		// 	exit_error("Error: Invalid File Path |",
 		// 	servers[i]._root[0] + "/" + servers[i]._index[0] + "|");
-
 	}
 	this->_serversData = servers;
 }
 
-
+/**
+ * @brief Print the Server Blocks data
+ *
+ */
 void ConfigServer::printServerBlocks()
 {
 	std::vector<ServerBlocks> data = getServerBlocks();
@@ -660,78 +735,89 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 				  << YELLOW << "Hosts: ";
 		for (std::vector<string>::iterator itHosts = it->_hosts.begin(); itHosts != it->_hosts.end(); ++itHosts)
 		{
-			std::cout << RESET << "|" << *itHosts << "|" << " ";
+			std::cout << RESET << "|" << *itHosts << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Server ports: ";
 		for (std::vector<int>::iterator itPorts = it->_serverPorts.begin(); itPorts != it->_serverPorts.end(); ++itPorts)
 		{
-			std::cout << RESET << "|" << *itPorts << "|" << " ";
+			std::cout << RESET << "|" << *itPorts << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Server names: ";
 		for (std::vector<std::string>::iterator itNames = it->_serverNames.begin(); itNames != it->_serverNames.end(); ++itNames)
 		{
-			std::cout << RESET << "|" << *itNames << "|" << " ";
+			std::cout << RESET << "|" << *itNames << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Methods: ";
 		for (std::vector<enum eRequestType>::iterator itMethods = it->_methods.begin(); itMethods != it->_methods.end(); ++itMethods)
 		{
-			std::cout << RESET << "|" << *itMethods << "|" << " ";
+			std::cout << RESET << "|" << *itMethods << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Root: ";
 		for (std::vector<std::string>::iterator itRoot = it->_root.begin(); itRoot != it->_root.end(); ++itRoot)
 		{
-			std::cout << RESET << "|" << *itRoot << "|" << " ";
+			std::cout << RESET << "|" << *itRoot << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Index: ";
 		for (std::vector<std::string>::iterator itIndex = it->_index.begin(); itIndex != it->_index.end(); ++itIndex)
 		{
-			std::cout << RESET << "|" << *itIndex << "|" << " ";
+			std::cout << RESET << "|" << *itIndex << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Error pages: ";
 		for (std::map<int, std::string>::iterator itErrorPages = it->_errorPages.begin(); itErrorPages != it->_errorPages.end(); ++itErrorPages)
 		{
-			std::cout << RESET << "|" << itErrorPages->first << ": " << itErrorPages->second << "|"  << " ";
+			std::cout << RESET << "|" << itErrorPages->first << ": " << itErrorPages->second << "|"
+					  << " ";
 		}
 		std::cout << std::endl;
 
 		std::cout << YELLOW << "Locations: " << std::endl;
-		for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin(); 
-			itLocations != it->_locations.end(); ++itLocations)
+		for (std::map<std::string, struct Locations>::iterator itLocations = it->_locations.begin();
+			 itLocations != it->_locations.end(); ++itLocations)
 		{
 			std::cout << BOLD_MAGENTA << "|Root:" << RESET << itLocations->first << ": |"
 					  << itLocations->second.root << "|" << std::endl;
 			std::cout << BOLD_MAGENTA << "|Autoindex:" << RESET << itLocations->first << ": |"
 					  << itLocations->second.autoindex << "|" << std::endl;
-			std::cout << BOLD_MAGENTA << "|Redirection: " << RESET << "|" << itLocations->first << ": " 
-					  << itLocations->second.redirection << "|"  << " " << std::endl;
+			std::cout << BOLD_MAGENTA << "|Redirection: " << RESET << "|" << itLocations->first << ": "
+					  << itLocations->second.redirection << "|"
+					  << " " << std::endl;
 
 			std::cout << BOLD_MAGENTA << "|Methods: ";
 			for (std::vector<enum eRequestType>::iterator itMethods = itLocations->second.methods.begin();
-					itMethods != itLocations->second.methods.end(); ++itMethods)
+				 itMethods != itLocations->second.methods.end(); ++itMethods)
 			{
-				std::cout << RESET << "|" << *itMethods << "|" << " ";
+				std::cout << RESET << "|" << *itMethods << "|"
+						  << " ";
 			}
 			std::cout << std::endl;
-			
+
 			std::cout << BOLD_MAGENTA << "|Index: ";
 			for (int n = 0; n < static_cast<int>(itLocations->second.index.size()); n++)
 			{
-				std::cout << RESET << " |" << itLocations->second.index[n] << "| " ;
+				std::cout << RESET << " |" << itLocations->second.index[n] << "| ";
 			}
-			std::cout << std::endl << std::endl;
+			std::cout << std::endl
+					  << std::endl;
 		}
 		std::cout << std::endl;
 	}
 }
+

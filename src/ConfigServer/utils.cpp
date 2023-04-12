@@ -46,18 +46,6 @@ bool isrealspace(char c)
 }
 
 /**
- * @brief Print an error and exit
- *
- * @param str the error string
- * @param err the error object
- */
-void exit_error(string str, string err)
-{
-    std::cout << BOLD_RED << str << err << RESET << std::endl;
-    exit(1); // TODO fix the error!
-}
-
-/**
  * @brief Validate that the braces are even
  *
  * @param str The string to check
@@ -75,6 +63,18 @@ bool validBraces(const string &str)
             count--;
     }
     return (count == 0);
+}
+
+/**
+ * @brief Print an error and exit
+ *
+ * @param str the error string
+ * @param err the error object
+ */
+void exit_error(string str, string err)
+{
+    std::cout << BOLD_RED << str << err << RESET << std::endl;
+    exit(1); // TODO fix the error!
 }
 
 /**
@@ -102,18 +102,6 @@ bool validHost(std::string host)
 }
 
 /**
- * @brief Check if the server name is valid
- *
- * @param serverName the server name to check
- * @return true if the server name is valid
- * @return false if the server name is not valid
- */
-bool validServerName(std::string serverName) // TODO check if the server name is duplicate in 2 diffrent servers
-{
-    return (serverName != "");
-}
-
-/**
  * @brief check if the error pages are valid
  *
  * @param input the error page string
@@ -130,12 +118,6 @@ bool validErrorPage(int code, std::string input)
     return true; // TODO add the path checking 
 }
 
-
-
-
-
-
-
 /**
  * @brief check if the file path is valid
  *
@@ -149,6 +131,13 @@ bool validFilePath(std::string input)
     return file.good();
 }
 
+/**
+ * @brief check if the root is valid
+ *
+ * @param input the root to check
+ * @return true if the root is valid
+ * @return false if the root is not valid
+ */
 bool validRoot(std::string input)
 {
     size_t i = 0;
@@ -167,9 +156,14 @@ bool validRoot(std::string input)
     return true;
 }
 
+/**
+ * @brief Reformat the root path
+ *
+ * @param str the root to reformat
+ * @return string: return the reformated string
+ */
 std::string format_string(const std::string &str)
 {
-    // std::cout << std::endl <<  "str: " << str << std::endl << std::endl;
     if (!validRoot(str))
         exit_error("Error: Bad Root |", str + "|");
 
@@ -187,6 +181,12 @@ std::string format_string(const std::string &str)
     return result;
 }
 
+/**
+ * @brief Check if the methods are valid
+ *
+ * @param words the methods to check
+ * @return std::vector<enum eRequestType> the valid methods
+ */
 std::vector<enum eRequestType> validMethods(std::vector<std::string> words)
 {
     std::vector<enum eRequestType> methods;
@@ -245,71 +245,6 @@ bool pathDup(std::vector<std::string> seq)
     }
     return false;
 }
-
-
-
-
-
-
-/**
- * @brief Check if the client size is valid
- *
- * @param clientSize the client size to check
- * @return true if the client size is valid
- * @return false if the client size is not valid
- */
-bool validClientSize(int clientSize)
-{
-    return (clientSize > 0);
-}
-
-/**
- * @brief Check if the body size is valid
- *
- * @param bodySize the body size to check
- * @return true if the body size is valid
- * @return false if the body size is not valid
- */
-bool validBodySize(int bodySize)
-{
-    return (bodySize > 0);
-}
-
-
-
-/**
- * @brief trim a tring from the spaces
- *
- * @param str the string to trim
- * @return std::string the string without the spaces
- */
-std::string trim(const std::string &str)
-{
-    std::string::size_type start = str.find_first_not_of(" ");
-    if (start == std::string::npos)
-        return "";
-    std::string::size_type end = str.find_last_not_of(" ");
-    return str.substr(start, end - start + 1);
-}
-
-/**
- * @brief split the string into parts and return it in a vector of strings
- *
- * @param input the string to split
- * @return std::vector<std::string> the splitted string
- */
-std::vector<std::string> splitString(std::string input)
-{
-    std::vector<std::string> result;
-    std::istringstream iss(input);
-    std::string word;
-    while (iss >> word)
-    {
-        result.push_back(word);
-    }
-    return result;
-}
-
 
 /**
  * @brief check if the path is valid
@@ -380,21 +315,17 @@ std::string getLocationPath(const std::string &locationBlock)
  * @return true if valid
  * @return false if not valid
  */
-void validIndex(Locations &input)
+void validIndex(std::string &input, std::string &root)
 {
-    // Check if the index + root is valid
     std::string path = "";
-    for (int i = 0; i < (int)input.index.size(); i++)
-    {
-        if (input.index[i].size() < 4 && (input.index[i].substr(input.index[i].size() - 5) != ".html" || input.index[i].substr(input.index[i].size() - 4) != ".htm"))
-            exit_error("Error:: ", input.index[i] + " is not a valid index!");
-        if (input.root == "/")
-            path = "";
-        else
-            path = input.root;
-        if (!validFilePath(path + "/" + input.index[i]))
-            exit_error("Error: index path:-: |", (path + input.index[i]) + "| not valid");
-    }
+    if (input.size() < 6 || (input.substr(input.size() - 5) != ".html" && input.substr(input.size() - 4) != ".htm"))
+        exit_error("Error:: ", input + " is not a valid index!");
+    if (root == "/")
+        path = "";
+    else
+        path = root + "/";
+    if (!validFilePath(path + input))
+        exit_error("Error: index path: |", (path + input) + "| not valid");
 }
 
 /**
@@ -406,15 +337,7 @@ void validIndex(Locations &input)
  */
 bool validAutoindex(std::string input)
 {
-    if (input != "on" && input != "off")
+    if (input != "ON" && input != "OFF")
         return false;
     return true;
 }
-
-
-
-
-
-
-
-
