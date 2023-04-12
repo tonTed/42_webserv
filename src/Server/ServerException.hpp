@@ -9,9 +9,7 @@
 # define SERVEX_BIND_FAIL "Error: ServerBooting: bind function fail"
 # define SERVEX_LISTEN_FAIL "Error: ServerBooting: listen function fail"
 # define SERVEX_ACCEPT_FAIL "Error: addNewClient: accept function fail"
-# define SERVEX_POLL_FAIL "Error: addNewClient: poll function fail"
-# define SERVEX_INSERT_FAIL "Error: indexInfoIt: map.insert(): map.insert fail in _indexInfo"
-# define SERVEX_FIND_FAIL "Error: indexInfoIt: map.find(): index not found in _indexInfo"
+# define SERVEX_SIGINT "SIGINT stopping server"
 
 class ServerBootingException
 {
@@ -42,31 +40,13 @@ public:
 
 };
 
-class ServerLoopingException
+class ServerOperatingException
 {
 public:
-	class	FctAcceptFail: public std::exception
+	class	EndServer: public std::exception
 	{
 		public:
-			virtual const char* what() const throw() {return (SERVEX_ACCEPT_FAIL);}
-	};
-
-	class	FctPollFail: public std::exception
-	{
-		public:
-			virtual const char* what() const throw() {return (SERVEX_POLL_FAIL);}
-	};
-	
-	class	InsertFail: public std::exception
-	{
-		public:
-			virtual const char* what() const throw() {return (SERVEX_FIND_FAIL);}
-	};
-
-	class	FindFail: public std::exception
-	{
-		public:
-			virtual const char* what() const throw() {return (SERVEX_FIND_FAIL);}
+			virtual const char* what() const throw() {return (SERVEX_SIGINT);}
 	};
 };
 

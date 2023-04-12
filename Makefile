@@ -23,7 +23,9 @@ OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
 
 # Name the compiler & flags
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+#TODO PUT BACK FLAG WITH C++98
+#CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror
 CFLAGS += -I. -MMD
 
 # rules for compile

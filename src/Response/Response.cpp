@@ -11,6 +11,9 @@ Response::Response(const Request &request, int status) : _request(request), _sta
 	}
 }
 
+Response::Response(const Request &request) : _request(request){
+	_config = ConfigServer::getInstance();
+}
 
 /**
  * @brief   If the location exists in the config file, set the root to the location root
