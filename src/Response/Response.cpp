@@ -96,12 +96,22 @@ void	Response::resolvePath() {
 		}
 	}
 	if (_status == 200)
-	{
 		formatResponse();
-	}
 	else
 	{
-		//send error
+		if(_config->_serversData[_request._serverId]._errorPages.find(_status) != _config->_serversData[_request._serverId]._errorPages.end())
+		{
+			_root = _config->_serversData[_request._serverId]._errorPages[_status];
+			formatResponse();
+		}
+		else
+		{
+			std::string body;
+
+			body = DefaultHTML::getHtml(_status);
+			_response = setHeader(body.length());
+			_response += body;
+		}
 	}
 
 }

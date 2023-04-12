@@ -4,6 +4,7 @@
 #include "../../includes/webserv.hpp"
 #include "../Request/Request.hpp"
 #include "CodeResponse.hpp"
+#include "DefaultHtml.hpp"
 
 class Response : CodeResponse {
 

@@ -11,7 +11,7 @@
 class DefaultHTML : public CodeResponse {
 
 public:
-	std::string getHtml(int status);
+	static std::string getHtml(int status);
 };
 
 
