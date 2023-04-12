@@ -21,6 +21,7 @@ typedef struct	indexInfo_s
 	int	serverNum;
 	int	CGIReadIndex;
 	int	clientIndex;
+	int	reqIndex;
 }				indexInfo_t;
 
 class Request;
@@ -82,7 +83,7 @@ public:
 	int				acceptClient(const int& signalIndex);
 	bool			pollFdsAvailable() const;
 	int				setPollFds(const int& fd);
-	int				reqIndex(const int& signalIndex) const;
+	int				reqAvailIndex() const;
 
 //****************************INDEXINFO*****************************************
 

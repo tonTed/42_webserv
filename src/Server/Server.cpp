@@ -178,12 +178,12 @@ void	Server::operating()
 				{
 					sleep(3);
 					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
-					Response	respond(_reqs[reqIndex(signalIndex)]);
+					Response	respond(_reqs[_indexInfo[signalIndex].reqIndex]);
 					break;
 				}
 				case FROM_CGI_PARSING:
 				{
-					_reqs[reqIndex(signalIndex)]._initRequest();
+					_reqs[_indexInfo[signalIndex].reqIndex]._initRequest();
 					std::cout << "ClosingConnection" << std::endl;
 					closeConnection(signalIndex);
 					std::cout << "connection closed" << std::endl;
@@ -293,9 +293,9 @@ bool	Server::setRequest(const int& signalIndex)
 				
 				setIndexInfo(clientIndex, CGIReadIndex, signalIndex);
 				
-				_reqs[reqIndex(clientIndex)].setClient(clientFd);
-				_reqs[reqIndex(clientIndex)].setServerId(signalIndex);
-				_reqs[reqIndex(clientIndex)].setCGIFd(CGIPipe);
+				_reqs[_indexInfo[signalIndex].reqIndex].setClient(clientFd);
+				_reqs[_indexInfo[signalIndex].reqIndex].setServerId(signalIndex);
+				_reqs[_indexInfo[signalIndex].reqIndex].setCGIFd(CGIPipe);
 
 				std::cout << "clientIndex: " << clientIndex << std::endl;
 
@@ -354,10 +354,14 @@ int	Server::setPollFds(const int& fd)
 	return -1;
 }
 
-//bridge between signalIndex and _reqs index
-int	Server::reqIndex(const int& signalIndex) const
+int	Server::reqAvailIndex() const
 {
-	return ((signalIndex - _nbfdPort) / 2);
+	for (int index = 0; index < (POLLFD_LIMIT - _nbfdPort) / 2; index++)
+	{
+		if (_reqs[index].getClient() == -1)
+			return index;
+	}
+	return -1;
 }
 
 //******************************************************************************
@@ -378,17 +382,22 @@ void	Server::resetIndexInfo(const int& index)
 	_indexInfo[index].serverNum = UNSET;
 	_indexInfo[index].CGIReadIndex = UNSET;
 	_indexInfo[index].clientIndex = UNSET;
+	_indexInfo[index].reqIndex = UNSET;
 }
 
 //Set a new client cgi in _indexInfo
 void	Server::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum)
 {
+	int	reqIndex = reqAvailIndex();
+	
 	_indexInfo[clientIndex].clientIndex = clientIndex;
 	_indexInfo[clientIndex].CGIReadIndex = CGIReadIndex;
 	_indexInfo[clientIndex].serverNum = serverNum;
+	_indexInfo[clientIndex].reqIndex = reqIndex;
 	_indexInfo[CGIReadIndex].clientIndex = clientIndex;
 	_indexInfo[CGIReadIndex].CGIReadIndex = CGIReadIndex;
 	_indexInfo[CGIReadIndex].serverNum = serverNum;
+	_indexInfo[CGIReadIndex].reqIndex = reqIndex;
 }
 
 //******************************************************************************
@@ -409,7 +418,7 @@ void	Server::closeConnection(const int& signalIndex)
 	safeClose(_pollFds[clientIndex].fd);
 	safeClose(_pollFds[CGIReadIndex].fd);
 	_activeFds -= 2;
-	_reqs[reqIndex(signalIndex)].resetRequest();
+	_reqs[_indexInfo[signalIndex].reqIndex].resetRequest();
 
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{

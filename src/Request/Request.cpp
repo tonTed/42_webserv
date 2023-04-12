@@ -368,6 +368,10 @@ void Request::setClient(int client) {
 	_client = client;
 }
 
+int	Request::getClient() const{
+	return _client;
+}
+
 void	Request::setServerId(int serverId) {
 	_serverId = serverId;
 }
