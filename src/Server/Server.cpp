@@ -107,9 +107,7 @@ void	Server::bootBind(const int& iSocket, const uint16_t port[POLLFD_LIMIT])
 	sockaddr_in addr;
 
 	setAddrServer(addr, port[iSocket]);
-	if (bind(_pollFds[iSocket].fd,
-			reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) < 0)
-
+	if (bind(_pollFds[iSocket].fd, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) < 0)
 		throw ServerBootingException::FctBindFail();
 }
 
@@ -160,13 +158,16 @@ void	Server::operating()
 		//find the index of the signal find by poll in pollfds
 		if ((signalIndex = pollIndexSignal()) >= 0)
 		{
+
 			switch (indexOrigin(signalIndex))
 			{
 				case FROM_PORT:
 				{
-					if (setRequest(signalIndex) >= 3)
-						std::cout << "Request made" << std::endl;
+					std::cout<< "signalIndex: " << signalIndex << std::endl;
+					if (setRequest(signalIndex) == true)
 						_reqs[reqIndex(signalIndex)]._initRequest();
+					else
+						std::cout << "Request Fail" << std::endl;
 					break;
 				}
 				case FROM_CGI:
@@ -233,17 +234,21 @@ int	Server::indexOrigin(const int& signalIndex) const
 	- set pollFds with clientFd & CGIReadFd
 	- set indexInfo
 */
-int	Server::setRequest(const int& signalIndex)
+bool	Server::setRequest(const int& signalIndex)
 {
 	int clientFd = acceptClient(signalIndex);
 
 	if (clientFd >= 3) //client connected
 	{
-		if (pollFdsAvailable() == false) //Enough place in pollFds
+		if (pollFdsAvailable() == true) //Enough place in pollFds
 		{
+
+			std::cout << "clientFd: " << clientFd << std::endl;
+
 			int CGIPipe[2];
 			if (pipe(CGIPipe) != -1) //pipe status ok
 			{
+
 				int	clientIndex = setPollFds(clientFd);
 				int	CGIReadIndex = setPollFds(CGIPipe[PIPE_READ]);
 				
@@ -253,7 +258,9 @@ int	Server::setRequest(const int& signalIndex)
 				_reqs[reqIndex(clientIndex)].setServerId(signalIndex);
 				_reqs[reqIndex(clientIndex)].setCGIFd(CGIPipe);
 
-				return clientIndex;
+				std::cout << "clientIndex: " << clientIndex << std::endl;
+
+				return true;
 			}
 			std::string	HTMLBusy = DefaultHTML::getHtmlError(500);
 			send(clientFd, &HTMLBusy, HTMLBusy.length(), 0);
@@ -261,7 +268,7 @@ int	Server::setRequest(const int& signalIndex)
 		}
 	}
 	//Client not connected Impossible to answer
-	return -1;
+	return false;
 }
 
 //accept function with stuct sockaddr_in

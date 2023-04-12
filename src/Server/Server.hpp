@@ -78,7 +78,7 @@ public:
 	
 //*****************************REQUEST******************************************
 
-	int				setRequest(const int& signalIndex);
+	bool			setRequest(const int& signalIndex);
 	int				acceptClient(const int& signalIndex);
 	bool			pollFdsAvailable() const;
 	int				setPollFds(const int& fd);
