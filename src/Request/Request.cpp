@@ -1,11 +1,13 @@
-// #include <unordered_map>
+#include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
+#include "../Utils/ft.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
+// TODO set a path or throw, .., ., //, etc
 std::string getPath(const std::string &uri, const eRequestType method) {
 	(void)uri;
 	(void)method;
@@ -14,7 +16,21 @@ std::string getPath(const std::string &uri, const eRequestType method) {
 	return "";
 }
 
-Request::Request(const int client) : _client(client) {}
+Request::Request() : _client(-1), _serverId(-1) {}
+
+void Request::resetRequest() {
+	_rawRequest.str("");
+	_rawRequest.clear();
+	_startLine.type = UNKNOWN;
+	_startLine.path = "";
+	_startLine.version = "";
+	_headers.clear();
+	_body.clear();
+	_serverId = -1;
+	_client = -1;
+}
+
+Request::Request(const int client, const int serverId) : _client(client), _serverId(serverId) {}
 
 /**
  * @brief	Initialise the request.
@@ -26,7 +42,7 @@ Request::Request(const int client) : _client(client) {}
  * 	@note if an error occurs, the server will send an error to the client.
  *
  */
-void	Request::_init() {
+void	Request::_initRequest() {
 	try {
 		_readSocketData();
 		_parseStartLine();
@@ -150,6 +166,7 @@ void	Request::_setType(std::string &type) {
 	type.clear();
 }
 
+
 /**
  * @brief	Set the path of the request.
  * 			Store the path in _startLine.
@@ -170,6 +187,7 @@ void	Request::_setPath(std::string &path) {
 		throw RequestException::StartLine::InvalidURI();
 	path.clear();
 }
+
 
 /**
  * @brief	Set the version of the request.
@@ -256,8 +274,8 @@ void	Request::_parseHeaders() {
 		key = line.substr(0, i);
 
 		// Check if the key as white spaces
-		// if (std::any_of(key.begin(), key.end(), ::isspace))
-		// 	throw RequestException::Header::InvalidKey();
+		if (std::any_of(key.begin(), key.end(), ::isspace))
+			throw RequestException::Header::InvalidKey();
 
 		// Uppercase the key
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
@@ -302,16 +320,29 @@ void	Request::_parseHeaders() {
 	if (_headers.find("CONTENT-LENGTH") == _headers.end())
 		throw RequestException::Header::MissingHeader();
 
-// 	int contentLength;
-// 	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
-// 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
+	int contentLength;
+	try { contentLength = FT::atoi(_headers["CONTENT-LENGTH"]); }
+	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
 
-// 	// Read the body
-// 	while (std::getline(_rawRequest, line)) {
-// 		_body += line;
-// 	}
-// 	if (_body.size() > static_cast<unsigned long>(contentLength))
-// 		_body.erase(contentLength, _body.size() - contentLength);
+	// Read the body
+	while (std::getline(_rawRequest, line)) {
+		_body += line;
+	}
+	if (_body.size() > static_cast<unsigned long>(contentLength))
+		_body.erase(contentLength, _body.size() - contentLength);
  }
 
 Request::~Request() {}
+
+void Request::setClient(int client) {
+	_client = client;
+}
+
+void	Request::setServerId(int serverId) {
+	_serverId = serverId;
+}
+
+void	Request::setCGIFd(int cgiFd[2]) {
+	_cgiFd[0] = cgiFd[0];
+	_cgiFd[1] = cgiFd[1];
+}

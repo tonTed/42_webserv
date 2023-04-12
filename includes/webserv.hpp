@@ -37,6 +37,7 @@ enum eRequestType
 	OPTIONS,
 	TRACE,
 	PATCH,
+	UNKNOWN
 };
 
 # define EXIT_SUCCESS 0

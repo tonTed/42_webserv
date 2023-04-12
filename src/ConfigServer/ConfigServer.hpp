@@ -59,7 +59,6 @@ struct ServerBlocks
 class ConfigServer
 {
 private:
-	std::vector<ServerData> _serversData;
 	std::vector<ServerBlocks> _serverBlocks;
 	std::string _configString;
 	bool _goodFile;
@@ -68,6 +67,7 @@ private:
 	ConfigServer(){};
 
 public:
+	std::vector<ServerData> _serversData;
 	void setConfigServer(const std::string file);
 	virtual ~ConfigServer();
 
