@@ -151,11 +151,13 @@ void validIndex(std::string &input, std::string &root);
 bool validAutoindex(std::string input);
 
 // LOCATIONS PART
-std::string getLocationPath(const std::string &input);
+std::string getLocationPath(std::string &input);
 bool lactionPathValid(string &path);
 bool pathDup(std::vector<std::string> seq);
 
 //  REDIRECTION PART
 bool validRedirection(std::string input);
+
+void validRemaining(std::string &confStr);
 
 #endif

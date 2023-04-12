@@ -274,7 +274,7 @@ bool lactionPathValid(string &path)
  * @param locationBlock the location block to get the path from
  * @return std::string the path of the location
  */
-std::string getLocationPath(const std::string &locationBlock)
+std::string getLocationPath(std::string &locationBlock)
 {
     std::vector<std::string> paths;
     std::string::size_type pos = locationBlock.find("location");
@@ -290,6 +290,7 @@ std::string getLocationPath(const std::string &locationBlock)
             if (!lactionPathValid(path))
                 exit_error("Error: Invalid path: |", path);
             paths.push_back(path);
+            locationBlock.erase(pos, end_pos - pos);
         }
 
         pos = locationBlock.find("location", end_pos);
@@ -340,4 +341,22 @@ bool validAutoindex(std::string input)
     if (input != "ON" && input != "OFF")
         return false;
     return true;
+}
+
+/**
+ * @brief Check if the remaining in the block server is valid should be: "server{}" 
+ * or "location{}" 
+ *
+ * @param str the remaining in the block server string to check 
+ */
+void validRemaining(std::string &str)
+{
+    for (size_t i = 0; i < str.size(); ++i) {
+        if (isspace(str[i])) {
+            str.erase(i, 1);
+            --i; // Decrement i to account for the erased character
+        }
+    }
+    if(str != "server{}" && str != "location{}")
+        exit_error("Error: Invalid remaining: |", str + "|");
 }

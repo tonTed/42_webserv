@@ -37,7 +37,6 @@ void ConfigServer::setConfigServer(std::string paramFile)
 		// std::cout << "getConfigString(): " << getConfigString() << std::endl;
 	}
 }
-
 /**
  * @brief Destroy the Config Server:: Config Server object
  *
@@ -238,9 +237,8 @@ std::vector<string> ConfigServer::getServerBlocksData(const std::string &configS
 				continue;
 			}
 		}
-
-		std::cout << BOLD_RED << "Error: opening brace not found! " << RESET << std::endl;
-		// exit_error("Error: opening brace not found! |", "");
+		else
+			exit_error("Error: opening brace not found! ", "");
 	}
 	return (serverBlocks);
 }
@@ -286,6 +284,7 @@ std::vector<ServerLocation> ConfigServer::getLocationPart(std::vector<std::strin
 		locationPart[i]._autoindex = getDirective(confStr, " autoindex ");
 		locationPart[i]._methods = getDirective(confStr, " methods ");
 		locationPart[i]._redirection = getDirective(confStr, " return ");
+		validRemaining(confStr);
 	}
 	return (locationPart);
 }
@@ -305,7 +304,6 @@ std::vector<std::string> ConfigServer::getDirective(std::string &configStr, std:
 	while ((pos = configStr.find(directive, pos)) != std::string::npos)
 	{
 		std::string::size_type endPos = configStr.find(";", pos);
-		// std::cout << "configStr: " << configStr << std::endl;
 		if (endPos != std::string::npos)
 		{
 			std::string directivesStr = configStr.substr(pos, endPos - pos + 1);
@@ -465,7 +463,6 @@ std::map<int, std::string> ConfigServer::getErrorPages(const std::string &config
 	}
 	return errorPages;
 }
-
 /**
  * @brief Get every element from location and set it
  *
@@ -546,6 +543,7 @@ void ConfigServer::setServerBlocks()
 		serverBlocks[i]._methods = getDirective(confStr, " methods ");
 		serverBlocks[i]._index = getDirective(confStr, " index ");
 		serverBlocks[i]._errorPages = getDirective(confStr, " error_page ");
+		validRemaining(confStr); // Validate that all that's remaining is: "server{}"
 	}
 	this->_serverBlocks = serverBlocks;
 }
