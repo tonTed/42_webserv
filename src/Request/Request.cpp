@@ -1,11 +1,13 @@
 #include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
+#include "../Utils/ft.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
+// TODO set a path or throw, .., ., //, etc
 std::string getPath(const std::string &uri, const eRequestType method) {
 	(void)uri;
 	(void)method;
@@ -14,7 +16,21 @@ std::string getPath(const std::string &uri, const eRequestType method) {
 	return "";
 }
 
-Request::Request(const int client) : _client(client) {}
+Request::Request() : _client(-1), _serverId(-1) {}
+
+void Request::resetRequest() {
+	_rawRequest.str("");
+	_rawRequest.clear();
+	_startLine.type = UNKNOWN;
+	_startLine.path = "";
+	_startLine.version = "";
+	_headers.clear();
+	_body.clear();
+	_serverId = -1;
+	_client = -1;
+}
+
+Request::Request(const int client, const int serverId) : _client(client), _serverId(serverId) {}
 
 /**
  * @brief	Initialise the request.
@@ -26,7 +42,7 @@ Request::Request(const int client) : _client(client) {}
  * 	@note if an error occurs, the server will send an error to the client.
  *
  */
-void	Request::_init() {
+void	Request::_initRequest() {
 	try {
 		_readSocketData();
 		_parseStartLine();
@@ -305,7 +321,7 @@ void	Request::_parseHeaders() {
 		throw RequestException::Header::MissingHeader();
 
 	int contentLength;
-	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
+	try { contentLength = FT::atoi(_headers["CONTENT-LENGTH"]); }
 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
 
 	// Read the body
@@ -317,3 +333,16 @@ void	Request::_parseHeaders() {
  }
 
 Request::~Request() {}
+
+void Request::setClient(int client) {
+	_client = client;
+}
+
+void	Request::setServerId(int serverId) {
+	_serverId = serverId;
+}
+
+void	Request::setCGIFd(int cgiFd[2]) {
+	_cgiFd[0] = cgiFd[0];
+	_cgiFd[1] = cgiFd[1];
+}

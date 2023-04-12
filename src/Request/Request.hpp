@@ -3,6 +3,7 @@
 
 #include "../../includes/webserv.hpp"
 #include "RequestException.hpp"
+//#include "../Response/Response.hpp"
 
 struct startLine {
 	eRequestType	type;
@@ -19,13 +20,17 @@ struct startLine {
  * */
 class Request {
 public:
+
 	Request();
 	Request(const int client);
+	Request(const int client, const int serverId);
+
 	~Request();
 
+	void resetRequest();
 
 public:
-	void _init();
+	void _initRequest();
 
 	void _readSocketData();
 
@@ -38,14 +43,23 @@ public:
 
 	void _parseBody();
 
+	void _resetRequest();
+
+	void 		setClient(int client);
+	void 		setServerId(int serverId);
+	void		setCGIFd(int cgiFd[2]);
+
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;
 
+	int 								_client;
+	int 								_serverId;
+	int 								_cgiFd[2];
+
 private:
 
-	const int 							_client;
 
 };
 

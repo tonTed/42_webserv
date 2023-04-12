@@ -38,6 +38,7 @@ enum eRequestType
 	OPTIONS,
 	TRACE,
 	PATCH,
+	UNKNOWN
 };
 
 enum eOriginFD

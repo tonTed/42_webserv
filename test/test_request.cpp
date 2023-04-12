@@ -14,7 +14,7 @@ int writeCloseOpen(int client, const char *buffer){
 TEST_CASE("Request::_readSocketData() / invalid client") {
 
 	SUBCASE("Invalid client") {
-		Request request(-1);
+		Request request(-1, 0);
 		CHECK_THROWS_AS(request._readSocketData(), RequestException::ReadError);
 	}
 }
@@ -33,7 +33,7 @@ TEST_CASE("Request::_readSocketData() / valid client") {
 		close(client);
 
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		CHECK_THROWS_AS(request._readSocketData(), RequestException::MaxSize);
 		close(client);
 	}
@@ -46,7 +46,7 @@ TEST_CASE("Request::_readSocketData() / valid client") {
 		close(client);
 
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		CHECK_NOTHROW(request._readSocketData());
 		close(client);
 	}
@@ -58,7 +58,7 @@ TEST_CASE("Request::_readSocketData() / valid client") {
 		close(client);
 
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK(request._rawRequest.str() == std::string(buffer));
 		close(client);
@@ -74,7 +74,7 @@ TEST_CASE("Request::_parseStartLine() / CRLF check") {
 	SUBCASE("No CRLF") {
 		char buffer[] = "GET / HTTP/1.1";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::NoCRLF);
 		close(client);
@@ -83,7 +83,7 @@ TEST_CASE("Request::_parseStartLine() / CRLF check") {
 	SUBCASE("With LF") {
 		char buffer[] = "GET / HTTP/1.1\n";
 		
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::NoCRLF);
 		close(client);
@@ -92,7 +92,7 @@ TEST_CASE("Request::_parseStartLine() / CRLF check") {
 	SUBCASE("With CRLF") {
 		char buffer[] = "GET / HTTP/1.1\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_NOTHROW(request._parseStartLine());
 		close(client);
@@ -101,7 +101,7 @@ TEST_CASE("Request::_parseStartLine() / CRLF check") {
 	SUBCASE("With CR") {
 		char buffer[] = "GET / HTTP/1.1\r";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::NoCRLF);
 		close(client);
@@ -110,7 +110,7 @@ TEST_CASE("Request::_parseStartLine() / CRLF check") {
 
 TEST_CASE("Request::_setType() / method check"){
 
-	Request request(-1);
+	Request request(-1, 0);
 	std::string token;
 
 	token = "GGET";
@@ -124,7 +124,7 @@ TEST_CASE("Request::_setType() / method check"){
 }
 
 TEST_CASE("Request::_setVersion / version check"){
-	Request request(-1);
+	Request request(-1, 0);
 	std::string token;
 
 	token = "HTTP/1.0";
@@ -137,7 +137,7 @@ TEST_CASE("Request::_setVersion / version check"){
 
 TEST_CASE("Request::_set<functions> / amount of arguments"){
 
-	Request				request(-1);
+	Request				request(-1, 0);
 	std::string 		token;
 
 	SUBCASE("No arguments") {
@@ -205,7 +205,7 @@ TEST_CASE("Request::_parseStartLine / amount of arguments"){
 	SUBCASE("No arguments") {
 		char buffer[] = "\r\n";
 		
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::InvalidLine);
 		close(client);
@@ -214,7 +214,7 @@ TEST_CASE("Request::_parseStartLine / amount of arguments"){
 	SUBCASE("One argument") {
 		char buffer[] = "GET\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::InvalidLine);
 		close(client);
@@ -223,7 +223,7 @@ TEST_CASE("Request::_parseStartLine / amount of arguments"){
 	SUBCASE("Two arguments") {
 		char buffer[] = "GET /\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::InvalidLine);
 		close(client);
@@ -232,7 +232,7 @@ TEST_CASE("Request::_parseStartLine / amount of arguments"){
 	SUBCASE("Three arguments") {
 		char buffer[] = "GET / HTTP/1.1\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_NOTHROW(request._parseStartLine());
 		close(client);
@@ -247,7 +247,7 @@ TEST_CASE("Request::_parseHeader / Key check"){
 	SUBCASE("No Headers") {
 		char buffer[] = "GET / HTTP/1.1\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_NOTHROW(request._parseHeaders());
@@ -257,7 +257,7 @@ TEST_CASE("Request::_parseHeader / Key check"){
 	SUBCASE("One Header") {
 		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_NOTHROW(request._parseHeaders());
@@ -270,7 +270,7 @@ TEST_CASE("Request::_parseHeader / Key check"){
 	SUBCASE("Duplicate Header") {
 		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\nHost:localhost\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::DuplicateKey);
@@ -280,7 +280,7 @@ TEST_CASE("Request::_parseHeader / Key check"){
 	SUBCASE("Space in key before") {
 		char buffer[] = "GET / HTTP/1.1\r\n Host :localhost\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidKey);
@@ -290,7 +290,7 @@ TEST_CASE("Request::_parseHeader / Key check"){
 	SUBCASE("Space in key after") {
 		char buffer[] = "GET / HTTP/1.1\r\nHost :localhost\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidKey);
@@ -300,7 +300,7 @@ TEST_CASE("Request::_parseHeader / Key check"){
 	SUBCASE("Valid no throw") {
 		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_NOTHROW(request._parseHeaders());
@@ -316,7 +316,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 	SUBCASE("Remove OWS before"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost: localhost\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -326,7 +326,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 	SUBCASE("Remove OWS after"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\t\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -336,7 +336,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 	SUBCASE("Remove OWS before & after"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost: localhost\t\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -346,7 +346,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 	SUBCASE("Without OWS"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost:localhost\t\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -357,7 +357,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 		char buffer[] = "GET / HTTP/1.1\r\nHost:\r\n";
 
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
@@ -368,7 +368,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 		write(client, buffer, strlen(buffer));
 		close(client);
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
@@ -377,7 +377,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 	SUBCASE("Just two OWS"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost:\t \r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
@@ -386,7 +386,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 	SUBCASE("Just tree OWS"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost:\t \t\t\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_THROWS_AS(request._parseHeaders(), RequestException::Header::InvalidValue);
@@ -395,7 +395,7 @@ TEST_CASE("Request::_parseHeader / value check") {
 	SUBCASE("Just a letter between OWS"){
 		char buffer[] = "GET / HTTP/1.1\r\nHost:\t a\t\t\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		CHECK_NOTHROW_MESSAGE(request._parseHeaders(), "Host header value should be 'a'");
@@ -411,7 +411,7 @@ TEST_CASE("Request::_parseStartLine / Method not allowed"){
 	SUBCASE("Method not allowed HEAD"){
 		char buffer[] = "HEAD / HTTP/1.1\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::StartLine::NotAllowedMethod);
 	}
@@ -419,7 +419,7 @@ TEST_CASE("Request::_parseStartLine / Method not allowed"){
 	SUBCASE("Method not allowed PATCH"){
 		char buffer[] = "PATCH / HTTP/1.1\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_THROWS_AS(request._parseStartLine(), RequestException::StartLine::NotAllowedMethod);
 	}
@@ -427,7 +427,7 @@ TEST_CASE("Request::_parseStartLine / Method not allowed"){
 	SUBCASE("Method allowed POST"){
 		char buffer[] = "POST / HTTP/1.1\r\n";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		CHECK_NOTHROW_MESSAGE(request._parseStartLine(), "Method POST should be allowed");
 	}
@@ -441,7 +441,7 @@ TEST_CASE("Request::_parseBody / Content-Length"){
 	SUBCASE("Content-Length is valid"){
 		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\n\r\nHello";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -451,7 +451,7 @@ TEST_CASE("Request::_parseBody / Content-Length"){
 	SUBCASE("Content-Length is not a number"){
 		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: t\r\n\r\nHello";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -467,7 +467,7 @@ TEST_CASE("Request::_parseBody / Value check"){
 	SUBCASE("Body should be 'Hello', with matching Content-Length"){
 		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\n\r\nHello";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -478,7 +478,7 @@ TEST_CASE("Request::_parseBody / Value check"){
 	SUBCASE("Body should be 'Hello', with Bigger Content-Length"){
 		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 6\r\n\r\nHello";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
@@ -490,7 +490,7 @@ TEST_CASE("Request::_parseBody / Value check"){
 	SUBCASE("Body should be 'Hell', with smaller Content-Length"){
 		char buffer[] = "GET / HTTP/1.1\r\nCONTENT-LENGTH: 4\r\n\r\nHello World";
 
-		Request request(writeCloseOpen(client, buffer));
+		Request request(writeCloseOpen(client, buffer), 0);
 		request._readSocketData();
 		request._parseStartLine();
 		request._parseHeaders();
