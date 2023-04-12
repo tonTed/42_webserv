@@ -100,12 +100,7 @@ int main(int ac, char **av)
 	else
 		ConfigServer::getInstance()->setConfigServer("default");
 
-	try
-	{
-		Server	WebServer;
-		WebServer.serverRoutine();
-	}
-	catch (std::exception& e){std::cout << e.what() << std::endl;}
+	Server	WebServer;
 	
 	return (EXIT_SUCCESS);
 }

@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server():_reqs(NULL) {}
+Server::Server():_reqs(NULL) {serverRoutine();}
 
 Server::~Server()
 {
@@ -136,15 +136,18 @@ void	Server::bootListen(const int& iSocket)
 //main function of server
 void	Server::serverRoutine()
 {
-	booting();
-	operating();
+	try
+	{
+		booting();
+		operating();
+	}
+	catch (std::exception& e){std::cout << e.what() << std::endl;}	
 }
 
 
 // server loop (listen signal & redirection)
 void	Server::operating()
 {
-	//TODO UNMUTED UNDER
 	_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
 	
 	_activeFds= _nbfdPort;
@@ -162,7 +165,6 @@ void	Server::operating()
 				case FROM_PORT:
 					if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) >= 3)
 						std::cout << "Request made" << std::endl;
-						//TODO UNMUTED UNDER, REMOVE OVER
 						_reqs[reqIndex(signalIndex)].initRequest();
 					break;
 				
@@ -228,8 +230,6 @@ int	Server::indexOrigin(const int& signalIndex) const
 */
 int	Server::setRequest(Request& req, const int& signalIndex)
 {
-	//TODO REMOVE VOID UNDER
-	(void)req;
 	int clientFd = acceptClient(signalIndex);
 
 	if (clientFd >= 3) //client connected
@@ -244,7 +244,6 @@ int	Server::setRequest(Request& req, const int& signalIndex)
 				
 				setIndexInfo(clientIndex, CGIReadIndex, signalIndex);
 				
-				//TODO UNMUTED UNDER AFTER MERGE (ajouter numero server)
 				_reqs[reqIndex(clientIndex)].setClient(clientFd);
 				_reqs[reqIndex(clientIndex)].setServerId(signalIndex);
 				_reqs[reqIndex(clientIndex)].setCGIFd(CGIPipe);
@@ -361,8 +360,7 @@ void	Server::closeConnection(const int& signalIndex)
 	safeClose(_pollFds[CGIReadIndex].fd);
 	_activeFds -= 2;
 
-	//TODO UNMUTED AFTER MERGE
-	//_reqs[reqIndex(signalIndex)].resetRequest();
+	_reqs[reqIndex(signalIndex)].resetRequest();
 }
 
 //Close _pollFds[index] if >= 3 and reset it to UNSET
