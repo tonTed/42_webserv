@@ -20,7 +20,6 @@ struct startLine {
  * */
 class Request {
 public:
-
 	Request();
 	Request(const int client);
 	Request(const int client, const int serverId);

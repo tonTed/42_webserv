@@ -17,6 +17,7 @@ public:
 	// Pour envoyer une réponse provenant d'un CGI
 	Response(const Request &request);
 
+
 	void		resolvePath();
 	std::string 	getLocation();
 	bool 			setRoot(const std::string &location);

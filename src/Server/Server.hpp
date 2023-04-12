@@ -3,6 +3,8 @@
 
 # include "../../includes/webserv.hpp"
 # include "../Request/Request.hpp"
+# include "../Response/Response.hpp"
+# include "../Response/DefaultHtml.hpp"
 # include "ServerException.hpp"
 
 
@@ -76,7 +78,7 @@ public:
 	
 //*****************************REQUEST******************************************
 
-	int				setRequest(Request& req, const int& signalIndex);
+	int				setRequest(const int& signalIndex);
 	int				acceptClient(const int& signalIndex);
 	bool			pollFdsAvailable() const;
 	int				setPollFds(const int& fd);

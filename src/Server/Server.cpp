@@ -163,23 +163,28 @@ void	Server::operating()
 			switch (indexOrigin(signalIndex))
 			{
 				case FROM_PORT:
-					if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) >= 3)
+				{
+					if (setRequest(signalIndex) >= 3)
 						std::cout << "Request made" << std::endl;
-						_reqs[reqIndex(signalIndex)].initRequest();
+						_reqs[reqIndex(signalIndex)]._initRequest();
 					break;
-				
+				}
 				case FROM_CGI:
+				{
 					Response	respond(_reqs[reqIndex(signalIndex)]);
 					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
 					break;
-				
+				}
 				case FROM_CGI_PARSING:
+				{
 					closeConnection(signalIndex);
 					break;
-
+				}
 				default:
+				{
 					//Dev & debug purpose
 					std::cout << "indexInfo data corrupt" << std::endl;
+				}
 			}
 		}
 		else
@@ -228,7 +233,7 @@ int	Server::indexOrigin(const int& signalIndex) const
 	- set pollFds with clientFd & CGIReadFd
 	- set indexInfo
 */
-int	Server::setRequest(Request& req, const int& signalIndex)
+int	Server::setRequest(const int& signalIndex)
 {
 	int clientFd = acceptClient(signalIndex);
 
@@ -250,8 +255,8 @@ int	Server::setRequest(Request& req, const int& signalIndex)
 
 				return clientIndex;
 			}
-			std::string	HTMLBusy = DefaultHTML::getHTMLError(500);
-			send(clientFd, &HTMLBusy, HTMLBusy.length(), NULL);
+			std::string	HTMLBusy = DefaultHTML::getHtmlError(500);
+			send(clientFd, &HTMLBusy, HTMLBusy.length(), 0);
 			close(clientFd);
 		}
 	}
@@ -342,7 +347,6 @@ void	Server::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const
 
 //******************************************************************************
 
-
 //****************************CLOSE CONNECTION**********************************
 
 //- Reset _indexInfo for the current request
@@ -359,7 +363,6 @@ void	Server::closeConnection(const int& signalIndex)
 	safeClose(_pollFds[clientIndex].fd);
 	safeClose(_pollFds[CGIReadIndex].fd);
 	_activeFds -= 2;
-
 	_reqs[reqIndex(signalIndex)].resetRequest();
 }
 
