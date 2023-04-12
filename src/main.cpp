@@ -99,6 +99,6 @@ int main(int ac, char **av)
 		ConfigServer::getInstance()->setConfigServer("default");
 
 	Server	WebServer;
-	
+
 	return (EXIT_SUCCESS);
 }

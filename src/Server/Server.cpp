@@ -347,7 +347,6 @@ void	Server::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const
 
 //******************************************************************************
 
-
 //****************************CLOSE CONNECTION**********************************
 
 //- Reset _indexInfo for the current request
@@ -364,7 +363,6 @@ void	Server::closeConnection(const int& signalIndex)
 	safeClose(_pollFds[clientIndex].fd);
 	safeClose(_pollFds[CGIReadIndex].fd);
 	_activeFds -= 2;
-
 	_reqs[reqIndex(signalIndex)].resetRequest();
 }
 

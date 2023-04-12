@@ -23,6 +23,7 @@ public:
 	Request();
 	Request(const int client);
 	Request(const int client, const int serverId);
+
 	~Request();
 
 	void resetRequest();
