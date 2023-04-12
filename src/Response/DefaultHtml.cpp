@@ -30,3 +30,30 @@ std::string DefaultHTML::getHtml(int status) {
 
 	return html;
 }
+
+std::string DefaultHTML::getHtmlError(int status) {
+	std::string html;
+	std::string headers;
+
+	try {
+		_codeResponse.at(status);
+	}
+	catch (std::out_of_range &e) {
+		(void)e;
+		status = 500;
+	}
+
+	const std::string& message = _codeResponse.at(status);
+
+	html = DefaultHTML::getHtml(status);
+
+	headers = "HTTP/1.1 " + std::to_string(status) + " " + message + "\r\n";
+	headers += "Content-Type: text/html\r\n";
+	headers += "Content-Length: " + std::to_string(html.length()) + "\r\n";
+	headers += "Connection: close\r\n";
+
+	html = headers + "\r\n" + html;
+
+	return html;
+}
+
