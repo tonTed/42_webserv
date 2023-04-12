@@ -333,3 +333,16 @@ void	Request::_parseHeaders() {
  }
 
 Request::~Request() {}
+
+void Request::setClient(int client) {
+	_client = client;
+}
+
+void	Request::setServerId(int serverId) {
+	_serverId = serverId;
+}
+
+void	Request::setCGIFd(int cgiFd[2]) {
+	_cgiFd[0] = cgiFd[0];
+	_cgiFd[1] = cgiFd[1];
+}
