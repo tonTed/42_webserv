@@ -31,8 +31,8 @@ void ConfigServer::setConfigServer(std::string paramFile)
 		// printServerBlocks();
 
 		// TODO COMMENT THIS TO STOP PRINTING
-		std::vector<ServerData> data = getServerData();
-		printServersData(data);
+		// std::vector<ServerData> data = getServerData();
+		// printServersData(data);
 
 		// std::cout << "getConfigString(): " << getConfigString() << std::endl;
 	}
