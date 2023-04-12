@@ -503,12 +503,17 @@ Locations ConfigServer::settingLocation(ServerLocation &locStruct, ServerData &s
 		std::vector<std::string> autoIndex = getDirectiveVal(locStruct._autoindex[j], " autoindex ");
 		if (!autoIndex.empty())
 			location.autoindex = autoIndex[0];
+		
 	}
 
 	// // REDIRECTION
 	for (size_t j = 0; j < locStruct._redirection.size(); j++)
 	{
 		std::vector<std::string> redirection = getDirectiveVal(locStruct._redirection[j], " return ");
+		for (size_t i = 1; i < redirection.size(); i++)
+		{
+			validIndex(redirection[i], location.root);
+		}
 		if (!redirection.empty())
 			location.redirection = redirection[0] + " " + redirection[1];
 	}
