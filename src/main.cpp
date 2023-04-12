@@ -81,7 +81,6 @@ void mock_server()
 
 int main(int ac, char **av)
 {
-
 	std::cout << "Launching webserver 42!" << std::endl;
 	if (ac > 2)
 	{
@@ -96,12 +95,11 @@ int main(int ac, char **av)
 
 	else if (av[1])
 		ConfigServer::getInstance()->setConfigServer(av[1]);
-
 	else
 		ConfigServer::getInstance()->setConfigServer("default");
 
-	Server	WebServer;
-	WebServer.routine(); 
+	// Server	WebServer;
+	// WebServer.routine(); 
 
 	return (EXIT_SUCCESS);
 }
