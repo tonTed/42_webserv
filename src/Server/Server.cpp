@@ -145,7 +145,7 @@ void	Server::serverRoutine()
 void	Server::operating()
 {
 	//TODO UNMUTED UNDER
-	//_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
+	_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
 	
 	_activeFds= _nbfdPort;
 	int signalIndex;
@@ -163,17 +163,15 @@ void	Server::operating()
 					if (setRequest(_reqs[reqIndex(signalIndex)], signalIndex) >= 3)
 						std::cout << "Request made" << std::endl;
 						//TODO UNMUTED UNDER, REMOVE OVER
-						//_reqs[reqIndex(signalIndex)].initRequest();
+						_reqs[reqIndex(signalIndex)].initRequest();
 					break;
 				
 				case FROM_CGI:
-					//PARSE CGI && RESPOND
-					//TODO MAKE A RESPOND CALL AND REMOVE UNDER COUT
+					Response	respond(_reqs[reqIndex(signalIndex)]);
 					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
 					break;
 				
 				case FROM_CGI_PARSING:
-					//Here we only handelling closing socket
 					closeConnection(signalIndex);
 					break;
 
@@ -246,15 +244,15 @@ int	Server::setRequest(Request& req, const int& signalIndex)
 				
 				setIndexInfo(clientIndex, CGIReadIndex, signalIndex);
 				
-				//TODO UNMUTED UNDER AFTER MERGE
-				/* _reqs[reqIndex(clientIndex)].setClientFd(clientFd);
+				//TODO UNMUTED UNDER AFTER MERGE (ajouter numero server)
+				_reqs[reqIndex(clientIndex)].setClient(clientFd);
 				_reqs[reqIndex(clientIndex)].setServerId(signalIndex);
 				_reqs[reqIndex(clientIndex)].setCGIFd(CGIPipe);
-				 */
 
 				return clientIndex;
 			}
-			//busy response to clientfd
+			std::string	HTMLBusy = DefaultHTML::getHTMLError(500);
+			send(clientFd, &HTMLBusy, HTMLBusy.length(), NULL);
 			close(clientFd);
 		}
 	}

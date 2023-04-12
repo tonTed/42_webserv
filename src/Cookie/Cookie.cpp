@@ -132,7 +132,7 @@ std::string	Cookie::ClientCookieSet(const std::string& cookieId)
 {
 	std::stringstream	ss;
 	ss << "Set-Cookie: " << COOKIEID_NAME << "=" << cookieId 
-			<< "; Max-Age=" << CONNECT_TIME * 2;
+			<< "; Max-Age=" << CONNECT_TIME * 2 << "\n";
 	return ss.str();
 }
 
