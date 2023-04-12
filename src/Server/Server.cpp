@@ -45,7 +45,7 @@ void	Server::pollFdsInit()
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
 		_pollFds[index].fd = UNSET;
-		_pollFds[index].events = POLLIN;
+		_pollFds[index].events = 0;
 		_pollFds[index].revents = 0;
 	}
 }
@@ -66,6 +66,7 @@ void	Server::recordPort(uint16_t port[POLLFD_LIMIT])
 			itPort != itServer->_serverPorts.end(); itPort++)
 		{
 			port[_nbfdPort] = static_cast<uint16_t>(*itPort);
+			_pollFds[_nbfdPort].events = POLLIN | POLLOUT;
 			_nbfdPort++;
 		}
 	}
@@ -152,10 +153,14 @@ void	Server::operating()
 	int signalIndex;
 	while (1)
 	{
-		if (poll(_pollFds, _activeFds, POLL_TIMEOUT) < 0)
-				std::cout << "poll return < 0: should never append" << std::endl;
+		if (poll(_pollFds, POLLFD_LIMIT, POLL_TIMEOUT) < 0)
+		{
+			std::cout << "poll return < 0: should never append" << std::endl;
+		}
 
 		//find the index of the signal find by poll in pollfds
+		std::cout << "POLL LOOP" << std::endl;
+
 		if ((signalIndex = pollIndexSignal()) >= 0)
 		{
 
@@ -164,21 +169,24 @@ void	Server::operating()
 				case FROM_PORT:
 				{
 					std::cout<< "signalIndex: " << signalIndex << std::endl;
-					if (setRequest(signalIndex) == true)
-						_reqs[reqIndex(signalIndex)]._initRequest();
-					else
+					if (setRequest(signalIndex) == false)
 						std::cout << "Request Fail" << std::endl;
+					std::cout << "after request - before poll" << std::endl;
 					break;
 				}
 				case FROM_CGI:
 				{
-					Response	respond(_reqs[reqIndex(signalIndex)]);
+					sleep(3);
 					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
+					Response	respond(_reqs[reqIndex(signalIndex)]);
 					break;
 				}
 				case FROM_CGI_PARSING:
 				{
+					_reqs[reqIndex(signalIndex)]._initRequest();
+					std::cout << "ClosingConnection" << std::endl;
 					closeConnection(signalIndex);
+					std::cout << "connection closed" << std::endl;
 					break;
 				}
 				default:
@@ -188,12 +196,19 @@ void	Server::operating()
 				}
 			}
 		}
+		else if (signalIndex == -2)
+		{
+			safeClose(signalIndex);
+		}
 		else
-			throw ServerOperatingException::EndServer();
+		{	
+			std::cout << "revents signal not found" << std::endl;
+			//throw ServerOperatingException::EndServer();
+		}
 	}
 }
 
-/*Return the first index of pollFds that have revents = POLLIN
+/*Return the first index of pollFds that have revents = POLLOUT
   Set server socket revents to 0 value
   Return -1 if no fd found
 */
@@ -201,16 +216,27 @@ int	Server::pollIndexSignal()
 {
 	for (unsigned int index = 0; index < POLLFD_LIMIT; index++)
 	{
-		if (_pollFds[index].revents & POLLIN)
+		if (_pollFds[index].revents == POLLIN)
 		{
+			std::cout << "REVENTS: " << std::hex << _pollFds[index].revents << std::dec << " signalIndex: " << index << std::endl;
 			_pollFds[index].revents = 0;
+			std::cout << "REVENTS: " << _pollFds[index].revents << " signalIndex: " << index << std::endl;
 			return index;
+		}
+		else if (_pollFds[index].revents != 0)
+		{
+			std::cout << "REVENTS: " << std::hex << _pollFds[index].revents << " signalIndex: " << index << std::endl;
+			_pollFds[index].events = 0;
+			_pollFds[index].revents = 0;
+			return -2;
 		}
 	}
 	return -1;
 }
 
-//return the POLLIN signal origin
+
+
+//return the POLLOUT signal origin
 int	Server::indexOrigin(const int& signalIndex) const
 {
 	if (signalIndex < _nbfdPort)
@@ -240,6 +266,19 @@ bool	Server::setRequest(const int& signalIndex)
 
 	if (clientFd >= 3) //client connected
 	{
+
+//		char	buffer[MAX_REQUEST_SIZE + 1];
+//		int 	ret;
+//
+//		ret = read(clientFd, buffer, MAX_REQUEST_SIZE + 1);
+//		if (ret == -1)
+//			throw RequestException::ReadError();
+//		if (ret > MAX_REQUEST_SIZE)
+//			throw RequestException::MaxSize();
+//		buffer[ret] = '\0';
+//
+//		std::cout << "buffer: " << buffer << std::endl;
+
 		if (pollFdsAvailable() == true) //Enough place in pollFds
 		{
 
@@ -371,6 +410,15 @@ void	Server::closeConnection(const int& signalIndex)
 	safeClose(_pollFds[CGIReadIndex].fd);
 	_activeFds -= 2;
 	_reqs[reqIndex(signalIndex)].resetRequest();
+
+	for (int index = 0; index < POLLFD_LIMIT; index++)
+	{
+		std::cout << std::dec << "index: " << index
+				<< " fd:" << _pollFds[index].fd
+				<< std::hex << " events:" << _pollFds[index].events << std::dec
+				<< std::hex << " revents:" << _pollFds[index].revents << std::dec
+				<< std::endl;
+	}
 }
 
 //Close _pollFds[index] if >= 3 and reset it to UNSET
@@ -389,3 +437,4 @@ void	Server::closePollFds()
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 		safeClose(_pollFds[index].fd);
 }
+
