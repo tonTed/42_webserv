@@ -18,10 +18,11 @@
 
 typedef struct	indexInfo_s
 {
-	int	serverNum;
-	int	CGIReadIndex;
-	int	clientIndex;
-	int	reqIndex;
+	int		serverNum;
+	int		CGIReadIndex;
+	int		clientIndex;
+	int		reqIndex;
+	bool	reqMade;
 }				indexInfo_t;
 
 class Request;
@@ -33,7 +34,6 @@ private:
 	int				_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
 	indexInfo_s		_indexInfo[POLLFD_LIMIT];
 	Request*		_reqs;
-	int				_activeFds;
 
 public:
 					Server();
@@ -90,6 +90,7 @@ public:
 	void			indexInfoInit();
 	void			resetIndexInfo(const int& index);
 	void			setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum);
+	void			setReqMade(const int& clientIndex);
 
 //****************************CLOSE CONNECTION**********************************
 	void			closeConnection(const int& signalIndex);

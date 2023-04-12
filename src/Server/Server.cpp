@@ -149,21 +149,14 @@ void	Server::operating()
 {
 	_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
 	
-	_activeFds= _nbfdPort;
 	int signalIndex;
 	while (1)
 	{
 		if (poll(_pollFds, POLLFD_LIMIT, POLL_TIMEOUT) < 0)
-		{
 			std::cout << "poll return < 0: should never append" << std::endl;
-		}
-
-		//find the index of the signal find by poll in pollfds
-		std::cout << "POLL LOOP" << std::endl;
 
 		if ((signalIndex = pollIndexSignal()) >= 0)
 		{
-
 			switch (indexOrigin(signalIndex))
 			{
 				case FROM_PORT:
@@ -174,19 +167,25 @@ void	Server::operating()
 					std::cout << "after request - before poll" << std::endl;
 					break;
 				}
-				case FROM_CGI:
+				case FROM_CLIENT:
 				{
-					sleep(3);
-					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
-					Response	respond(_reqs[_indexInfo[signalIndex].reqIndex]);
+					if (_indexInfo[signalIndex].reqMade == false)
+					{
+						_reqs[_indexInfo[signalIndex].reqIndex]._initRequest();
+						setReqMade(signalIndex);
+					}
+					else
+					{
+						std::cout << "ClosingConnection" << std::endl;
+						closeConnection(signalIndex);
+						std::cout << "connection closed" << std::endl;
+					}
 					break;
 				}
-				case FROM_CGI_PARSING:
+				case FROM_CGI:
 				{
-					_reqs[_indexInfo[signalIndex].reqIndex]._initRequest();
-					std::cout << "ClosingConnection" << std::endl;
-					closeConnection(signalIndex);
-					std::cout << "connection closed" << std::endl;
+					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
+					Response	respond(_reqs[_indexInfo[signalIndex].reqIndex]);
 					break;
 				}
 				default:
@@ -199,11 +198,12 @@ void	Server::operating()
 		else if (signalIndex == -2)
 		{
 			safeClose(signalIndex);
+			closeConnection(signalIndex);
 		}
 		else
 		{	
 			std::cout << "revents signal not found" << std::endl;
-			//throw ServerOperatingException::EndServer();
+			throw ServerOperatingException::EndServer();
 		}
 	}
 }
@@ -242,7 +242,7 @@ int	Server::indexOrigin(const int& signalIndex) const
 	if (signalIndex < _nbfdPort)
 		return FROM_PORT;
 	else if (_indexInfo[signalIndex].clientIndex == signalIndex)
-		return FROM_CGI_PARSING;
+		return FROM_CLIENT;
 	else if (_indexInfo[signalIndex].CGIReadIndex == signalIndex)
 		return FROM_CGI;
 	else
@@ -266,19 +266,6 @@ bool	Server::setRequest(const int& signalIndex)
 
 	if (clientFd >= 3) //client connected
 	{
-
-//		char	buffer[MAX_REQUEST_SIZE + 1];
-//		int 	ret;
-//
-//		ret = read(clientFd, buffer, MAX_REQUEST_SIZE + 1);
-//		if (ret == -1)
-//			throw RequestException::ReadError();
-//		if (ret > MAX_REQUEST_SIZE)
-//			throw RequestException::MaxSize();
-//		buffer[ret] = '\0';
-//
-//		std::cout << "buffer: " << buffer << std::endl;
-
 		if (pollFdsAvailable() == true) //Enough place in pollFds
 		{
 
@@ -301,10 +288,10 @@ bool	Server::setRequest(const int& signalIndex)
 
 				return true;
 			}
-			std::string	HTMLBusy = DefaultHTML::getHtmlError(500);
-			send(clientFd, &HTMLBusy, HTMLBusy.length(), 0);
-			close(clientFd);
 		}
+		std::string	HTMLBusy = DefaultHTML::getHtmlError(500);
+		send(clientFd, &HTMLBusy, HTMLBusy.length(), 0);
+		close(clientFd);
 	}
 	//Client not connected Impossible to answer
 	return false;
@@ -347,7 +334,6 @@ int	Server::setPollFds(const int& fd)
 			_pollFds[index].fd = fd;
 			_pollFds[index].events = POLLIN;
 			_pollFds[index].revents = 0;
-			_activeFds += 1;
 			return index;
 		}
 	}
@@ -363,6 +349,8 @@ int	Server::reqAvailIndex() const
 	}
 	return -1;
 }
+
+
 
 //******************************************************************************
 
@@ -383,6 +371,7 @@ void	Server::resetIndexInfo(const int& index)
 	_indexInfo[index].CGIReadIndex = UNSET;
 	_indexInfo[index].clientIndex = UNSET;
 	_indexInfo[index].reqIndex = UNSET;
+	_indexInfo[index].reqMade = false;
 }
 
 //Set a new client cgi in _indexInfo
@@ -400,6 +389,13 @@ void	Server::setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const
 	_indexInfo[CGIReadIndex].reqIndex = reqIndex;
 }
 
+void	Server::setReqMade(const int& clientIndex)
+{
+	_indexInfo[clientIndex].reqMade = true;
+	_indexInfo[_indexInfo[clientIndex].CGIReadIndex].reqMade = true;
+}
+
+
 //******************************************************************************
 
 //****************************CLOSE CONNECTION**********************************
@@ -415,9 +411,8 @@ void	Server::closeConnection(const int& signalIndex)
 	resetIndexInfo(clientIndex);
 	resetIndexInfo(CGIReadIndex);
 
-	safeClose(_pollFds[clientIndex].fd);
+	_pollFds[clientIndex].fd = UNSET;
 	safeClose(_pollFds[CGIReadIndex].fd);
-	_activeFds -= 2;
 	_reqs[_indexInfo[signalIndex].reqIndex].resetRequest();
 
 	for (int index = 0; index < POLLFD_LIMIT; index++)

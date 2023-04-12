@@ -45,7 +45,7 @@ enum eOriginFD
 {
 	FROM_PORT,
 	FROM_CGI,
-	FROM_CGI_PARSING,
+	FROM_CLIENT,
 };
 
 enum ePipeDir
