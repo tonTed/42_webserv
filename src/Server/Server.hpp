@@ -34,6 +34,7 @@ private:
 	int				_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
 	indexInfo_s		_indexInfo[POLLFD_LIMIT];
 	Request*		_reqs;
+	static bool		_SIGINT;
 
 public:
 					Server();
@@ -62,6 +63,7 @@ public:
 
 	void			booting();
 	void			pollFdsInit();
+	void			pollFdsReset(const int& index);
 	void			recordPort(uint16_t port[POLLFD_LIMIT]);
 	void			setPortSocket(const uint16_t port[POLLFD_LIMIT]);
 	void			bootSocket(const int& iSocket);
@@ -96,6 +98,10 @@ public:
 	void			closeConnection(const int& signalIndex);
 	void			safeClose(int& fdSource);
 	void			closePollFds();
+	void			closePOLLHUPReq(const int& clientIndex);
+
+	static void		signal_handler(int signal);
+
 };
 
 

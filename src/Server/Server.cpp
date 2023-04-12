@@ -43,11 +43,16 @@ void	Server::booting()
 void	Server::pollFdsInit()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
-	{
-		_pollFds[index].fd = UNSET;
-		_pollFds[index].events = 0;
-		_pollFds[index].revents = 0;
-	}
+		pollFdsReset(index);
+}
+
+void	Server::pollFdsReset(const int& index)
+{
+	if (_pollFds[index].fd >= 3)
+		safeClose(_pollFds[index].fd);
+	_pollFds[index].fd = UNSET;
+	_pollFds[index].events = 0;
+	_pollFds[index].revents = 0;
 }
 
 //Initialise les valeurs de port
@@ -66,7 +71,6 @@ void	Server::recordPort(uint16_t port[POLLFD_LIMIT])
 			itPort != itServer->_serverPorts.end(); itPort++)
 		{
 			port[_nbfdPort] = static_cast<uint16_t>(*itPort);
-			_pollFds[_nbfdPort].events = POLLIN | POLLOUT;
 			_nbfdPort++;
 		}
 	}
@@ -77,6 +81,7 @@ void	Server::setPortSocket(const uint16_t port[POLLFD_LIMIT])
 {
 	for (int iSocket = 0; iSocket < _nbfdPort; iSocket++)
 	{
+		_pollFds[iSocket].events = POLLIN;
 		bootSocket(iSocket);		//SET SERVER SOCKET (FD)
 		bootSetSockOpt(iSocket);	//OPTION ON SERVER SOCKET (NEED MORE TEST / REMOVE IF PROBLEM)
 		bootBind(iSocket, port);	//BINDING PORT AND SOCKET
@@ -149,61 +154,52 @@ void	Server::operating()
 {
 	_reqs = new Request[(POLLFD_LIMIT - _nbfdPort) / 2];
 	
+	std::signal(SIGINT, signal_handler);
+
 	int signalIndex;
 	while (1)
 	{
 		if (poll(_pollFds, POLLFD_LIMIT, POLL_TIMEOUT) < 0)
 			std::cout << "poll return < 0: should never append" << std::endl;
 
-		if ((signalIndex = pollIndexSignal()) >= 0)
-		{
-			switch (indexOrigin(signalIndex))
-			{
-				case FROM_PORT:
-				{
-					std::cout<< "signalIndex: " << signalIndex << std::endl;
-					if (setRequest(signalIndex) == false)
-						std::cout << "Request Fail" << std::endl;
-					std::cout << "after request - before poll" << std::endl;
-					break;
-				}
-				case FROM_CLIENT:
-				{
-					if (_indexInfo[signalIndex].reqMade == false)
-					{
-						_reqs[_indexInfo[signalIndex].reqIndex]._initRequest();
-						setReqMade(signalIndex);
-					}
-					else
-					{
-						std::cout << "ClosingConnection" << std::endl;
-						closeConnection(signalIndex);
-						std::cout << "connection closed" << std::endl;
-					}
-					break;
-				}
-				case FROM_CGI:
-				{
-					std::cout << "Parsing CGI AND RESPONDING" << std::endl;
-					Response	respond(_reqs[_indexInfo[signalIndex].reqIndex]);
-					break;
-				}
-				default:
-				{
-					//Dev & debug purpose
-					std::cout << "indexInfo data corrupt" << std::endl;
-				}
-			}
-		}
-		else if (signalIndex == -2)
-		{
-			safeClose(signalIndex);
-			closeConnection(signalIndex);
-		}
-		else
-		{	
-			std::cout << "revents signal not found" << std::endl;
+		if ((signalIndex = pollIndexSignal()) == SIGNAL_NOT_IN_POLLFDS 
+			|| _SIGINT == true)
 			throw ServerOperatingException::EndServer();
+		
+		switch (indexOrigin(signalIndex))
+		{
+			case FROM_PORT:
+			{
+				//std::cout<< "signalIndex: " << signalIndex << std::endl;
+				if (setRequest(signalIndex) == false)
+					std::cout << "Request Fail" << std::endl;
+				break;
+			}
+			case FROM_CLIENT:
+			{
+				if (_indexInfo[signalIndex].reqMade == false)
+				{
+					_reqs[_indexInfo[signalIndex].reqIndex]._initRequest();
+					setReqMade(signalIndex);
+				}
+				else
+				{
+					std::cout << "ClosingConnection" << std::endl;
+					closeConnection(signalIndex);
+					std::cout << "connection closed" << std::endl;
+				}
+				break;
+			}
+			case FROM_CGI:
+			{
+				std::cout << "Parsing CGI AND RESPONDING" << std::endl;
+				Response	respond(_reqs[_indexInfo[signalIndex].reqIndex]);
+				break;
+			}
+			case SIGNAL_NOT_POLLIN:
+			{
+				std::cout << "Closed client request qui n'abouti pas" << std::endl;
+			}
 		}
 	}
 }
@@ -218,20 +214,14 @@ int	Server::pollIndexSignal()
 	{
 		if (_pollFds[index].revents == POLLIN)
 		{
-			std::cout << "REVENTS: " << std::hex << _pollFds[index].revents << std::dec << " signalIndex: " << index << std::endl;
 			_pollFds[index].revents = 0;
-			std::cout << "REVENTS: " << _pollFds[index].revents << " signalIndex: " << index << std::endl;
 			return index;
 		}
-		else if (_pollFds[index].revents != 0)
-		{
-			std::cout << "REVENTS: " << std::hex << _pollFds[index].revents << " signalIndex: " << index << std::endl;
-			_pollFds[index].events = 0;
-			_pollFds[index].revents = 0;
-			return -2;
-		}
+		else if (_pollFds[index].revents != 0 && index >= _nbfdPort)
+			closePOLLHUPReq(index);
+			return SIGNAL_NOT_POLLIN;
 	}
-	return -1;
+	return SIGNAL_NOT_IN_POLLFDS;
 }
 
 
@@ -239,6 +229,9 @@ int	Server::pollIndexSignal()
 //return the POLLOUT signal origin
 int	Server::indexOrigin(const int& signalIndex) const
 {
+
+	if (signalIndex == SIGNAL_NOT_POLLIN)
+		return signalIndex;
 	if (signalIndex < _nbfdPort)
 		return FROM_PORT;
 	else if (_indexInfo[signalIndex].clientIndex == signalIndex)
@@ -412,17 +405,19 @@ void	Server::closeConnection(const int& signalIndex)
 	resetIndexInfo(CGIReadIndex);
 
 	_pollFds[clientIndex].fd = UNSET;
-	safeClose(_pollFds[CGIReadIndex].fd);
+	pollFdsReset(clientIndex);
+	pollFdsReset(CGIReadIndex);
+
 	_reqs[_indexInfo[signalIndex].reqIndex].resetRequest();
 
-	for (int index = 0; index < POLLFD_LIMIT; index++)
+/* 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
 		std::cout << std::dec << "index: " << index
 				<< " fd:" << _pollFds[index].fd
 				<< std::hex << " events:" << _pollFds[index].events << std::dec
 				<< std::hex << " revents:" << _pollFds[index].revents << std::dec
 				<< std::endl;
-	}
+	} */
 }
 
 //Close _pollFds[index] if >= 3 and reset it to UNSET
@@ -442,3 +437,15 @@ void	Server::closePollFds()
 		safeClose(_pollFds[index].fd);
 }
 
+void	Server::closePOLLHUPReq(const int& clientIndex)
+{
+	safeClose(_pollFds[clientIndex].fd);
+	closeConnection(clientIndex);
+}
+
+void	Server::signal_handler(int signal)
+{
+	_SIGINT = true;
+}
+
+bool Server::_SIGINT = false;
