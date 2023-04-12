@@ -37,6 +37,7 @@ void ConfigServer::setConfigServer(std::string paramFile)
 		// std::cout << "getConfigString(): " << getConfigString() << std::endl;
 	}
 }
+
 /**
  * @brief Destroy the Config Server:: Config Server object
  *
@@ -463,6 +464,7 @@ std::map<int, std::string> ConfigServer::getErrorPages(const std::string &config
 	}
 	return errorPages;
 }
+
 /**
  * @brief Get every element from location and set it
  *
