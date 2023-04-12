@@ -30,13 +30,12 @@ Cookie::~Cookie(){}
 //Return true if cookieId still valid
 bool	Cookie::isCookieValid(const std::string& clientReq)
 {
-	if (COOKIE_ACTIVATED == 1)
+	if (COOKIE_ACTIVATED == 0)
+		return true;
+	if (isClientCookieId(clientReq) == true)
 	{
-		if (isClientCookieId(clientReq) == true)
-		{
-			std::string cookieId = clientCookieId(clientReq);
-			return isValid(cookieId);
-		}
+		std::string cookieId = clientCookieId(clientReq);
+		return isValid(cookieId);
 	}
 	return false;
 }
