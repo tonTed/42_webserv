@@ -11,11 +11,12 @@ bool	isAllowedMethod(const eRequestType method) {
 
 // TODO set a path or throw, .., ., //, etc
 std::string getPath(const std::string &uri, const eRequestType method) {
-	(void)uri;
+
+	std::string path = uri;
+
 	(void)method;
-	if (uri == "/" || uri == "/index.html")
-		return "./data/www/index.html";
-	return "";
+
+	return path;
 }
 
 Request::Request() : _client(-1), _serverId(-1) {}
@@ -47,36 +48,44 @@ Request::Request(const int client, const int serverId) : _client(client), _serve
 void	Request::_initRequest() {
 	try {
 		_readSocketData();
-		std::cout << "Socket Read" << std::endl;
 		_parseStartLine();
-		std::cout << "Start Line Parsed" << std::endl;
 		_parseHeaders();
-		std::cout << "Headers Parsed" << std::endl;
 		_parseBody();
-		std::cout << "Body Parsed" << std::endl;
 	} catch (RequestException::ReadError &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[494] error to client
 	} catch (RequestException::NoCRLF &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[400] error to client
 	} catch (RequestException::StartLine::InvalidMethod &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[400] error to client
 	} catch (RequestException::StartLine::InvalidVersion &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[505] error to client
 	} catch (RequestException::InvalidLine &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[400] error to client
 	} catch (RequestException::Header::DuplicateKey &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[400] error to client
 	} catch (RequestException::Header::InvalidKey &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[400] error to client
 	} catch (RequestException::Header::InvalidValue &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[400] error to client
 	} catch (RequestException::StartLine::NotAllowedMethod &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[405] error to client
 	} catch (RequestException::StartLine::InvalidURI &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[404] error to client
 	}  catch (RequestException::Header::MissingHeader &e) {
+		Log::log(std::string(e.what()), LOG_INFO);
 		//TODO: send[400] error to client
 	}
 
@@ -120,8 +129,6 @@ void	Request::_readSocketData() {
  *
  */
 void	Request::_parseStartLine() {
-
-	std::cout << _rawRequest.str() << std::endl;
 
 	// Check if the line ends with CRLF
 	std::string line;
