@@ -17,6 +17,8 @@
 //Server limits
 # define MAX_REQUEST_SIZE 4096
 
+#include "../src/Log/Log.h"
+
 
 /**
  * @brief	Enum of all the possible request types.
