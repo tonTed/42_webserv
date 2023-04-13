@@ -28,6 +28,8 @@ public:
 	void 		formatResponse();
 	std::string 	setBody();
 	std::string 	setHeader(int bodyLength);
+	
+	void 		errorResponse();
 
 public:
 		const Request & _request;

@@ -4,17 +4,25 @@
 
 #include "Log.h"
 
-void		Log::log(std::string message, std::string type) {
+#define DEBUG_ 1
 
-	std::cout << "[" << getTime() << "]";
+void Log::debugFunc(std::string function) {
 
-	if (type == LOG_DEBUG)
+	if (DEBUG_)
+		std::cout << BOLD_MAGENTA << "DEBUG: " << function << RESET << std::endl;
+}
+
+void		Log::log(std::string type, std::string message) {
+
+//	std::cout << "[" << getTime() << "]";
+
+	if (type == Log::DEBUG)
 		std::cout << BLUE << "[" << type << "] " RESET;
-	else if (type == LOG_INFO)
+	else if (type == Log::INFO)
 		std::cout << GREEN << "[" << type << "] " RESET;
-	else if (type == LOG_WARNING)
+	else if (type == Log::WARNING)
 		std::cout << YELLOW << "[" << type << "] " RESET;
-	else if (type == LOG_ERROR)
+	else if (type == Log::ERROR)
 		std::cout << RED << "[" << type << "] " RESET;
 
 	std::cout << message << std::endl;
@@ -27,3 +35,8 @@ std::string Log::getTime()
 	std::string date = std::to_string(1900 + ltm->tm_year) + "-" + std::to_string(1 + ltm->tm_mon) + "-" + std::to_string(ltm->tm_mday) + " " + std::to_string(ltm->tm_hour) + ":" + std::to_string(ltm->tm_min) + ":" + std::to_string(ltm->tm_sec);
 	return date;
 }
+
+std::string Log::DEBUG = "DEBUG";
+std::string Log::INFO = "INFO";
+std::string Log::WARNING = "WARNING";
+std::string Log::ERROR = "ERROR";

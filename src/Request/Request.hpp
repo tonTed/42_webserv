@@ -41,6 +41,8 @@ public:
 	void _parseHeaders();
 
 	void _parseBody();
+	
+	bool isCGI();
 
 	void _resetRequest();
 
@@ -56,7 +58,9 @@ public:
 
 	int 								_client;
 	int 								_serverId;
+	int 								_status;
 	int 								_cgiFd[2];
+	bool 								_isCGI;
 
 private:
 

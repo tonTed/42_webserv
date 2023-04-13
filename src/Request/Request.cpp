@@ -19,7 +19,7 @@ std::string getPath(const std::string &uri, const eRequestType method) {
 	return path;
 }
 
-Request::Request() : _client(-1), _serverId(-1) {}
+Request::Request() : _client(-1), _serverId(-1), _status(200), _isCGI(false) {}
 
 void Request::resetRequest() {
 	_rawRequest.str("");
@@ -46,59 +46,73 @@ Request::Request(const int client, const int serverId) : _client(client), _serve
  *
  */
 void	Request::_initRequest() {
+	Log::debugFunc(__FUNCTION__);
+	
 	try {
 		_readSocketData();
 		_parseStartLine();
 		_parseHeaders();
 		_parseBody();
 	} catch (RequestException::ReadError &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[500] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()) + " client:" + std::to_string(_client));
+		_status = 500;
 	} catch (RequestException::MaxSize &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[494] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 413;
 	} catch (RequestException::NoCRLF &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[400] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	} catch (RequestException::StartLine::InvalidMethod &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[400] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	} catch (RequestException::StartLine::InvalidVersion &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[505] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 505;
 	} catch (RequestException::InvalidLine &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[400] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	} catch (RequestException::Header::DuplicateKey &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[400] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	} catch (RequestException::Header::InvalidKey &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[400] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	} catch (RequestException::Header::InvalidValue &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[400] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	} catch (RequestException::StartLine::NotAllowedMethod &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[405] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 405;
 	} catch (RequestException::StartLine::InvalidURI &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[404] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	}  catch (RequestException::Header::MissingHeader &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
-		//TODO: send[400] error to client
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
 	}
 
-	Response response(*this, 200);
-	response.resolvePath();
-	response.formatResponse();
+	Response response(*this, _status);
 
-	response._response += "Hello World Teddy Bear !!";
+	if (_status != 200) {
+		Log::log(Log::DEBUG , "Send error response: " + std::to_string(_status));
 
-	std::cout << "send: "  << send(_client, response._response.c_str(), response._response.length(), MSG_DONTWAIT) << std::endl;
+		response.errorResponse();
+	}
+	else
+	{
+		Log::log(Log::DEBUG , "Valid request");
+		response.resolvePath();
+		response.formatResponse();
+		response._response += "Hello World Teddy Bear !!";
 
-	close(_client);
+	}
 
+	if (send(_client, response._response.c_str(), response._response.length(), MSG_DONTWAIT) != -1)
+		Log::log(Log::DEBUG , "Response sent");
+	else
+		Log::log(Log::WARNING , "Response not sent");
+
+//	close(_client);
 }
 
 /**
@@ -107,6 +121,8 @@ void	Request::_initRequest() {
  *
  */
 void	Request::_readSocketData() {
+	Log::debugFunc(__FUNCTION__);
+
 	char	buffer[MAX_REQUEST_SIZE + 1];
 	int 	ret;
 
@@ -129,6 +145,8 @@ void	Request::_readSocketData() {
  *
  */
 void	Request::_parseStartLine() {
+
+	Log::debugFunc(__FUNCTION__);
 
 	// Check if the line ends with CRLF
 	std::string line;
@@ -167,6 +185,9 @@ void	Request::_parseStartLine() {
 }
 
 void	Request::_setType(std::string &type) {
+
+	Log::debugFunc(__FUNCTION__);
+	
 	if (type.empty())
 		throw RequestException::InvalidLine();
 	else if (type == "GET")
@@ -206,6 +227,9 @@ void	Request::_setType(std::string &type) {
  * @todo	Check here if the path is valid?
  */
 void	Request::_setPath(std::string &path) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	if (path.empty())
 		throw RequestException::InvalidLine();
 	if (path[0] != '/')
@@ -228,6 +252,9 @@ void	Request::_setPath(std::string &path) {
  *
  */
 void	Request::_setVersion(std::string &version) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	if (version.empty())
 		throw RequestException::InvalidLine();
 	_startLine.version = version;
@@ -275,6 +302,9 @@ void print_map(std::map<std::string, std::string> &m) {
  *
  */
 void	Request::_parseHeaders() {
+
+	Log::debugFunc(__FUNCTION__);
+
 	std::string line;
 	std::string key;
 	std::string value;
@@ -344,6 +374,9 @@ void	Request::_parseHeaders() {
  *
  */
  void	Request::_parseBody() {
+
+	Log::debugFunc(__FUNCTION__);
+
 	std::string line;
 
 	// Check if the Content-Length header is present
@@ -372,18 +405,39 @@ void	Request::_parseHeaders() {
 Request::~Request() {}
 
 void Request::setClient(int client) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	_client = client;
 }
 
 int	Request::getClient() const{
+
+	Log::debugFunc(__FUNCTION__);
+
 	return _client;
 }
 
 void	Request::setServerId(int serverId) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	_serverId = serverId;
 }
 
 void	Request::setCGIFd(int cgiFd[2]) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	_cgiFd[PIPE_READ] = cgiFd[PIPE_READ];
 	_cgiFd[PIPE_WRITE] = cgiFd[PIPE_WRITE];
+}
+
+bool	Request::isCGI() {
+
+	Log::debugFunc(__FUNCTION__);
+
+	return true;
+	return _isCGI;
+
 }
