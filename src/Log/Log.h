@@ -6,16 +6,19 @@
 # define LOG_H
 
 #include <iostream>
-#include "../../includes/colors.hpp"
+#include <ctime>
 
-#define LOG_DEBUG		"[DEBUG]"
-#define LOG_INFO		"[INFO]"
-#define LOG_WARNING		"[WARNING]"
-#define LOG_ERROR		"[ERROR]"
+#include "../../includes/colors.hpp"
 
 class Log {
 public:
-	static void			log(std::string message, std::string type);
+	static void			log(std::string type, std::string message);
+	static void			debugFunc(std::string function);
+	
+	static std::string	DEBUG;
+	static std::string	INFO;
+	static std::string	WARNING;
+	static std::string	ERROR;
 
 private:
 	static std::string	getTime();

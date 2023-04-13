@@ -46,46 +46,48 @@ Request::Request(const int client, const int serverId) : _client(client), _serve
  *
  */
 void	Request::_initRequest() {
+	Log::debugFunc(__FUNCTION__);
+	
 	try {
 		_readSocketData();
 		_parseStartLine();
 		_parseHeaders();
 		_parseBody();
 	} catch (RequestException::ReadError &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[494] error to client
 	} catch (RequestException::NoCRLF &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[400] error to client
 	} catch (RequestException::StartLine::InvalidMethod &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[400] error to client
 	} catch (RequestException::StartLine::InvalidVersion &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[505] error to client
 	} catch (RequestException::InvalidLine &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[400] error to client
 	} catch (RequestException::Header::DuplicateKey &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[400] error to client
 	} catch (RequestException::Header::InvalidKey &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[400] error to client
 	} catch (RequestException::Header::InvalidValue &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[400] error to client
 	} catch (RequestException::StartLine::NotAllowedMethod &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[405] error to client
 	} catch (RequestException::StartLine::InvalidURI &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[404] error to client
 	}  catch (RequestException::Header::MissingHeader &e) {
-		Log::log(std::string(e.what()), LOG_INFO);
+		Log::log(Log::DEBUG ,std::string(e.what()));
 		//TODO: send[400] error to client
 	}
 
@@ -107,6 +109,8 @@ void	Request::_initRequest() {
  *
  */
 void	Request::_readSocketData() {
+	Log::debugFunc(__FUNCTION__);
+	
 	char	buffer[MAX_REQUEST_SIZE + 1];
 	int 	ret;
 
@@ -129,6 +133,8 @@ void	Request::_readSocketData() {
  *
  */
 void	Request::_parseStartLine() {
+
+	Log::debugFunc(__FUNCTION__);
 
 	// Check if the line ends with CRLF
 	std::string line;
@@ -167,6 +173,9 @@ void	Request::_parseStartLine() {
 }
 
 void	Request::_setType(std::string &type) {
+
+	Log::debugFunc(__FUNCTION__);
+	
 	if (type.empty())
 		throw RequestException::InvalidLine();
 	else if (type == "GET")
@@ -206,6 +215,9 @@ void	Request::_setType(std::string &type) {
  * @todo	Check here if the path is valid?
  */
 void	Request::_setPath(std::string &path) {
+
+	Log::debugFunc(__FUNCTION__);
+	
 	if (path.empty())
 		throw RequestException::InvalidLine();
 	if (path[0] != '/')
@@ -228,6 +240,9 @@ void	Request::_setPath(std::string &path) {
  *
  */
 void	Request::_setVersion(std::string &version) {
+
+	Log::debugFunc(__FUNCTION__);
+	
 	if (version.empty())
 		throw RequestException::InvalidLine();
 	_startLine.version = version;
@@ -275,6 +290,9 @@ void print_map(std::map<std::string, std::string> &m) {
  *
  */
 void	Request::_parseHeaders() {
+
+	Log::debugFunc(__FUNCTION__);
+	
 	std::string line;
 	std::string key;
 	std::string value;
@@ -344,6 +362,9 @@ void	Request::_parseHeaders() {
  *
  */
  void	Request::_parseBody() {
+
+	Log::debugFunc(__FUNCTION__);
+	 
 	std::string line;
 
 	// Check if the Content-Length header is present
@@ -372,18 +393,30 @@ void	Request::_parseHeaders() {
 Request::~Request() {}
 
 void Request::setClient(int client) {
+
+	Log::debugFunc(__FUNCTION__);
+	 
 	_client = client;
 }
 
 int	Request::getClient() const{
+	 
+	Log::debugFunc(__FUNCTION__);
+	 
 	return _client;
 }
 
 void	Request::setServerId(int serverId) {
+
+	Log::debugFunc(__FUNCTION__);
+	 
 	_serverId = serverId;
 }
 
 void	Request::setCGIFd(int cgiFd[2]) {
+
+	Log::debugFunc(__FUNCTION__);
+	 
 	_cgiFd[PIPE_READ] = cgiFd[PIPE_READ];
 	_cgiFd[PIPE_WRITE] = cgiFd[PIPE_WRITE];
 }
