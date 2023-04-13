@@ -210,7 +210,7 @@ void	Server::operating()
 */
 int	Server::pollIndexSignal()
 {
-	for (unsigned int index = 0; index < POLLFD_LIMIT; index++)
+	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
 		if (_pollFds[index].revents == POLLIN)
 		{
@@ -445,6 +445,7 @@ void	Server::closePOLLHUPReq(const int& clientIndex)
 
 void	Server::signal_handler(int signal)
 {
+	(void)signal;
 	_SIGINT = true;
 }
 
