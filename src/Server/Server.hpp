@@ -22,7 +22,6 @@ typedef struct	indexInfo_s
 	int		CGIReadIndex;
 	int		clientIndex;
 	int		reqIndex;
-	bool	reqMade;
 }				indexInfo_t;
 
 class Request;
@@ -81,9 +80,10 @@ public:
 	
 //*****************************REQUEST******************************************
 
+	void			callRequest(const int& clientIndex);
 	bool			setRequest(const int& signalIndex);
-	int				acceptClient(const int& signalIndex);
-	bool			pollFdsAvailable() const;
+	void			acceptClient(const int& signalIndex);
+	bool			pollFdsAvailable(int nbFdRequire) const;
 	int				setPollFds(const int& fd);
 	int				reqAvailIndex() const;
 
@@ -92,13 +92,13 @@ public:
 	void			indexInfoInit();
 	void			resetIndexInfo(const int& index);
 	void			setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum);
-	void			setReqMade(const int& clientIndex);
 
 //****************************CLOSE CONNECTION**********************************
-	void			closeConnection(const int& signalIndex);
+	void			smartConnectionCloser(const int& signalIndex);
+	void			closeReqCGI(const int& signalIndex);
 	void			safeClose(int& fdSource);
 	void			closePollFds();
-	void			closePOLLHUPReq(const int& clientIndex);
+	void			closeRemainingCGIWrite();
 
 	static void		signal_handler(int signal);
 
