@@ -45,6 +45,7 @@ public:
 	void _resetRequest();
 
 	void 		setClient(int client);
+	int			getClient() const;
 	void 		setServerId(int serverId);
 	void		setCGIFd(int cgiFd[2]);
 

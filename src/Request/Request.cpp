@@ -3,6 +3,8 @@
 #include "unistd.h"
 #include "../Utils/ft.hpp"
 
+#include "../Response/Response.hpp"
+
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
@@ -45,9 +47,13 @@ Request::Request(const int client, const int serverId) : _client(client), _serve
 void	Request::_initRequest() {
 	try {
 		_readSocketData();
+		std::cout << "Socket Read" << std::endl;
 		_parseStartLine();
+		std::cout << "Start Line Parsed" << std::endl;
 		_parseHeaders();
+		std::cout << "Headers Parsed" << std::endl;
 		_parseBody();
+		std::cout << "Body Parsed" << std::endl;
 	} catch (RequestException::ReadError &e) {
 		//TODO: send[500] error to client
 	} catch (RequestException::MaxSize &e) {
@@ -70,7 +76,20 @@ void	Request::_initRequest() {
 		//TODO: send[405] error to client
 	} catch (RequestException::StartLine::InvalidURI &e) {
 		//TODO: send[404] error to client
+	}  catch (RequestException::Header::MissingHeader &e) {
+		//TODO: send[400] error to client
 	}
+
+	Response response(*this, 200);
+	response.resolvePath();
+	response.formatResponse();
+
+	response._response += "Hello World Teddy Bear !!";
+
+	std::cout << "send: "  << send(_client, response._response.c_str(), response._response.length(), MSG_DONTWAIT) << std::endl;
+
+	close(_client);
+
 }
 
 /**
@@ -101,6 +120,8 @@ void	Request::_readSocketData() {
  *
  */
 void	Request::_parseStartLine() {
+
+	std::cout << _rawRequest.str() << std::endl;
 
 	// Check if the line ends with CRLF
 	std::string line;
@@ -252,6 +273,8 @@ void	Request::_parseHeaders() {
 	std::string value;
 	unsigned long i;
 
+	std::getline(_rawRequest, line);
+
 	while (std::getline(_rawRequest, line)) {
 
 		// Check if the line ends with CRLF
@@ -317,12 +340,19 @@ void	Request::_parseHeaders() {
 	std::string line;
 
 	// Check if the Content-Length header is present
+	//TODO: Needs Content-Length to be mandatory?
 	if (_headers.find("CONTENT-LENGTH") == _headers.end())
+	{
+		return;
 		throw RequestException::Header::MissingHeader();
+	}
 
 	int contentLength;
 	try { contentLength = FT::atoi(_headers["CONTENT-LENGTH"]); }
 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
+
+	//Skip the Headers
+	while (std::getline(_rawRequest, line) && !line.empty());
 
 	// Read the body
 	while (std::getline(_rawRequest, line)) {
@@ -338,11 +368,15 @@ void Request::setClient(int client) {
 	_client = client;
 }
 
+int	Request::getClient() const{
+	return _client;
+}
+
 void	Request::setServerId(int serverId) {
 	_serverId = serverId;
 }
 
 void	Request::setCGIFd(int cgiFd[2]) {
-	_cgiFd[0] = cgiFd[0];
-	_cgiFd[1] = cgiFd[1];
+	_cgiFd[PIPE_READ] = cgiFd[PIPE_READ];
+	_cgiFd[PIPE_WRITE] = cgiFd[PIPE_WRITE];
 }

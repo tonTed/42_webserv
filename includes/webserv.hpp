@@ -24,6 +24,7 @@
 # include <arpa/inet.h>		//htons
 # include <unistd.h>		//close
 # include <errno.h>			//errno for poll
+# include <csignal>
 
 typedef std::string string;
 
@@ -45,7 +46,9 @@ enum eOriginFD
 {
 	FROM_PORT,
 	FROM_CGI,
-	FROM_CGI_PARSING,
+	FROM_CLIENT,
+	SIGNAL_NOT_IN_POLLFDS = -1,
+	SIGNAL_NOT_POLLIN = -2
 };
 
 enum ePipeDir

@@ -18,9 +18,11 @@
 
 typedef struct	indexInfo_s
 {
-	int	serverNum;
-	int	CGIReadIndex;
-	int	clientIndex;
+	int		serverNum;
+	int		CGIReadIndex;
+	int		clientIndex;
+	int		reqIndex;
+	bool	reqMade;
 }				indexInfo_t;
 
 class Request;
@@ -32,7 +34,7 @@ private:
 	int				_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
 	indexInfo_s		_indexInfo[POLLFD_LIMIT];
 	Request*		_reqs;
-	int				_activeFds;
+	static bool		_SIGINT;
 
 public:
 					Server();
@@ -61,6 +63,7 @@ public:
 
 	void			booting();
 	void			pollFdsInit();
+	void			pollFdsReset(const int& index);
 	void			recordPort(uint16_t port[POLLFD_LIMIT]);
 	void			setPortSocket(const uint16_t port[POLLFD_LIMIT]);
 	void			bootSocket(const int& iSocket);
@@ -78,22 +81,27 @@ public:
 	
 //*****************************REQUEST******************************************
 
-	int				setRequest(const int& signalIndex);
+	bool			setRequest(const int& signalIndex);
 	int				acceptClient(const int& signalIndex);
 	bool			pollFdsAvailable() const;
 	int				setPollFds(const int& fd);
-	int				reqIndex(const int& signalIndex) const;
+	int				reqAvailIndex() const;
 
 //****************************INDEXINFO*****************************************
 
 	void			indexInfoInit();
 	void			resetIndexInfo(const int& index);
 	void			setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum);
+	void			setReqMade(const int& clientIndex);
 
 //****************************CLOSE CONNECTION**********************************
 	void			closeConnection(const int& signalIndex);
 	void			safeClose(int& fdSource);
 	void			closePollFds();
+	void			closePOLLHUPReq(const int& clientIndex);
+
+	static void		signal_handler(int signal);
+
 };
 
 
