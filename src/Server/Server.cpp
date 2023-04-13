@@ -212,14 +212,16 @@ int	Server::pollIndexSignal()
 {
 	for (int index = 0; index < POLLFD_LIMIT; index++)
 	{
-		if (_pollFds[index].revents == POLLIN)
+		if (_pollFds[index].revents & POLLIN)
 		{
 			_pollFds[index].revents = 0;
 			return index;
 		}
 		else if (_pollFds[index].revents != 0 && index >= _nbfdPort)
+		{
 			closePOLLHUPReq(index);
 			return SIGNAL_NOT_POLLIN;
+		}
 	}
 	return SIGNAL_NOT_IN_POLLFDS;
 }
