@@ -1,5 +1,13 @@
 #include "Server.hpp"
 
+std::string intToHex(int n){
+	std::string hex;
+	std::stringstream ss;
+	ss << std::hex << n;
+	ss >> hex;
+	return hex;
+}
+
 Server::Server():_reqs(NULL) {serverRoutine();}
 
 Server::~Server()
@@ -210,6 +218,11 @@ void	Server::operating()
 
 					_reqs[_indexInfo[signalIndex].reqIndex]._initRequest();
 					setReqMade(signalIndex);
+					if (_reqs[_indexInfo[signalIndex].reqIndex].isCGI() == false)
+					{
+						safeClose(_pollFds[signalIndex].fd);
+						closeConnection(signalIndex);
+					}
 				}
 				else
 				{
@@ -256,6 +269,8 @@ int	Server::pollIndexSignal()
 		}
 		else if (_pollFds[index].revents != 0 && index >= _nbfdPort)
 		{
+			Log::log(Log::DEBUG, "POLL Signal: " + intToHex(_pollFds[index].revents));
+
 			closePOLLHUPReq(index);
 			return SIGNAL_NOT_POLLIN;
 		}
@@ -309,14 +324,40 @@ bool	Server::setRequest(const int& signalIndex)
 			if (pipe(CGIPipe) != -1) //pipe status ok
 			{
 
+				Log::log(Log::DEBUG, "NEW CLIENT clientFd:" + std::to_string(clientFd)
+											+ " CGIRead:" + std::to_string(CGIPipe[PIPE_READ])
+											+ " CGIWrite:" + std::to_string(CGIPipe[PIPE_WRITE]));
+
 				int	clientIndex = setPollFds(clientFd);
 				int	CGIReadIndex = setPollFds(CGIPipe[PIPE_READ]);
 				
 				setIndexInfo(clientIndex, CGIReadIndex, signalIndex);
 				
-				_reqs[_indexInfo[signalIndex].reqIndex].setClient(clientFd);
-				_reqs[_indexInfo[signalIndex].reqIndex].setServerId(signalIndex);
-				_reqs[_indexInfo[signalIndex].reqIndex].setCGIFd(CGIPipe);
+				_reqs[_indexInfo[clientIndex].reqIndex].setClient(clientFd);
+				_reqs[_indexInfo[clientIndex].reqIndex].setServerId(signalIndex);
+				_reqs[_indexInfo[clientIndex].reqIndex].setCGIFd(CGIPipe);
+
+
+				Log::log(Log::DEBUG, "MEMORY CHECK:\n pollFds [clientIndex=" + std::to_string(clientIndex)
+					+ "]:" + std::to_string(_pollFds[clientIndex].fd)
+					+ " [CGIReadIndex=" + std::to_string(CGIReadIndex)
+					+ "]:" + std::to_string(_pollFds[CGIReadIndex].fd)
+					+ "\n_indexInfo[clientIndex] serverNum:" + std::to_string(_indexInfo[clientIndex].serverNum)
+					+ "CGIReadIndex:" + std::to_string(_indexInfo[clientIndex].CGIReadIndex)
+					+ "ClientIndex:" + std::to_string(_indexInfo[clientIndex].clientIndex)
+					+ "reqIndex:" + std::to_string(_indexInfo[clientIndex].reqIndex)
+					+ "reqMade:" + std::to_string(_indexInfo[clientIndex].reqMade)
+					+ "\n_indexInfo[CGIReadIndex] serverNum:" + std::to_string(_indexInfo[CGIReadIndex].serverNum)
+					+ "CGIReadIndex:" + std::to_string(_indexInfo[CGIReadIndex].CGIReadIndex)
+					+ "ClientIndex:" + std::to_string(_indexInfo[CGIReadIndex].clientIndex)
+					+ "reqIndex:" + std::to_string(_indexInfo[CGIReadIndex].reqIndex)
+					+ "reqMade:" + std::to_string(_indexInfo[CGIReadIndex].reqMade)
+					+ "\n_reqs[_indexInfo[clientIndex].reqIndex] _client" + std::to_string(_reqs[_indexInfo[clientIndex].reqIndex]._client)
+					+ "_serverId" + std::to_string(_reqs[_indexInfo[clientIndex].reqIndex]._serverId)
+					+ "_status" + std::to_string(_reqs[_indexInfo[clientIndex].reqIndex]._serverId)
+					+ "_cgiFd[0]" + std::to_string(_reqs[_indexInfo[clientIndex].reqIndex]._cgiFd[0])
+					+ "_cgiFd[1]" + std::to_string(_reqs[_indexInfo[clientIndex].reqIndex]._cgiFd[1])
+					);
 
 				return true;
 			}
@@ -483,9 +524,9 @@ void	Server::closeConnection(const int& signalIndex)
 void	Server::safeClose(int& fdSource)
 {
 	Log::debugFunc(__FUNCTION__);
-	Log::log(Log::DEBUG, "Closing fd: " + std::to_string(fdSource));
 	if (fdSource >= 3)
 	{
+		Log::log(Log::DEBUG, "Closing fd: " + std::to_string(fdSource));
 		close(fdSource);
 		fdSource = UNSET;
 	}
@@ -503,8 +544,9 @@ void	Server::closePollFds()
 void	Server::closePOLLHUPReq(const int& clientIndex)
 {
 	Log::debugFunc(__FUNCTION__);
-
 	safeClose(_pollFds[clientIndex].fd);
+	Log::log(Log::DEBUG, "Closing fd: " + std::to_string(_reqs[_indexInfo[clientIndex].reqIndex]._cgiFd[PIPE_WRITE]));
+	close(_reqs[_indexInfo[clientIndex].reqIndex]._cgiFd[PIPE_WRITE]);
 	closeConnection(clientIndex);
 }
 
