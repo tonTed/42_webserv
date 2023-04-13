@@ -1,6 +1,8 @@
 #include "Response.hpp"
 
 Response::Response(const Request &request, int status) : _request(request), _status(status){
+	Log::debugFunc(__FUNCTION__);
+
 	_config = ConfigServer::getInstance();
 
 	if (status != 200) {
@@ -12,6 +14,8 @@ Response::Response(const Request &request, int status) : _request(request), _sta
 }
 
 Response::Response(const Request &request) : _request(request){
+	Log::debugFunc(__FUNCTION__);
+
 	_config = ConfigServer::getInstance();
 }
 
@@ -21,6 +25,8 @@ Response::Response(const Request &request) : _request(request){
  *
  */
 std::string Response::getLocation() {
+	Log::debugFunc(__FUNCTION__);
+
 	std::string	location;
 
 	// check if path has a slash
@@ -33,6 +39,7 @@ std::string Response::getLocation() {
 }
 
 bool 		Response::setRoot(const std::string &location) {
+	Log::debugFunc(__FUNCTION__);
 
 	// set the root to the location root if it exists
 	if (_config->_serversData[_request._serverId]._locations.find(location) != _config->_serversData[_request._serverId]._locations.end())\
@@ -48,12 +55,13 @@ bool 		Response::setRoot(const std::string &location) {
 }
 
 bool 		Response::hasExtension(const std::string &path) {
+	Log::debugFunc(__FUNCTION__);
 	if (path.find('.') != std::string::npos && path.find('.') != path.size() - 1)
 		return true;
 	return false;
 }
 
-bool 		Response::isRootValid() {
+bool 		Response::isRootValid() { 	Log::debugFunc(__FUNCTION__);
 	std::ifstream fd(_root.c_str());
 
 	if (fd)
@@ -64,7 +72,7 @@ bool 		Response::isRootValid() {
 	return false;
 }
 
-void 		Response::addIndex(bool hasLocation, std::string location) {
+void 		Response::addIndex(bool hasLocation, std::string location) {	Log::debugFunc(__FUNCTION__);
 	std::string index;
 
 	if (hasLocation)
@@ -75,7 +83,7 @@ void 		Response::addIndex(bool hasLocation, std::string location) {
 	_root += "/" + index;
 }
 
-void	Response::resolvePath() {
+void	Response::resolvePath() {	Log::debugFunc(__FUNCTION__);
 
 	std::string location;
 	bool 		hasLocation = false;
@@ -119,7 +127,7 @@ void	Response::resolvePath() {
 
 }
 
-std::string 	Response::setBody() {
+std::string 	Response::setBody() {	Log::debugFunc(__FUNCTION__);
 	std::ifstream fd(_root.c_str());
 	std::string line;
 	std::string body;
@@ -132,7 +140,7 @@ std::string 	Response::setBody() {
 	return body;
 }
 
-std::string 	Response::setHeader(int bodyLength) {
+std::string 	Response::setHeader(int bodyLength) {	Log::debugFunc(__FUNCTION__);
 	std::string headers;
 
 	headers = "HTTP/1.1 " + std::to_string(_status) + " " + CodeResponse::_codeResponse[_status] + "\r\n";
@@ -147,12 +155,20 @@ std::string 	Response::setHeader(int bodyLength) {
 	return headers;
 }
 
-void	Response::formatResponse() {
+void	Response::formatResponse() {	Log::debugFunc(__FUNCTION__);
 
 	std::string body;
 
 	body = setBody();
 
+	_response = setHeader(body.length());
+	_response += body;
+}
+
+void	Response::errorResponse() {	Log::debugFunc(__FUNCTION__);
+	std::string body;
+
+	body = DefaultHTML::getHtml(_status);
 	_response = setHeader(body.length());
 	_response += body;
 }
