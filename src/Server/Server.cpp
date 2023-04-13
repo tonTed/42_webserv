@@ -229,6 +229,7 @@ void	Server::operating()
 			case SIGNAL_NOT_POLLIN:
 			{
 				Log::log(Log::DEBUG, "Operating: Case SIGNAL_NOT_POLLIN");
+				break;
 			}
 			default:
 			{
