@@ -34,7 +34,7 @@ public:
 	bool 	isCGI() const;
 
 public:
-	void _initRequest();
+	void initRequest();
 
 	void _readSocketData();
 

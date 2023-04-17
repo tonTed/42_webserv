@@ -226,7 +226,7 @@ void	Request::_parseBody() {
 		_body.erase(contentLength, _body.size() - contentLength);
 }
 
-void	Request::_initRequest() {
+void	Request::initRequest() {
 	Log::debugFunc(__FUNCTION__);
 
 	try {

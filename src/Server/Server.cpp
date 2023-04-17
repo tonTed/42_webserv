@@ -243,7 +243,7 @@ void	Server::callRequest(const int& clientIndex)
 {
 	if (setRequest(clientIndex) == true)
 	{
-		_reqs[_indexInfo[clientIndex].reqIndex]._initRequest();
+		_reqs[_indexInfo[clientIndex].reqIndex].initRequest();
 		if (_reqs[_indexInfo[clientIndex].reqIndex].isCGI() == true)
 			safeClose(_reqs[_indexInfo[clientIndex].reqIndex]._cgiFd[PIPE_WRITE]);
 		else
