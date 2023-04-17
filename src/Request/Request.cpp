@@ -224,7 +224,6 @@ void	Request::_setType(std::string &type) {
  *
  * @throw RequestException::InvalidLine if the path is empty
  *
- * @todo	Check here if the path is valid?
  */
 void	Request::_setPath(std::string &path) {
 
