@@ -272,8 +272,20 @@ void	Request::initRequest() {
 		_status = 400;
 	}
 
-	Response response(*this);
-	response.sendResponse();
+	if (_startLine.type == GET)
+	{
+		Response response(*this);
+		response.sendResponse();
+	}
+	else if (_startLine.type == POST)
+	{
+		_isCGI = true;
+		//call CGI;
+	}
+	else if (_startLine.type == DELETE)
+	{
+		//manage delete
+	}
 }
 
 void 	Request::resetRequest() {
