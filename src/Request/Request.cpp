@@ -272,28 +272,8 @@ void	Request::initRequest() {
 		_status = 400;
 	}
 
-	Response response(*this, _status);
-
-	if (_status != 200) {
-		Log::log(Log::DEBUG , "Send error response: " + std::to_string(_status));
-
-		response.errorResponse();
-	}
-	else
-	{
-		Log::log(Log::DEBUG , "Valid request");
-		response.resolvePath();
-		response.formatResponse();
-		response._response += "Hello World Teddy Bear !!";
-
-	}
-
-	if (send(_client, response._response.c_str(), response._response.length(), MSG_DONTWAIT) != -1)
-		Log::log(Log::DEBUG , "Response sent");
-	else
-		Log::log(Log::WARNING , "Response not sent");
-
-//	close(_client);
+	Response response(*this);
+	response.sendResponse();
 }
 
 void 	Request::resetRequest() {

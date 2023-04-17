@@ -9,7 +9,6 @@
 class Response : CodeResponse {
 
 public:
-	Response(const Request &request, const int status);
 
 	// Pour envoyer une erreur
 	Response(int client, int status);
@@ -26,15 +25,22 @@ public:
 	void 			addIndex(bool hasLocation, std::string location);
 
 	void 		formatResponse();
+	void 		formatErrorDefaultResponse();
+
 	std::string 	setBody();
 	std::string 	setHeader(int bodyLength);
-	
-	void 		errorResponse();
+	void 			setResponse(const std::string &header, const std::string &body);
+
+	void 			sendResponse();
+
+	void 			manageErrorResponse();
+	void 			manageValidResponse();
+
 
 public:
 		const Request & _request;
 		int 			_status;
-		ConfigServer	*_config;
+		ServerData		_serverData;
 		std::string		_root;
 		std::string 	_response;
 };
