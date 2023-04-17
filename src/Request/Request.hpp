@@ -21,12 +21,17 @@ struct startLine {
 class Request {
 public:
 	Request();
-	Request(const int client);
-	Request(const int client, const int serverId);
-
 	~Request();
 
-	void resetRequest();
+	void 	resetRequest();
+
+	void 	setClient(int client);
+	void 	setServerId(int serverId);
+	void	setCGIFd(int cgiFd[2]);
+
+	int		getClient() const;
+
+	bool 	isCGI() const;
 
 public:
 	void _initRequest();
@@ -41,15 +46,6 @@ public:
 	void _parseHeaders();
 
 	void _parseBody();
-	
-	bool isCGI();
-
-	void _resetRequest();
-
-	void 		setClient(int client);
-	int			getClient() const;
-	void 		setServerId(int serverId);
-	void		setCGIFd(int cgiFd[2]);
 
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;
