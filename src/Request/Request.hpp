@@ -9,6 +9,7 @@ struct startLine {
 	eRequestType	type;
 	std::string		path;
 	std::string 	version;
+	std::string		queryString;
 };
 
 /**
