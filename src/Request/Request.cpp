@@ -4,6 +4,7 @@
 #include "../Utils/ft.hpp"
 
 #include "../Response/Response.hpp"
+#include "../CGI/Cgi.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
@@ -26,7 +27,10 @@ Request::~Request() {}
 void	Request::_readSocketData() {
 	Log::debugFunc(__FUNCTION__);
 
-	char	buffer[MAX_REQUEST_SIZE + 1];
+	char	*buffer;
+
+	buffer = new char[MAX_REQUEST_SIZE + 1];
+
 	int 	ret;
 
 	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
@@ -42,6 +46,7 @@ void	Request::_readSocketData() {
 void	Request::_parseStartLine() {
 
 	Log::debugFunc(__FUNCTION__);
+	std::cout << _rawRequest.str() << std::endl;
 
 	// Check if the line ends with CRLF
 	std::string line;
@@ -272,14 +277,22 @@ void	Request::initRequest() {
 		_status = 400;
 	}
 
+	std::cout << "Method: " << _startLine.type << std::endl;
+
 	if (_startLine.type == GET)
 	{
+		Log::log(Log::INFO, "GET");
+
 		Response response(*this);
 		response.sendResponse();
 	}
 	else if (_startLine.type == POST)
 	{
+		Log::log(Log::INFO, "POST");
+
 		_isCGI = true;
+		CGI cgi(*this);
+		cgi.executeCgi();
 		//call CGI;
 	}
 	else if (_startLine.type == DELETE)
@@ -298,6 +311,7 @@ void 	Request::resetRequest() {
 	_body.clear();
 	_serverId = -1;
 	_client = -1;
+	_isCGI = false;
 }
 
 void	Request::setClient(int client) {
@@ -333,6 +347,5 @@ bool	Request::isCGI() const {
 
 	Log::debugFunc(__FUNCTION__);
 
-	return true;
 	return _isCGI;
 }

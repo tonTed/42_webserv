@@ -181,6 +181,9 @@ void	Server::operating()
 			}
 			case FROM_CGI:
 			{
+				Log::log(Log::DEBUG, "CGI signal" + _reqs[_indexInfo[signalIndex].reqIndex]._rawRequest.str());
+
+
 				Response	respond(_reqs[_indexInfo[signalIndex].reqIndex]);
 				smartConnectionCloser(signalIndex);
 				break;

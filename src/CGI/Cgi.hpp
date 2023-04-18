@@ -55,11 +55,13 @@ public:
 
 public:
 
-	void setEnvp();
+	void _setEnv();
 
-	const Request & 	_request;
-	std::vector<string>	_envp;
-	const ServerData	_serverData;
+	void	executeCgi();
+
+	const Request & 			_request;
+	std::vector<std::string>	_env;
+	const ServerData			_serverData;
 
 
 };

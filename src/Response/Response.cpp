@@ -9,6 +9,25 @@ Response::Response(const Request &request) : _request(request), _status(request.
 
 	Log::log(Log::DEBUG ,"Request Status: " + std::to_string(_request._status));
 
+	std::cout << std::boolalpha << "IS CGI: " << _request.isCGI() << std::endl;
+
+	if (_request.isCGI())
+	{
+		std::cout << "CGI" << std::endl;
+		char	buffer[MAX_REQUEST_SIZE + 1];
+		int 	ret;
+
+
+		ret = read(_request._cgiFd[PIPE_READ], buffer, MAX_REQUEST_SIZE + 1);
+		buffer[ret] = '\0';
+
+		_response = "HTTP/1.1 " + std::to_string(_status) + " " + CodeResponse::_codeResponse[_status] + "\r\n";
+		_response += buffer;
+
+		sendResponse();
+		return;
+	}
+
 	_serverData = ConfigServer::getInstance()->getServerData()[_request._serverId];
 
 	if (_request._status != 200)
