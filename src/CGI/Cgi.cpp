@@ -10,35 +10,53 @@ char **vectorToChar(std::vector<std::string> &vec) {
 	return ret;
 }
 
-CGI::CGI(const Request &request) :	_request(request),
-									_serverData(ConfigServer::getInstance()->getServerData()[_request._serverId]) {
+CGI::CGI(Request &request) :	_request(request),
+								_serverData(ConfigServer::getInstance()->getServerData()[_request._serverId]) {
 	_setEnv();
+}
+
+std::string CGI::_getRequestMethod() {	Log::debugFunc(__FUNCTION__);
+
+	if (_request._startLine.type == GET)
+		return "GET";
+	else if (_request._startLine.type == POST)
+		return "POST";
+	else if (_request._startLine.type == DELETE)
+		return "DELETE";
+	else
+		return "UNKNOWN";
+}
+
+std::string	CGI::_getScriptName() {	Log::debugFunc(__FUNCTION__);
+
+	return _request._startLine.path;
 }
 
 void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 
-	_env.push_back("QUERY_STRING=name=Teddy&age=36" + _request._startLine.queryString);
+	_env.push_back("SERVER_SOFTWARE=webserv/1.0");
+//	_env.push_back("SERVER_NAME=" + _serverData._serverNames[0]); TODO: error
+	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
-//	_env.push_back("SERVER_SOFTWARE=webserv/1.0");
-//	_env.push_back("SERVER_NAME=" + _serverData._serverNames[0]);
-//	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-//
-//	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
-//	_env.push_back("SERVER_PORT=" + std::to_string(_serverData._serverPorts[0]));
-//	_env.push_back("REQUEST_METHOD=" + _request._startLine.type);
-//	_env.push_back("PATH_INFO=");
-//	_env.push_back("SCRIPT_NAME=" + _request._startLine.path);
-//	_env.push_back("CONTENT_TYPE=");
-//	_env.push_back("CONTENT_LENGTH=");
-//
-//	_env.push_back("HTTP_ACCEPT=");
-//	_env.push_back("HTTP_USER_AGENT=");
-//	_env.push_back("HTTP_COOKIE=");
+	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	_env.push_back("SERVER_PORT=" + std::to_string(_serverData._serverPorts[0]));
+	_env.push_back("REQUEST_METHOD=" + _getRequestMethod());
+	_env.push_back("PATH_INFO=");		// TODO: understand what is path info
+	_env.push_back("SCRIPT_NAME=" + _getScriptName());
+	_env.push_back("QUERY_STRING=" + _request._startLine.queryString);
+
+
+	_env.push_back("CONTENT_TYPE=");	// TODO: function to get content type from request
+	_env.push_back("CONTENT_LENGTH=");	// TODO: function to get content length from request
+
+	_env.push_back("HTTP_ACCEPT=");		// TODO: function to get accept from request
+	_env.push_back("HTTP_USER_AGENT=");	// TODO: function to get user agent from request
+	_env.push_back("HTTP_COOKIE=");		// TODO: function to get cookie from request
 }
 
 void	CGI::executeCgi() { Log::debugFunc(__FUNCTION__);
 
-	char *pathToCgi = strdup("./data/CGI/CGI.py");
+	char *pathToCgi = strdup("/Users/tonted/42/webserv/data/cgi/upload.php");
 	char *args[] = {pathToCgi, NULL};
 
 	pid_t pid = fork();
@@ -46,9 +64,11 @@ void	CGI::executeCgi() { Log::debugFunc(__FUNCTION__);
 
 	if (pid == -1) {
 		Log::log(Log::ERROR,"Error forking process.");
-		// reponse 500
+		_request._status = 500;
 	}
 	else if (pid == 0) {
+
+		Log::log(Log::DEBUG,"Executing CGI script.");
 
 		dup2(_request._cgiFd[PIPE_WRITE], 1);
 		close(_request._cgiFd[PIPE_READ]);
@@ -58,7 +78,7 @@ void	CGI::executeCgi() { Log::debugFunc(__FUNCTION__);
 		execve(args[0], args, _envp);
 		Log::log(Log::ERROR,"Error executing CGI script.");
 		close(_request._cgiFd[PIPE_WRITE]);
-		// reponse 500
+		_request._status = 500;
 		exit(1);
 	}
 }

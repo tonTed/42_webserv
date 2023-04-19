@@ -50,16 +50,19 @@ SERVER_PROTOCOL	Nom et version du protocole utilisé pour envoyer la requête au
 class CGI {
 
 public:
-	CGI(const Request &request);
+	CGI(Request &request);
 	~CGI();
 
 public:
 
 	void _setEnv();
 
+	std::string	_getScriptName();
+	std::string _getRequestMethod();
+
 	void	executeCgi();
 
-	const Request & 			_request;
+	Request & 					_request;
 	std::vector<std::string>	_env;
 	const ServerData			_serverData;
 
