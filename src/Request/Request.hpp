@@ -53,6 +53,8 @@ public:
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;
 
+	std::string 						_root;
+
 	int 								_client;
 	int 								_serverId;
 	int 								_status;

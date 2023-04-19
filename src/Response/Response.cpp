@@ -1,22 +1,28 @@
 #include "Response.hpp"
+#include "../Utils/FT.hpp"
 
 template <typename T, typename Y>
 bool	existsInMap(const std::map<T, Y> &map, const T &key) {
 	return map.find(key) != map.end();
 }
 
-Response::Response(const Request &request) : _request(request), _status(request._status){	Log::debugFunc(__FUNCTION__);
+Response::Response(const Request &request) :	_request(request),
+												_status(request._status),
+												_root(_request._root){	Log::debugFunc(__FUNCTION__);
 
 	Log::log(Log::DEBUG ,"Request Status: " + std::to_string(_request._status));
 
-	std::cout << std::boolalpha << "IS CGI: " << _request.isCGI() << std::endl;
+	_serverData = ConfigServer::getInstance()->getServerData()[_request._serverId];
 
-	if (_request.isCGI())
+	if (_request._status != 200)
 	{
-		std::cout << "CGI" << std::endl;
+		manageErrorResponse();
+	}
+	else if (_request.isCGI())
+	{
+		Log::log(Log::DEBUG ,"CGI Response");
 		char	buffer[MAX_REQUEST_SIZE + 1];
-		int 	ret;
-
+		size_t 	ret;
 
 		ret = read(_request._cgiFd[PIPE_READ], buffer, MAX_REQUEST_SIZE + 1);
 		buffer[ret] = '\0';
@@ -27,96 +33,11 @@ Response::Response(const Request &request) : _request(request), _status(request.
 		sendResponse();
 		return;
 	}
-
-	_serverData = ConfigServer::getInstance()->getServerData()[_request._serverId];
-
-	if (_request._status != 200)
-		manageErrorResponse();
 	else
 	{
-		resolvePath();
 		manageValidResponse();
 	}
 }
-
-void		Response::resolvePath() {	Log::debugFunc(__FUNCTION__);
-
-	std::string location;
-	bool 		hasLocation = false;
-
-	location = getLocation();
-	hasLocation = setRoot(location);
-	if (hasExtension(_root))
-	{
-		if (!isRootValid())
-			_status = 404;
-	}
-	else //no extension
-	{
-		addIndex(hasLocation, location);
-		if (!isRootValid())
-		{
-			if (hasLocation)
-				_status = 500;
-			else
-				_status = 404;
-		}
-	}
-}
-
-	std::string	Response::getLocation() {	Log::debugFunc(__FUNCTION__);
-
-		if (_request._startLine.path.find_first_of('/', 1) == std::string::npos)
-			return _request._startLine.path;
-		else
-			return _request._startLine.path.substr(0, _request._startLine.path.find_first_of('/', 1));
-	}
-
-	bool 		Response::setRoot(const std::string &location) {	Log::debugFunc(__FUNCTION__);
-
-		// set the root to the location root if it exists
-		if (existsInMap(_serverData._locations, location))
-		{
-			_root = _serverData._locations[location].root;
-			_root += _request._startLine.path.substr(location.length());
-			return true;
-		}
-		_root = _serverData._root[0];
-		if (_request._startLine.path.length() > 1)
-			_root += _request._startLine.path.substr();
-		return false;
-	}
-
-	bool 		Response::hasExtension(const std::string &path) {	Log::debugFunc(__FUNCTION__);
-
-		if (path.find('.') != std::string::npos && path.find('.') != path.size() - 1)
-			return true;
-		return false;
-	}
-
-	bool 		Response::isRootValid() { 	Log::debugFunc(__FUNCTION__);
-		std::ifstream fd(_root.c_str());
-
-		if (fd)
-		{
-			Log::log(Log::DEBUG, "Root is valid: " + _root);
-			fd.close();
-			return true;
-		}
-		Log::log(Log::DEBUG, "Root is not valid: " + _root);
-		return false;
-	}
-
-	void 		Response::addIndex(bool hasLocation, std::string location) {	Log::debugFunc(__FUNCTION__);
-		std::string index;
-
-		if (hasLocation)
-			index = _serverData._locations[location].index[0];
-		else
-			index = _serverData._index[0];
-
-		_root += "/" + index;
-	}
 
 void	Response::formatResponse() {	Log::debugFunc(__FUNCTION__);
 
@@ -124,7 +45,7 @@ void	Response::formatResponse() {	Log::debugFunc(__FUNCTION__);
 
 	body = setBody();
 
-	setResponse(setHeader(body.length()), body);
+	setResponse(setHeader((body.length())), body);
 }
 
 void	Response::formatErrorDefaultResponse() {	Log::debugFunc(__FUNCTION__);
@@ -141,7 +62,7 @@ void	Response::formatErrorDefaultResponse() {	Log::debugFunc(__FUNCTION__);
 		_response += body;
 	}
 
-	std::string 	Response::setBody() {	Log::debugFunc(__FUNCTION__);
+	std::string 	Response::setBody() const {	Log::debugFunc(__FUNCTION__);
 
 		std::ifstream fd(_root.c_str());
 		std::string line;
@@ -155,7 +76,7 @@ void	Response::formatErrorDefaultResponse() {	Log::debugFunc(__FUNCTION__);
 		return body;
 	}
 
-	std::string 	Response::setHeader(int bodyLength) {	Log::debugFunc(__FUNCTION__);
+	std::string 	Response::setHeader(size_t bodyLength) const {	Log::debugFunc(__FUNCTION__);
 
 		std::string headers;
 
@@ -171,7 +92,7 @@ void	Response::formatErrorDefaultResponse() {	Log::debugFunc(__FUNCTION__);
 		return headers;
 	}
 
-void	Response::sendResponse() {	Log::debugFunc(__FUNCTION__);
+void	Response::sendResponse() const {	Log::debugFunc(__FUNCTION__);
 
 	if (send(_request._client, _response.c_str(), _response.length(), MSG_DONTWAIT) != -1)
 		Log::log(Log::DEBUG , "Response sent");

@@ -10,28 +10,16 @@ class Response : CodeResponse {
 
 public:
 
-	// Pour envoyer une erreur
-	Response(int client, int status);
-
-	// Pour envoyer une réponse provenant d'un CGI
 	Response(const Request &request);
-
-
-	void		resolvePath();
-	std::string 	getLocation();
-	bool 			setRoot(const std::string &location);
-	bool			hasExtension(const std::string &path);
-	bool 			isRootValid();
-	void 			addIndex(bool hasLocation, std::string location);
 
 	void 		formatResponse();
 	void 		formatErrorDefaultResponse();
 
-	std::string 	setBody();
-	std::string 	setHeader(int bodyLength);
+	std::string 	setBody() const;
+	std::string 	setHeader(size_t bodyLength) const;
 	void 			setResponse(const std::string &header, const std::string &body);
 
-	void 			sendResponse();
+	void 			sendResponse() const;
 
 	void 			manageErrorResponse();
 	void 			manageValidResponse();

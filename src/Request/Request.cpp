@@ -1,10 +1,11 @@
 #include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
-#include "../Utils/ft.hpp"
 
 #include "../Response/Response.hpp"
+#include "../PathResolver/PathResolver.hpp"
 #include "../CGI/Cgi.hpp"
+#include "../Utils/FT.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
@@ -31,7 +32,7 @@ void	Request::_readSocketData() {
 
 	buffer = new char[MAX_REQUEST_SIZE + 1];
 
-	int 	ret;
+	ssize_t	ret;
 
 	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
 	if (ret == -1)
@@ -277,7 +278,13 @@ void	Request::initRequest() {
 		_status = 400;
 	}
 
-	std::cout << "Method: " << _startLine.type << std::endl;
+	PathResolver pathResolver(*this);
+	if (_status != 200)
+	{
+		Response response(*this);
+		response.sendResponse();
+		return ;
+	}
 
 	if (_startLine.type == GET)
 	{
@@ -289,6 +296,7 @@ void	Request::initRequest() {
 	else if (_startLine.type == POST)
 	{
 		Log::log(Log::INFO, "POST");
+		Log::log(Log::DEBUG, "Root: " + _startLine.path);
 
 		_isCGI = true;
 		CGI cgi(*this);
@@ -312,6 +320,8 @@ void 	Request::resetRequest() {
 	_serverId = -1;
 	_client = -1;
 	_isCGI = false;
+	_root = "";
+	_status = 200;
 }
 
 void	Request::setClient(int client) {
