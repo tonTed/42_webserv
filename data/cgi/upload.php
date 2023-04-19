@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 
 $upload_dir = 'data/files';
