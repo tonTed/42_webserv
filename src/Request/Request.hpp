@@ -43,6 +43,7 @@ public:
 		void _setType(std::string &type);
 		void _setPath(std::string &path);
 		void _setVersion(std::string &version);
+		std::string getPath(const std::string &uri);
 
 	void _parseHeaders();
 
