@@ -9,6 +9,7 @@ struct startLine {
 	eRequestType	type;
 	std::string		path;
 	std::string 	version;
+	std::string		queryString;
 };
 
 /**
@@ -21,15 +22,20 @@ struct startLine {
 class Request {
 public:
 	Request();
-	Request(const int client);
-	Request(const int client, const int serverId);
-
 	~Request();
 
-	void resetRequest();
+	void 	resetRequest();
+
+	void 	setClient(int client);
+	void 	setServerId(int serverId);
+	void	setCGIFd(int cgiFd[2]);
+
+	int		getClient() const;
+
+	bool 	isCGI() const;
 
 public:
-	void _initRequest();
+	void initRequest();
 
 	void _readSocketData();
 
@@ -37,24 +43,18 @@ public:
 		void _setType(std::string &type);
 		void _setPath(std::string &path);
 		void _setVersion(std::string &version);
+		std::string getPath(const std::string &uri);
 
 	void _parseHeaders();
 
 	void _parseBody();
-	
-	bool isCGI();
-
-	void _resetRequest();
-
-	void 		setClient(int client);
-	int			getClient() const;
-	void 		setServerId(int serverId);
-	void		setCGIFd(int cgiFd[2]);
 
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;
+
+	std::string 						_root;
 
 	int 								_client;
 	int 								_serverId;

@@ -171,17 +171,26 @@ void	Server::operating()
 		{
 			case FROM_PORT:
 			{
+				Log::log(Log::DEBUG, "Port signal" );
+
 				acceptClient(signalIndex);
 				break;
 			}
 			case FROM_CLIENT:
 			{
+				Log::log(Log::DEBUG, "Client signal" );
+
 				callRequest(signalIndex);
 				break;
 			}
 			case FROM_CGI:
 			{
-				Response	respond(_reqs[_indexInfo[signalIndex].reqIndex]);
+				Request&	req = _reqs[_indexInfo[signalIndex].reqIndex];
+
+				Log::log(Log::DEBUG, "CGI signal" );
+				Log::log(Log::DEBUG, "Request:\n" + req._rawRequest.str());
+
+				Response	respond(req);
 				smartConnectionCloser(signalIndex);
 				break;
 			}
@@ -243,7 +252,7 @@ void	Server::callRequest(const int& clientIndex)
 {
 	if (setRequest(clientIndex) == true)
 	{
-		_reqs[_indexInfo[clientIndex].reqIndex]._initRequest();
+		_reqs[_indexInfo[clientIndex].reqIndex].initRequest();
 		if (_reqs[_indexInfo[clientIndex].reqIndex].isCGI() == true)
 			safeClose(_reqs[_indexInfo[clientIndex].reqIndex]._cgiFd[PIPE_WRITE]);
 		else

@@ -9,7 +9,7 @@
 void Log::debugFunc(std::string function) {
 
 	if (DEBUG_)
-		std::cout << BOLD_MAGENTA << "DEBUG: " << function << RESET << std::endl;
+		std::cerr << BOLD_MAGENTA << "DEBUG: " << function << RESET << std::endl;
 }
 
 void		Log::log(std::string type, std::string message) {
@@ -17,15 +17,15 @@ void		Log::log(std::string type, std::string message) {
 //	std::cout << "[" << getTime() << "]";
 
 	if (type == Log::DEBUG)
-		std::cout << BLUE << "[" << type << "] " RESET;
+		std::cerr << BLUE << "[" << type << "] " RESET;
 	else if (type == Log::INFO)
-		std::cout << GREEN << "[" << type << "] " RESET;
+		std::cerr << GREEN << "[" << type << "] " RESET;
 	else if (type == Log::WARNING)
-		std::cout << YELLOW << "[" << type << "] " RESET;
+		std::cerr << YELLOW << "[" << type << "] " RESET;
 	else if (type == Log::ERROR)
-		std::cout << RED << "[" << type << "] " RESET;
+		std::cerr << RED << "[" << type << "] " RESET;
 
-	std::cout << message << std::endl;
+	std::cerr << message << std::endl;
 }
 
 std::string Log::getTime()

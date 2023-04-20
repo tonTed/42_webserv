@@ -1,130 +1,44 @@
 #include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
-#include "../Utils/ft.hpp"
 
 #include "../Response/Response.hpp"
+#include "../PathResolver/PathResolver.hpp"
+#include "../CGI/Cgi.hpp"
+#include "../Utils/FT.hpp"
+#include "../FileManager/FileManager.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
 // TODO set a path or throw, .., ., //, etc
-std::string getPath(const std::string &uri, const eRequestType method) {
+std::string Request::getPath(const std::string &uri) {
 
 	std::string path = uri;
 
-	(void)method;
+	// set query string
+	size_t i = path.find('?');
+	if (i != std::string::npos) {
+		_startLine.queryString = path.substr(i + 1);
+		path.erase(i);
+	}
 
 	return path;
 }
 
-Request::Request() : _client(-1), _serverId(-1), _status(200), _isCGI(false) {}
+Request::Request() : _client(-1), _serverId(-1), _status(200), _isCGI(false){ _cgiFd[PIPE_READ] = -1; _cgiFd[PIPE_WRITE] = -1; }
 
-void Request::resetRequest() {
-	_rawRequest.str("");
-	_rawRequest.clear();
-	_startLine.type = UNKNOWN;
-	_startLine.path = "";
-	_startLine.version = "";
-	_headers.clear();
-	_body.clear();
-	_serverId = -1;
-	_client = -1;
-}
+Request::~Request() {}
 
-Request::Request(const int client, const int serverId) : _client(client), _serverId(serverId) {}
-
-/**
- * @brief	Initialise the request.
- * 			- Read the client socket and store the resources in _rawRequest.
- * 			- Parse the first line of the request.
- * 			- Parse the headers of the request.
- * 			- Parse the body of the request.
- *
- * 	@note if an error occurs, the server will send an error to the client.
- *
- */
-void	Request::_initRequest() {
-	Log::debugFunc(__FUNCTION__);
-	
-	try {
-		_readSocketData();
-		_parseStartLine();
-		_parseHeaders();
-		_parseBody();
-	} catch (RequestException::ReadError &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()) + " client:" + std::to_string(_client));
-		_status = 500;
-	} catch (RequestException::MaxSize &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 413;
-	} catch (RequestException::NoCRLF &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	} catch (RequestException::StartLine::InvalidMethod &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	} catch (RequestException::StartLine::InvalidVersion &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 505;
-	} catch (RequestException::InvalidLine &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	} catch (RequestException::Header::DuplicateKey &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	} catch (RequestException::Header::InvalidKey &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	} catch (RequestException::Header::InvalidValue &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	} catch (RequestException::StartLine::NotAllowedMethod &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 405;
-	} catch (RequestException::StartLine::InvalidURI &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	}  catch (RequestException::Header::MissingHeader &e) {
-		Log::log(Log::DEBUG ,std::string(e.what()));
-		_status = 400;
-	}
-
-	Response response(*this, _status);
-
-	if (_status != 200) {
-		Log::log(Log::DEBUG , "Send error response: " + std::to_string(_status));
-
-		response.errorResponse();
-	}
-	else
-	{
-		Log::log(Log::DEBUG , "Valid request");
-		response.resolvePath();
-		response.formatResponse();
-		response._response += "Hello World Teddy Bear !!";
-
-	}
-
-	if (send(_client, response._response.c_str(), response._response.length(), MSG_DONTWAIT) != -1)
-		Log::log(Log::DEBUG , "Response sent");
-	else
-		Log::log(Log::WARNING , "Response not sent");
-
-//	close(_client);
-}
-
-/**
- * @brief	Get the raw resources from the client.
- * 			Read the client socket and store the resources in _rawRequest.
- *
- */
 void	Request::_readSocketData() {
 	Log::debugFunc(__FUNCTION__);
 
-	char	buffer[MAX_REQUEST_SIZE + 1];
-	int 	ret;
+	char	*buffer;
+
+	buffer = new char[MAX_REQUEST_SIZE + 1];
+
+	ssize_t	ret;
 
 	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
 	if (ret == -1)
@@ -136,17 +50,10 @@ void	Request::_readSocketData() {
 	_rawRequest << buffer;
 }
 
-/**
- * @brief	Parse the first line of the request.
- * 			Store the type, path and version in _startLine.
- *
- * @source	https://www.rfc-editor.org/rfc/rfc9112.html#section-3
- * @note	request-line = method SP request-target SP HTTP-version CRLF
- *
- */
 void	Request::_parseStartLine() {
 
 	Log::debugFunc(__FUNCTION__);
+	std::cout << _rawRequest.str() << std::endl;
 
 	// Check if the line ends with CRLF
 	std::string line;
@@ -187,7 +94,7 @@ void	Request::_parseStartLine() {
 void	Request::_setType(std::string &type) {
 
 	Log::debugFunc(__FUNCTION__);
-	
+
 	if (type.empty())
 		throw RequestException::InvalidLine();
 	else if (type == "GET")
@@ -215,17 +122,6 @@ void	Request::_setType(std::string &type) {
 	type.clear();
 }
 
-
-/**
- * @brief	Set the path of the request.
- * 			Store the path in _startLine.
- *
- * @param path The path of the request
- *
- * @throw RequestException::InvalidLine if the path is empty
- *
- * @todo	Check here if the path is valid?
- */
 void	Request::_setPath(std::string &path) {
 
 	Log::debugFunc(__FUNCTION__);
@@ -234,23 +130,12 @@ void	Request::_setPath(std::string &path) {
 		throw RequestException::InvalidLine();
 	if (path[0] != '/')
 		throw RequestException::StartLine::InvalidURI();
-	_startLine.path = getPath(path, _startLine.type);
+	_startLine.path = getPath(path);
 	if (_startLine.path.empty())
 		throw RequestException::StartLine::InvalidURI();
 	path.clear();
 }
 
-
-/**
- * @brief	Set the version of the request.
- * 			Store the version in _startLine.
- *
- * @param version The version of the request
- *
- * @throw RequestException::InvalidLine if the version is empty
- * @throw RequestException::FirstLine::InvalidVersion if the version is not HTTP/1.1
- *
- */
 void	Request::_setVersion(std::string &version) {
 
 	Log::debugFunc(__FUNCTION__);
@@ -263,44 +148,6 @@ void	Request::_setVersion(std::string &version) {
 	version.clear();
 }
 
-void print_map(std::map<std::string, std::string> &m) {
-	std::map<std::string, std::string>::iterator it = m.begin();
-	while (it != m.end()) {
-		std::cout << it->first << " : " << it->second << std::endl;
-		it++;
-	}
-}
-
-/**
- * @brief	Parse the headers of the request.
- * 			Store the headers in _headers.
- *
- * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
- * @source	https://www.rfc-editor.org/rfc/rfc7230#section-3.2
- *
- * @note	header-field	= field-name ":" OWS field-value OWS
- *     		field-name     = token
- *     		field-value    = *( field-content / obs-fold )
- *     		field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
- *     		field-vchar    = VCHAR / obs-text
- *     		obs-fold       = CRLF 1*( SP / HTAB )
- *     						; obsolete line folding
- *
- *     		OWS     : *( SP / HTAB ) ; optional whitespace
- *			RWS     :1*( SP / HTAB ) ; required whitespace
- *			BWS		: OWS ; bad whitespace
- *     		OWS		: Optional whitespace
- *     		RWS		: Required whitespace
- *     		BWS		: Bad whitespace
- *     		SP		: Space
- *     		HTAB	: Horizontal tab
- *     		VCHAR	: Visible characters
- *
- * @note	case-insensitive
- *
- * @throw RequestException::NoCRLF if the line doesn't end with CRLF
- *
- */
 void	Request::_parseHeaders() {
 
 	Log::debugFunc(__FUNCTION__);
@@ -362,18 +209,7 @@ void	Request::_parseHeaders() {
 	}
 }
 
-
-/**
- * @brief	Parse the body of the request.
- * 			Store the body in _body.
- *
- * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
- * @note	Content-Length is mandatory
- * @note	Content-Type is mandatory
- * @note	Transfer-Encoding is not supported
- *
- */
- void	Request::_parseBody() {
+void	Request::_parseBody() {
 
 	Log::debugFunc(__FUNCTION__);
 
@@ -400,22 +236,119 @@ void	Request::_parseHeaders() {
 	}
 	if (_body.size() > static_cast<unsigned long>(contentLength))
 		_body.erase(contentLength, _body.size() - contentLength);
- }
+}
 
-Request::~Request() {}
+void	Request::initRequest() {
+	Log::debugFunc(__FUNCTION__);
 
-void Request::setClient(int client) {
+	try {
+		_readSocketData();
+		_parseStartLine();
+		_parseHeaders();
+		_parseBody();
+	} catch (RequestException::ReadError &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()) + " client:" + std::to_string(_client));
+		_status = 500;
+	} catch (RequestException::MaxSize &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 413;
+	} catch (RequestException::NoCRLF &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::StartLine::InvalidMethod &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::StartLine::InvalidVersion &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 505;
+	} catch (RequestException::InvalidLine &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::Header::DuplicateKey &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::Header::InvalidKey &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::Header::InvalidValue &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::StartLine::NotAllowedMethod &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 405;
+	} catch (RequestException::StartLine::InvalidURI &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	}  catch (RequestException::Header::MissingHeader &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	}
+
+
+	//check if file ends with .py
+	if (_startLine.path == "/upload")
+	{
+		Log::log(Log::INFO, "UPLOAD");
+
+//		FileManager fileManager(_body);
+//		if (fileManager.saveFile())
+//			_status = 200;
+//		else
+//			_status = 500;
+
+		_status = 200;
+
+		_startLine.path = "/toto/uploaded.html";
+	}
+	PathResolver pathResolver(*this);
+	if (_status != 200)
+	{
+		Response response(*this);
+		response.sendResponse();
+		return ;
+	}
+	else if (_root.find(".py") != std::string::npos  || _startLine.type == POST)
+	{
+		Log::log(Log::INFO, "POST");
+		Log::log(Log::DEBUG, "Root: " + _startLine.path);
+
+		_isCGI = true;
+		CGI cgi(*this);
+		cgi.executeCgi();
+	}
+	else if (_startLine.type == GET)
+	{
+		Log::log(Log::INFO, "GET");
+
+		Response response(*this);
+		response.sendResponse();
+	}
+	else if (_startLine.type == DELETE)
+	{
+		//manage delete
+	}
+}
+
+void 	Request::resetRequest() {
+	_rawRequest.str("");
+	_rawRequest.clear();
+	_startLine.type = UNKNOWN;
+	_startLine.path = "";
+	_startLine.version = "";
+	_headers.clear();
+	_body.clear();
+	_serverId = -1;
+	_client = -1;
+	_isCGI = false;
+	_root = "";
+	_status = 200;
+}
+
+void	Request::setClient(int client) {
 
 	Log::debugFunc(__FUNCTION__);
 
 	_client = client;
-}
-
-int	Request::getClient() const{
-
-	Log::debugFunc(__FUNCTION__);
-
-	return _client;
 }
 
 void	Request::setServerId(int serverId) {
@@ -433,11 +366,16 @@ void	Request::setCGIFd(int cgiFd[2]) {
 	_cgiFd[PIPE_WRITE] = cgiFd[PIPE_WRITE];
 }
 
-bool	Request::isCGI() {
+int		Request::getClient() const{
 
 	Log::debugFunc(__FUNCTION__);
 
-	return true;
-	return _isCGI;
+	return _client;
+}
 
+bool	Request::isCGI() const {
+
+	Log::debugFunc(__FUNCTION__);
+
+	return _isCGI;
 }
