@@ -56,7 +56,7 @@ void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 
 void	CGI::executeCgi() { Log::debugFunc(__FUNCTION__);
 
-	char *pathToCgi = strdup("/Users/tonted/42/webserv/data/cgi/upload.php");
+	char *pathToCgi = strdup("data/cgi/CGI.py");
 	char *args[] = {pathToCgi, NULL};
 
 	pid_t pid = fork();

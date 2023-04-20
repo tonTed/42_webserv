@@ -284,21 +284,15 @@ void	Request::initRequest() {
 	}
 
 	PathResolver pathResolver(*this);
+
+	//check if file ends with .py
 	if (_status != 200)
 	{
 		Response response(*this);
 		response.sendResponse();
 		return ;
 	}
-
-	if (_startLine.type == GET)
-	{
-		Log::log(Log::INFO, "GET");
-
-		Response response(*this);
-		response.sendResponse();
-	}
-	else if (_startLine.type == POST)
+	else if (_root.find(".py") != std::string::npos  || _startLine.type == POST)
 	{
 		Log::log(Log::INFO, "POST");
 		Log::log(Log::DEBUG, "Root: " + _startLine.path);
@@ -306,7 +300,13 @@ void	Request::initRequest() {
 		_isCGI = true;
 		CGI cgi(*this);
 		cgi.executeCgi();
-		//call CGI;
+	}
+	else if (_startLine.type == GET)
+	{
+		Log::log(Log::INFO, "GET");
+
+		Response response(*this);
+		response.sendResponse();
 	}
 	else if (_startLine.type == DELETE)
 	{
