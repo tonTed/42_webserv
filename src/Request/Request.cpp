@@ -6,6 +6,7 @@
 #include "../PathResolver/PathResolver.hpp"
 #include "../CGI/Cgi.hpp"
 #include "../Utils/FT.hpp"
+#include "../FileManager/FileManager.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
@@ -283,9 +284,23 @@ void	Request::initRequest() {
 		_status = 400;
 	}
 
-	PathResolver pathResolver(*this);
 
 	//check if file ends with .py
+	if (_startLine.path == "/upload")
+	{
+		Log::log(Log::INFO, "UPLOAD");
+
+//		FileManager fileManager(_body);
+//		if (fileManager.saveFile())
+//			_status = 200;
+//		else
+//			_status = 500;
+
+		_status = 200;
+
+		_startLine.path = "/toto/uploaded.html";
+	}
+	PathResolver pathResolver(*this);
 	if (_status != 200)
 	{
 		Response response(*this);
