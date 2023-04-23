@@ -22,6 +22,10 @@ public:
 	bool	extractFilename();
 	bool	extractFileContent();
 
+	const std::string&	getBody() const;
+	const std::string&	getFileName() const;
+	const std::string&	getContent() const;
+
 };
 
 

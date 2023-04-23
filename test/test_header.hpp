@@ -10,5 +10,6 @@
 # include "../src/CGI/Cgi.hpp"
 # include "../src/Response/Response.hpp"
 # include "../src/Response/DefaultHtml.hpp"
+# include "../src/FileManager/FileManager.hpp"
 
 

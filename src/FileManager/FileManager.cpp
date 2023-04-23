@@ -5,6 +5,10 @@ FileManager::FileManager(const std::string& body): _body(body) {}
 
 FileManager::~FileManager(){}
 
+const std::string&	FileManager::getBody() const		{return _body;}
+const std::string&	FileManager::getFileName() const	{return _fileName;}
+const std::string&	FileManager::getContent() const		{return _fileContent;}
+
 bool	FileManager::extractFilename()
 {
 	size_t	position = _body.find("filename=");
@@ -48,7 +52,7 @@ bool	FileManager::extractFileContent()
 bool	FileManager::saveFile()
 {
 	//? check if filename already exist (if yes maybe respond file updated)
-	if (extractFilename)
+	if (extractFilename())
 	{
 		std::ofstream	uploadFile(_fileName, std::ios::trunc);
 		if (extractFileContent())
