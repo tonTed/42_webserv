@@ -1,37 +1,12 @@
-//
-// Created by Teddy Blanco on 4/20/23.
-//
-
 #include "FileManager.hpp"
 
 
-FileManager::FileManager(const std::string& body, const int& action): _body(body)
-{
-	if (extractFilename() == true)
-	{
-		switch	(action)
-		{
-			case FMA_UPLOAD:
-				saveFile();
-				break;
-			
-			case FMA_DELETE:
-				deleteFile();
-				break;
-
-			default:
-				std::cout << "FileManagement constructor bad action" << std::endl;
-		}
-	}
-}
+FileManager::FileManager(const std::string& body): _body(body) {}
 
 FileManager::~FileManager(){}
 
-
-
 bool	FileManager::extractFilename()
 {
-	//extract filename
 	size_t	position = _body.find("filename=");
 	if (position != std::string::npos)
 	{
@@ -40,11 +15,10 @@ bool	FileManager::extractFilename()
 		 if (endPos != std::string::npos)
 		 {
 			_fileName = _body.substr(position, endPos - position);
+			_fileName = UPLOADFILE_PATH + _fileName;
 			return true;
 		 }
 	}
-
-	//respond filename not found 
 	return false;
 }
 
@@ -68,35 +42,30 @@ bool	FileManager::extractFileContent()
 		_fileContent = _fileContent.substr(0, _fileContent.length() - 1);
 		return true;
 	}
-	//respond bad content
 	return false;
 }
 
 bool	FileManager::saveFile()
 {
 	//? check if filename already exist (if yes maybe respond file updated)
-	
-	extractFileContent();
-
-	//create file
-	//write fileContent
-	
-	return true;
-
+	if (extractFilename)
+	{
+		std::ofstream	uploadFile(_fileName, std::ios::trunc);
+		if (extractFileContent())
+		{
+			uploadFile << _fileContent;
+			uploadFile.close();
+			return true;
+		}
+	}
+	return false;
 }
 	
-bool	fileNameExist()
+bool	FileManager::deleteFile()
 {
-	//check if file exist in upload
+	if (std::remove(_fileName.c_str()) == 0)
+		return true;
+	return false;
 }
-//UplaodFile(body);
-		// Parse body
-			// filename
-			// content
-
-		// Create file
-			// Write content
-			// close file
 
 
-	// Delete file

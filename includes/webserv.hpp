@@ -25,6 +25,7 @@
 # include <unistd.h>		//close
 # include <errno.h>			//errno for poll
 # include <csignal>
+# include <cstdio>
 
 typedef std::string string;
 

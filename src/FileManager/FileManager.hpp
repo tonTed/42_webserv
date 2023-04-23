@@ -1,19 +1,9 @@
-//
-// Created by Teddy Blanco on 4/20/23.
-//
-
 #ifndef FILEMANAGER_HPP
-#define FILEMANAGER_HPP
+# define FILEMANAGER_HPP
 
-#include "../../includes/webserv.hpp"
+# include "../../includes/webserv.hpp"
 
-#define UPLOADFILE_PATH ""
-
-enum	FileManAction_e
-{
-	FMA_UPLOAD,
-	FMA_DELETE
-};
+# define UPLOADFILE_PATH ""
 
 class FileManager {
 private:
@@ -23,7 +13,7 @@ private:
 
 public:
 
-	FileManager(const std::string &body, const int& action);
+	FileManager(const std::string &body);
 	~FileManager();
 
 	bool	saveFile();
@@ -31,9 +21,8 @@ public:
 
 	bool	extractFilename();
 	bool	extractFileContent();
-	bool	fileNameExist();
 
 };
 
 
-#endif //FILEMANAGER_HPP
+#endif
