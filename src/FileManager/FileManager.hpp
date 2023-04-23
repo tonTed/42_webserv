@@ -7,15 +7,31 @@
 
 #include "../../includes/webserv.hpp"
 
+#define UPLOADFILE_PATH ""
+
+enum	FileManAction_e
+{
+	FMA_UPLOAD,
+	FMA_DELETE
+};
+
 class FileManager {
+private:
+	std::string	_body;
+	std::string	_fileName;
+	std::string	_fileContent;
 
 public:
 
-	FileManager(const std::string &body);
+	FileManager(const std::string &body, const int& action);
 	~FileManager();
 
-	bool saveFile();
-	bool deleteFile();
+	bool	saveFile();
+	bool	deleteFile();
+
+	bool	extractFilename();
+	bool	extractFileContent();
+	bool	fileNameExist();
 
 };
 
