@@ -3,11 +3,12 @@
 
 # include "../../includes/webserv.hpp"
 
-# define UPLOADFILE_PATH ""
+//TODO Modifier le path pour celui ou non
+# define UPLOADFILE_PATH "./"
 
 class FileManager {
 private:
-	std::string	_body;
+	const std::string	_body;
 	std::string	_fileName;
 	std::string	_fileContent;
 
