@@ -300,7 +300,7 @@ void	Request::initRequest() {
 
 		_status = 200;
 
-		_startLine.path = "/toto/uploaded.html";
+		_startLine.path = "/uploaded.html";
 	}
 	PathResolver pathResolver(*this);
 	if (_status != 200)
