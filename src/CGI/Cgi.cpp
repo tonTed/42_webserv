@@ -37,6 +37,18 @@ std::string	CGI::_getPathInfo() {	Log::debugFunc(__FUNCTION__);
 	return _request._startLine.pathInfo;
 }
 
+std::string	CGI::_getQueryString() {	Log::debugFunc(__FUNCTION__);
+
+	return _request._startLine.queryString;
+}
+
+std::string	CGI::_getHeader(std::string header) {	Log::debugFunc(__FUNCTION__ );
+
+	if (_request._headers.find(header) != _request._headers.end())
+		return _request._headers[header];
+	return "";
+}
+
 void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 
 	_env.push_back("SERVER_SOFTWARE=webserv/1.0");
@@ -48,14 +60,14 @@ void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 	_env.push_back("REQUEST_METHOD=" + _getRequestMethod());
 	_env.push_back("PATH_INFO=" + _getPathInfo());
 	_env.push_back("SCRIPT_NAME=" + _getScriptName());
-	_env.push_back("QUERY_STRING=" + _request._startLine.queryString);
+	_env.push_back("QUERY_STRING=" + _getScriptName());
 
-	_env.push_back("CONTENT_TYPE=");	// TODO: function to get content type from request
-	_env.push_back("CONTENT_LENGTH=");	// TODO: function to get content length from request
+	_env.push_back("CONTENT_TYPE=" + _getHeader("CONTENT-TYPE"));
+	_env.push_back("CONTENT_LENGTH=" + _getHeader("CONTENT-LENGTH"));
 
-	_env.push_back("HTTP_ACCEPT=");		// TODO: function to get accept from request
-	_env.push_back("HTTP_USER_AGENT=");	// TODO: function to get user agent from request
-	_env.push_back("HTTP_COOKIE=");		// TODO: function to get cookie from request
+	_env.push_back("HTTP_ACCEPT=" + _getHeader("ACCEPT"));
+	_env.push_back("HTTP_USER_AGENT=" + _getHeader("USER-AGENT"));
+	_env.push_back("HTTP_COOKIE=" + _getHeader("COOKIE"));
 }
 
 void	CGI::executeCgi() { Log::debugFunc(__FUNCTION__);

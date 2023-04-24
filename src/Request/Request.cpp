@@ -12,8 +12,7 @@ bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
-void	Request::_setQueryString(std::string &path)
-{
+void	Request::_setQueryString(std::string &path) {	Log::debugFunc(__FUNCTION__);
 	size_t i = path.find('?');
 	if (i != std::string::npos) {
 		_startLine.queryString = path.substr(i + 1);
@@ -21,14 +20,16 @@ void	Request::_setQueryString(std::string &path)
 	}
 }
 
-void	Request::_setPathInfo(std::string &path)
-{
+void	Request::_setPathInfo(std::string &path) {	Log::debugFunc(__FUNCTION__);
+
 	size_t i = path.find('.');
 	if (i != std::string::npos) {
 		size_t j = path.find('/', i);
 		if (j != std::string::npos)
+		{
 			_startLine.pathInfo = path.substr(j + 1);
-		path.erase(j);
+			path.erase(j);
+		}
 	}
 }
 

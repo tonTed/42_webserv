@@ -60,6 +60,8 @@ public:
 	std::string	_getScriptName();
 	std::string _getRequestMethod();
 	std::string _getPathInfo();
+	std::string _getQueryString();
+	std::string _getHeader(std::string header);
 
 	void	executeCgi();
 
