@@ -60,7 +60,7 @@ void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 	_env.push_back("REQUEST_METHOD=" + _getRequestMethod());
 	_env.push_back("PATH_INFO=" + _getPathInfo());
 	_env.push_back("SCRIPT_NAME=" + _getScriptName());
-	_env.push_back("QUERY_STRING=" + _getScriptName());
+	_env.push_back("QUERY_STRING=" + _getQueryString());
 
 	_env.push_back("CONTENT_TYPE=" + _getHeader("CONTENT-TYPE"));
 	_env.push_back("CONTENT_LENGTH=" + _getHeader("CONTENT-LENGTH"));
