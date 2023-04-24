@@ -228,14 +228,16 @@ void	Request::_parseBody() {
 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
 
 	//Skip the Headers
-	while (std::getline(_rawRequest, line) && !line.empty());
+//	while (std::getline(_rawRequest, line) && !line.empty());
 
 	// Read the body
 	while (std::getline(_rawRequest, line)) {
-		_body += line;
+		_body += line + "\n";
 	}
 	if (_body.size() > static_cast<unsigned long>(contentLength))
 		_body.erase(contentLength, _body.size() - contentLength);
+
+	std::cout << YELLOW << _body << RESET << std::endl;
 }
 
 void	Request::initRequest() {
