@@ -139,10 +139,10 @@ TEST_CASE("Server::setPortSocket2")
 	CHECK(signalIndex == 1);
 	CHECK(serverTest.getPFRevents(1) == 0);
 
-	CHECK(serverTest.pollFdsAvailable() == true);
+	CHECK(serverTest.pollFdsAvailable(2) == true);
 	for (int index = 2; index < POLLFD_LIMIT; index++)
 		serverTest.setPFFd(index, 10);
-	CHECK(serverTest.pollFdsAvailable() == false);
+	CHECK(serverTest.pollFdsAvailable(2) == false);
 	
 
 }
