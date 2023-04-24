@@ -326,18 +326,18 @@ void	Request::initRequest() {
 		response.sendResponse();
 		return ;
 	}
-	else if (_root.find(".py") != std::string::npos  || _startLine.type == POST)
+	else if (_root.find(".py") != std::string::npos)
 	{
-		Log::log(Log::INFO, "POST");
+		Log::log(Log::INFO, "Python file");
 		Log::log(Log::DEBUG, "Root: " + _startLine.path);
 
 		_isCGI = true;
 		CGI cgi(*this);
 		cgi.executeCgi();
 	}
-	else if (_startLine.type == GET)
+	else if (_startLine.type == GET || _startLine.type == POST)
 	{
-		Log::log(Log::INFO, "GET");
+		Log::log(Log::INFO, "GET or POST");
 
 		Response response(*this);
 		response.sendResponse();
@@ -354,10 +354,14 @@ void 	Request::resetRequest() {
 	_startLine.type = UNKNOWN;
 	_startLine.path = "";
 	_startLine.version = "";
+	_startLine.queryString = "";
+	_startLine.pathInfo = "";
 	_headers.clear();
 	_body.clear();
 	_serverId = -1;
 	_client = -1;
+	_cgiFd[0] = -1;
+	_cgiFd[1] = -1;
 	_isCGI = false;
 	_root = "";
 	_status = 200;
