@@ -32,6 +32,11 @@ std::string	CGI::_getScriptName() {	Log::debugFunc(__FUNCTION__);
 	return _request._startLine.path;
 }
 
+std::string	CGI::_getPathInfo() {	Log::debugFunc(__FUNCTION__);
+
+	return _request._startLine.pathInfo;
+}
+
 void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 
 	_env.push_back("SERVER_SOFTWARE=webserv/1.0");
@@ -41,10 +46,9 @@ void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	_env.push_back("SERVER_PORT=" + std::to_string(_serverData._serverPorts[0]));
 	_env.push_back("REQUEST_METHOD=" + _getRequestMethod());
-	_env.push_back("PATH_INFO=");		// TODO: understand what is path info
+	_env.push_back("PATH_INFO=" + _getPathInfo());
 	_env.push_back("SCRIPT_NAME=" + _getScriptName());
 	_env.push_back("QUERY_STRING=" + _request._startLine.queryString);
-
 
 	_env.push_back("CONTENT_TYPE=");	// TODO: function to get content type from request
 	_env.push_back("CONTENT_LENGTH=");	// TODO: function to get content length from request

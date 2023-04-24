@@ -10,6 +10,7 @@ struct startLine {
 	std::string		path;
 	std::string 	version;
 	std::string		queryString;
+	std::string		pathInfo;
 };
 
 /**
@@ -42,6 +43,8 @@ public:
 	void _parseStartLine();
 		void _setType(std::string &type);
 		void _setPath(std::string &path);
+			void _setQueryString(std::string &path);
+			void _setPathInfo(std::string &path);
 		void _setVersion(std::string &version);
 		std::string getPath(const std::string &uri);
 

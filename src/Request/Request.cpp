@@ -12,17 +12,33 @@ bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
-// TODO set a path or throw, .., ., //, etc
-std::string Request::getPath(const std::string &uri) {
-
-	std::string path = uri;
-
-	// set query string
+void	Request::_setQueryString(std::string &path)
+{
 	size_t i = path.find('?');
 	if (i != std::string::npos) {
 		_startLine.queryString = path.substr(i + 1);
 		path.erase(i);
 	}
+}
+
+void	Request::_setPathInfo(std::string &path)
+{
+	size_t i = path.find('.');
+	if (i != std::string::npos) {
+		size_t j = path.find('/', i);
+		if (j != std::string::npos)
+			_startLine.pathInfo = path.substr(j + 1);
+		path.erase(j);
+	}
+}
+
+// TODO set a path or throw, .., ., //, etc
+std::string Request::getPath(const std::string &uri) {
+
+	std::string path = uri;
+
+	_setQueryString(path);
+	_setPathInfo(path);
 
 	return path;
 }
