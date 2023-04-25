@@ -27,9 +27,9 @@ public:
 	bool				extractFilename();
 	bool				extractBoundary();
 	bool				extractContentLength();
-	const std::string&	extractHeaderInfo(const std::string& title);
-	const int&			startPos();
-	void				writeUpload(const int contentLength_const);
+	const std::string	extractHeaderInfo(const std::string& title);
+	int					startPos();
+	void				writeUpload();
 
 	const int&			getClientFd() const;
 	const std::string&	getResquestStr() const;
