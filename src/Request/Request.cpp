@@ -12,17 +12,34 @@ bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
-// TODO set a path or throw, .., ., //, etc
-std::string Request::getPath(const std::string &uri) {
-
-	std::string path = uri;
-
-	// set query string
+void	Request::_setQueryString(std::string &path) {	Log::debugFunc(__FUNCTION__);
 	size_t i = path.find('?');
 	if (i != std::string::npos) {
 		_startLine.queryString = path.substr(i + 1);
 		path.erase(i);
 	}
+}
+
+void	Request::_setPathInfo(std::string &path) {	Log::debugFunc(__FUNCTION__);
+
+	size_t i = path.find('.');
+	if (i != std::string::npos) {
+		size_t j = path.find('/', i);
+		if (j != std::string::npos)
+		{
+			_startLine.pathInfo = path.substr(j + 1);
+			path.erase(j);
+		}
+	}
+}
+
+// TODO set a path or throw, .., ., //, etc
+std::string Request::getPath(const std::string &uri) {
+
+	std::string path = uri;
+
+	_setQueryString(path);
+	_setPathInfo(path);
 
 	return path;
 }
@@ -228,14 +245,16 @@ void	Request::_parseBody() {
 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
 
 	//Skip the Headers
-	while (std::getline(_rawRequest, line) && !line.empty());
+//	while (std::getline(_rawRequest, line) && !line.empty());
 
 	// Read the body
 	while (std::getline(_rawRequest, line)) {
-		_body += line;
+		_body += line + "\n";
 	}
 	if (_body.size() > static_cast<unsigned long>(contentLength))
 		_body.erase(contentLength, _body.size() - contentLength);
+
+	std::cout << YELLOW << _body << RESET << std::endl;
 }
 
 void	Request::initRequest() {
@@ -286,19 +305,20 @@ void	Request::initRequest() {
 
 
 	//check if file ends with .py
-	if (_startLine.path == "/upload")
+	//TODO find a way to trigger only our request from form
+	if (_startLine.path == "/upload" && _startLine.type == POST)
 	{
 		Log::log(Log::INFO, "UPLOAD");
 
-//		FileManager fileManager(_body);
-//		if (fileManager.saveFile())
-//			_status = 200;
-//		else
-//			_status = 500;
+		FileManager fileManager(_body);
+		if (fileManager.saveFile())
+			_status = 200;
+		else
+			_status = 500;
 
 		_status = 200;
 
-		_startLine.path = "/toto/uploaded.html";
+		_startLine.path = "/uploaded.html";
 	}
 	PathResolver pathResolver(*this);
 	if (_status != 200)
@@ -307,18 +327,18 @@ void	Request::initRequest() {
 		response.sendResponse();
 		return ;
 	}
-	else if (_root.find(".py") != std::string::npos  || _startLine.type == POST)
+	else if (_root.find(".py") != std::string::npos)
 	{
-		Log::log(Log::INFO, "POST");
+		Log::log(Log::INFO, "Python file");
 		Log::log(Log::DEBUG, "Root: " + _startLine.path);
 
 		_isCGI = true;
 		CGI cgi(*this);
 		cgi.executeCgi();
 	}
-	else if (_startLine.type == GET)
+	else if (_startLine.type == GET || _startLine.type == POST)
 	{
-		Log::log(Log::INFO, "GET");
+		Log::log(Log::INFO, "GET or POST");
 
 		Response response(*this);
 		response.sendResponse();
@@ -335,10 +355,14 @@ void 	Request::resetRequest() {
 	_startLine.type = UNKNOWN;
 	_startLine.path = "";
 	_startLine.version = "";
+	_startLine.queryString = "";
+	_startLine.pathInfo = "";
 	_headers.clear();
 	_body.clear();
 	_serverId = -1;
 	_client = -1;
+	_cgiFd[0] = -1;
+	_cgiFd[1] = -1;
 	_isCGI = false;
 	_root = "";
 	_status = 200;
