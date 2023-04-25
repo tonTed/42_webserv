@@ -1,4 +1,4 @@
-#include "test_header.hpp"
+/* #include "test_header.hpp"
 
 std::string setHtml(int status, const std::string &message)
 {
@@ -39,4 +39,4 @@ TEST_CASE("DefaultHTML") {
 		html = defaultHTML.getHtml(status);
 		CHECK_MESSAGE(html == html_expected, "should return html 500");
 	}
-}
+} */

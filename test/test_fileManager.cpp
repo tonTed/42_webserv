@@ -2,7 +2,7 @@
 
 using namespace std;
 
-# define NB_GOOD_CASE 2
+# define NB_GOOD_CASE 3
 string	goodBody[] = {
 	"------WebKitFormBoundary7MA4YWxkTrZu0gW\n"
 	"Content-Disposition: form-data; name=\"fieldName\"; filename=\"example.txt\"\n"
@@ -22,21 +22,38 @@ string	goodBody[] = {
 	"------WebKitFormBoundary7MA4YWxkTrZu0gW-\n"
 	"body qui sert pas\n"
 	"autre.....\n"
-	"bla bla bla"
+	"bla bla bla",
+	"-----------------------------323156128625910050123311217332\n"
+	"Content-Disposition: form-data; name=\"file\"; filename=\"Makefile2\"\n"
+	"Content-Type: application/octet-stream\n"
+	"\n"
+	"# Name of the final executable\n"
+	"NAME = webserv\n"
+	"\n"
+	"# Recompilation with modified headers\n"
+	"-include $(OBJS:)\n"
+	"\n"
+	"-----------------------------323156128625910050123311217332--\n"
 };
 
 string	goodFilename[] = {
 	"example.txt",
-	"example2.txt"
+	"example2.txt",
+	"Makefile2"
 };
 
-string	goodContent[] {
+string	goodContent[] = {
 	"<file contents here>",
 	"plein\n"
 	"de\n"
 	"lignes\n"
 	"de\n"
-	"contenu"
+	"contenu",
+	"# Name of the final executable\n"
+	"NAME = webserv\n"
+	"\n"
+	"# Recompilation with modified headers\n"
+	"-include $(OBJS:)\n"
 };
 
 
@@ -88,6 +105,7 @@ TEST_CASE("FileManager:extractFct")
 		{
 			{
 				FileManager	fileM(goodBody[i]);
+				std::cout << "CASE:" << goodFilename[i] << std::endl;
 				CHECK(fileM.getBody() == goodBody[i]);
 				CHECK(fileM.extractFilename() == true);
 				CHECK(fileM.getFileName() == UPLOADFILE_PATH + goodFilename[i]);
@@ -132,6 +150,7 @@ TEST_CASE("FileManager:extractFct")
 
 bool	isFileExist(const std::string& file)
 {
+	std::cout << "isFileExist file:" << file << std::endl;
 	std::ifstream	ifs(file);
 	if (ifs.is_open())
 	{
@@ -163,6 +182,8 @@ TEST_CASE("FileManager: Save & delete")
 		for (int i = 0; i < NB_GOOD_CASE; i++)
 		{
 			{
+				std::cout << "CASE:" << goodFilename[i] << std::endl;
+				
 				FileManager	fileM(goodBody[i]);
 
 				CHECK(fileM.saveFile() == true);

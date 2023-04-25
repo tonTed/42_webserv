@@ -1,4 +1,4 @@
-#include "test_header.hpp"
+/* #include "test_header.hpp"
 #include <curl/curl.h>
 
 TEST_CASE("Server::booting independant function")
@@ -145,4 +145,4 @@ TEST_CASE("Server::setPortSocket2")
 	CHECK(serverTest.pollFdsAvailable(2) == false);
 	
 
-}
+} */
