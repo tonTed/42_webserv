@@ -62,7 +62,7 @@ bool	FileManager::saveFile()
 {
 	if (extractFilename() && extractFileContent())
 	{
-		std::ofstream	uploadFile(_fileName, std::ios::trunc);	
+		std::ofstream	uploadFile("data/files/" + _fileName, std::ios::trunc);
 		uploadFile << _fileContent;
 		uploadFile.close();
 		return true;
