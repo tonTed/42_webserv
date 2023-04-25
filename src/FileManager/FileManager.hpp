@@ -23,6 +23,7 @@ public:
 	bool				deleteFile();
 
 	bool				extractFilename();
+	bool				extractBoundary();
 	bool				extractFileContent();
 	const std::string&	extractHeaderInfo(const std::string& title);
 
