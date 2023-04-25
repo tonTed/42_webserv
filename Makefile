@@ -33,6 +33,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(HIDE)$(CC) $(CFLAGS) -c $< -o $@
 
 all			: buildrepo $(NAME)
+		$(HIDE) mkdir -p data/files
 
 $(NAME)		: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
@@ -48,6 +49,7 @@ fclean		: clean
 re			: fclean all
 
 utest		: buildrepo
+	$(HIDE) mkdir -p data/files
 	$(CC) $(CFLAGS) $(SRC_TEST) -o utest
 	@printf $(GREEN)"[$@] program created\n"$(RESET)
 	./utest

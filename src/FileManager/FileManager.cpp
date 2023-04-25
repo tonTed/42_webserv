@@ -4,7 +4,7 @@
 FileManager::FileManager(const std::string& body):
 		_body(body), _fileName(""), _fileContent("") {}
 
-FileManager::~FileManager(){}
+FileManager::~FileManager(){Log::debugFunc(__FUNCTION__);}
 
 const std::string&	FileManager::getBody() const		{return _body;}
 const std::string&	FileManager::getFileName() const	{return _fileName;}
@@ -12,7 +12,9 @@ const std::string&	FileManager::getContent() const		{return _fileContent;}
 
 bool	FileManager::extractFilename()
 {
+	Log::debugFunc(__FUNCTION__);
 	size_t	position = _body.find("filename=");
+	Log::log(Log::INFO, "position:" + std::to_string(position));
 	if (position != std::string::npos) // filename=" trouvé
 	{
 		position += 10; //ajoute la longueur de filename=" a position
@@ -24,6 +26,7 @@ bool	FileManager::extractFilename()
 		 {
 			_fileName = _body.substr(position, endPos);
 			_fileName = UPLOADFILE_PATH + _fileName;	//ajoute le path des UPLOADFILE
+			Log::log(Log::INFO, "_filename:\n" + _fileName);
 			return true;
 		 }
 	}
@@ -32,6 +35,7 @@ bool	FileManager::extractFilename()
 
 bool	FileManager::extractFileContent()
 {
+	Log::debugFunc(__FUNCTION__);
 	std::istringstream	iss(_body);
 	std::string			line;
 	_fileContent = "";
@@ -40,18 +44,24 @@ bool	FileManager::extractFileContent()
 	while (std::getline(iss, line) && line.find("--") == std::string::npos);
 
 	if (line.find("--") != std::string::npos)
-			boundary = line;
+			boundary = line.substr(0, line.length() - 1);
 	else
 		return false;
 
-	while (std::getline(iss, line) && line.length() != 0); //recherche ligne vide
+	Log::log(Log::INFO, "boundary:" + boundary);
+
+	while (std::getline(iss, line) && line != "\r");
 	
 	while (std::getline(iss, line) && line.find(boundary) == std::string::npos)
+	{
 		_fileContent += line + "\n";
+		Log::log(Log::INFO, "line:" + line);
+	}
 
 	if (_fileContent.length() > 1)
 	{
 		_fileContent = _fileContent.substr(0, _fileContent.length() - 1);
+		Log::log(Log::INFO, "_fileContent:\n" + _fileContent);
 		return true;
 	}
 	_fileContent = "";
@@ -60,9 +70,10 @@ bool	FileManager::extractFileContent()
 
 bool	FileManager::saveFile()
 {
+	Log::debugFunc(__FUNCTION__);
 	if (extractFilename() && extractFileContent())
 	{
-		std::ofstream	uploadFile("data/files/" + _fileName, std::ios::trunc);
+		std::ofstream	uploadFile(_fileName, std::ios::trunc);
 		uploadFile << _fileContent;
 		uploadFile.close();
 		return true;
@@ -72,6 +83,7 @@ bool	FileManager::saveFile()
 	
 bool	FileManager::deleteFile()
 {
+	Log::debugFunc(__FUNCTION__);
 	if (std::remove(_fileName.c_str()) == 0)
 		return true;
 	return false;

@@ -4,7 +4,7 @@
 # include "../../includes/webserv.hpp"
 
 //TODO Modifier le path pour celui ou non
-# define UPLOADFILE_PATH "./"
+# define UPLOADFILE_PATH "data/files/"
 
 class FileManager {
 private:
