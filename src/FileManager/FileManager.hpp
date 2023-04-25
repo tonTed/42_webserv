@@ -9,7 +9,7 @@
 class FileManager {
 private:
 	int					_clientFd;
-	std::string			_body;
+	std::string			_request_str;
 	std::string			_fileName;
 	int					_contentLength;
 	std::string			_boundary;
@@ -22,9 +22,11 @@ public:
 	bool				saveFile();
 	bool				deleteFile();
 
+	bool				extractor();
+	bool				
 	bool				extractFilename();
 	bool				extractBoundary();
-	bool				extractFileContent();
+	bool				extractContentLength();
 	const std::string&	extractHeaderInfo(const std::string& title);
 
 
