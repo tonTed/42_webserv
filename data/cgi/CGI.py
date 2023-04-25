@@ -3,7 +3,7 @@
 import cgi
 import os
 
-# form = cgi.FieldStorage()
+form = cgi.FieldStorage()
 print("Content-type: text/html\n")
 print('<html><head>')
 print('<meta charset="UTF-8">')
@@ -37,10 +37,12 @@ print('</nav>')
 print("</head><body>")
 print("<h1>Test CGI</h1>")
 print("<p>Hello World!</p>")
-# if "name" in form:
-#     print("<p>Your name is: {}</p>".format(form["name"].value))
+if "name" in form:
+    print("<p>Your name is: {}</p>".format(form["name"].value))
+if "name" in form:
+    print("<p>Your login is: {}</p>".format(form["login"].value))
 
-print("<h3>.Environments variables:</h3>")
+print("<h3>Environments variables:</h3>")
 for key, value in os.environ.items():
     print(f"<li>{key}: {value}</li>")
 
