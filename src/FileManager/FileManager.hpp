@@ -16,22 +16,22 @@ private:
 
 public:
 
-	FileManager(const int& clientFd, const std::string& body);
+	FileManager(const int& clientFd);
 	~FileManager();
 
 	bool				saveFile();
 	bool				deleteFile();
 
 	bool				extractor();
-	bool				
+	bool				reqToStr();	
 	bool				extractFilename();
 	bool				extractBoundary();
 	bool				extractContentLength();
 	const std::string&	extractHeaderInfo(const std::string& title);
-
+	const int&			startPos();
 
 	const int&			getClientFd() const;
-	const std::string&	getBody() const;
+	const std::string&	getResquestStr() const;
 	const std::string&	getFileName() const;
 	const int&			getContentLength() const;
 	const std::string&	getBoundary() const;

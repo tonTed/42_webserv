@@ -1,21 +1,32 @@
 #include "FileManager.hpp"
 
 
-FileManager::FileManager(const int& clientFd, const std::string& body):
-		_clientFd(clientFd), _body(body), _fileName(""), _contentLength(0), _boundary("") {}
+FileManager::FileManager(const int& clientFd):
+		_clientFd(clientFd), _request_str(""), _fileName(""), _contentLength(0), _boundary("") {}
 
 FileManager::~FileManager(){Log::debugFunc(__FUNCTION__);}
 
 const int&			FileManager::getClientFd() const		{return _clientFd;}
-const std::string&	FileManager::getBody() const			{return _body;}
+const std::string&	FileManager::getResquestStr() const		{return _request_str;}
 const std::string&	FileManager::getFileName() const		{return _fileName;}
 const int&			FileManager::getContentLength() const	{return _contentLength;}
 const std::string&	FileManager::getBoundary() const		{return _boundary;}
 
+bool	FileManager::reqToStr()
+{
+	char	buffer[1024];
+	ssize_t	nread;
+	while ((nread = read(_clientFd, buffer, sizeof(buffer))) > 0)
+		_request_str.append(buffer, nread);
+	if (_request_str.size() > 0)
+		return true;
+	return false;
+}
+
 
 bool	FileManager::extractor()
 {
-	if (extractFilename() && extractBoundary() && extractContentLength())
+	if (reqToStr() && extractFilename() && extractBoundary() && extractContentLength())
 		return true;
 	return false;
 }
@@ -23,14 +34,14 @@ bool	FileManager::extractor()
 const std::string&	FileManager::extractHeaderInfo(const std::string& title)
 {
 	Log::debugFunc(__FUNCTION__);
-	size_t	position = _body.find(title);
+	size_t	position = _request_str.find(title);
 	Log::log(Log::INFO, "position:" + std::to_string(position));
 	if (position != std::string::npos) // filename=" trouvé
 	{
 		position += title.size();
-		size_t endPos = _body.substr(position).find_first_of("\";\n,");	//trouve le prochain "
+		size_t endPos = _request_str.substr(position).find_first_of("\";\n,");	//trouve le prochain "
 		 if (endPos != std::string::npos && endPos > 0)
-			return _body.substr(position, endPos);
+			return _request_str.substr(position, endPos);
 	}
 	return "";
 }
@@ -74,8 +85,6 @@ bool	FileManager::extractContentLength()
 }
 
 
-
-
 bool	FileManager::saveFile()
 {
 	Log::debugFunc(__FUNCTION__);
@@ -97,7 +106,17 @@ bool	FileManager::saveFile()
 	}
 	return false;
 }
-	
+
+//1) search boundary.2) from this position, search \r\n\r\n 3) add 4
+const int&	FileManager::startPos()
+{
+	return (_request_str.find(_boundary)
+				+ _request_str.substr(_request_str.find(_boundary)).find("\r\n\r\n")
+				+ 4);
+}
+
+
+
 bool	FileManager::deleteFile()
 {
 	Log::debugFunc(__FUNCTION__);
