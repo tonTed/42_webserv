@@ -310,11 +310,11 @@ void	Request::initRequest() {
 	{
 		Log::log(Log::INFO, "UPLOAD");
 
-//		FileManager fileManager(_body);
-//		if (fileManager.saveFile())
-//			_status = 200;
-//		else
-//			_status = 500;
+		FileManager fileManager(_body);
+		if (fileManager.saveFile())
+			_status = 200;
+		else
+			_status = 500;
 
 		_status = 200;
 
