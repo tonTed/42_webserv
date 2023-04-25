@@ -22,7 +22,7 @@ void	Request::_setQueryString(std::string &path) {	Log::debugFunc(__FUNCTION__);
 
 void	Request::_setPathInfo(std::string &path) {	Log::debugFunc(__FUNCTION__);
 
-	size_t i = path.find('.');
+	size_t i = path.find(".py");
 	if (i != std::string::npos) {
 		size_t j = path.find('/', i);
 		if (j != std::string::npos)
@@ -315,8 +315,6 @@ void	Request::initRequest() {
 			_status = 200;
 		else
 			_status = 500;
-
-		_status = 200;
 
 		_startLine.path = "/uploaded.html";
 	}
