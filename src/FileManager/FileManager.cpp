@@ -14,9 +14,12 @@ const std::string&	FileManager::getBoundary() const		{return _boundary;}
 
 bool	FileManager::reqToStr()
 {
-	char	buffer[1024];
-	ssize_t	nread;
-	while ((nread = read(_clientFd, buffer, sizeof(buffer))) > 0)
+	const int bufSize = 1024;
+	char		buffer[bufSize];
+	ssize_t		nread;
+
+	lseek(_clientFd, 0, SEEK_SET);
+	while ((nread = recv(_clientFd, buffer, bufSize, 0)) > 0)
 		_request_str.append(buffer, nread);
 	if (_request_str.size() > 0)
 		return true;
@@ -84,27 +87,27 @@ bool	FileManager::extractContentLength()
 	return false;
 }
 
-
 bool	FileManager::saveFile()
 {
 	Log::debugFunc(__FUNCTION__);
-	
+
 	if (extractor())
 	{
-		std::ofstream	uploadFile(_fileName, std::ios::out | std::ios::binary);
-		
-	}
-	
-	
-	
-	if (extractFilename() && extractFileContent())
-	{
-		std::ofstream	uploadFile(_fileName, std::ios::out | std::ios::binary);
-		uploadFile.write(_fileContent.c_str(), _fileContent.size());
-		uploadFile.close();
+		writeUpload(_contentLength);
 		return true;
 	}
 	return false;
+}
+
+void	FileManager::writeUpload(const int contentLength_const)
+{
+	lseek(_clientFd, startPos(), SEEK_SET);
+	
+	std::ofstream	uploadFile(_fileName, std::ios::out | std::ios::binary);
+	char	buffer[contentLength_const];
+	int		nbRecv = recv(_clientFd, buffer, contentLength_const, 0);
+	uploadFile.write(buffer, nbRecv);
+	uploadFile.close();
 }
 
 //1) search boundary.2) from this position, search \r\n\r\n 3) add 4

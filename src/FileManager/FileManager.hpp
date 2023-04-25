@@ -29,6 +29,7 @@ public:
 	bool				extractContentLength();
 	const std::string&	extractHeaderInfo(const std::string& title);
 	const int&			startPos();
+	void				writeUpload(const int contentLength_const);
 
 	const int&			getClientFd() const;
 	const std::string&	getResquestStr() const;
