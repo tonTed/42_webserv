@@ -305,7 +305,8 @@ void	Request::initRequest() {
 
 
 	//check if file ends with .py
-	if (_startLine.path == "/upload")
+	//TODO find a way to trigger only our request from form
+	if (_startLine.path == "/upload" && _startLine.type == POST)
 	{
 		Log::log(Log::INFO, "UPLOAD");
 
