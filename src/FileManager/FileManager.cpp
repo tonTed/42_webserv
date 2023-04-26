@@ -1,86 +1,98 @@
 #include "FileManager.hpp"
 
 
-FileManager::FileManager(const std::string& body):
-		_body(body), _fileName(""), _fileContent("") {}
+FileManager::FileManager(const std::string& request_str):
+		_request_str(request_str), _fileName(""), _boundary("") {}
 
 FileManager::~FileManager(){Log::debugFunc(__FUNCTION__);}
 
-const std::string&	FileManager::getBody() const		{return _body;}
-const std::string&	FileManager::getFileName() const	{return _fileName;}
-const std::string&	FileManager::getContent() const		{return _fileContent;}
+const std::string&	FileManager::getResquestStr() const		{return _request_str;}
+const std::string&	FileManager::getFileName() const		{return _fileName;}
+const std::string&	FileManager::getBoundary() const		{return _boundary;}
+
+bool	FileManager::extractor()
+{
+	Log::debugFunc(__FUNCTION__);
+	if (extractFilename() && extractBoundary())
+		return true;
+	return false;
+}
+
+const std::string	FileManager::extractHeaderInfo(const std::string& title)
+{
+	Log::debugFunc(__FUNCTION__);
+	size_t	position = _request_str.find(title);
+	Log::log(Log::INFO, "position:" + std::to_string(position));
+	if (position != std::string::npos) // filename=" trouvé
+	{
+		position += title.size();
+		size_t endPos = _request_str.substr(position).find_first_of("\";\n,");	//trouve le prochain "
+		if (endPos != std::string::npos && endPos > 0)
+			return _request_str.substr(position, endPos);
+	}
+	return "";
+}
 
 bool	FileManager::extractFilename()
 {
 	Log::debugFunc(__FUNCTION__);
-	size_t	position = _body.find("filename=");
-	Log::log(Log::INFO, "position:" + std::to_string(position));
-	if (position != std::string::npos) // filename=" trouvé
+	_fileName = extractHeaderInfo("filename=\"");
+	if (_fileName != "")
 	{
-		position += 10; //ajoute la longueur de filename=" a position
-		size_t endPos = _body.substr(position).find_first_of('\"');	//trouve le prochain "
-		 if (endPos != std::string::npos && endPos > 0							// 1) " trouvé 2)length > 0 
-		 	&& _body.substr(position, endPos).find("\n") == std::string::npos	// 3) pas de \n dans le nom
-		 	&& _body.substr(position, endPos).find(":") == std::string::npos	// 4) pas de : dans le nom
-		 	&& _body.substr(position, endPos).find(";") == std::string::npos)	// 5) pas de ; dans le nom
-		 {
-			_fileName = _body.substr(position, endPos);
-			_fileName = UPLOADFILE_PATH + _fileName;	//ajoute le path des UPLOADFILE
-			Log::log(Log::INFO, "_filename:\n" + _fileName);
-			return true;
-		 }
+		_fileName = UPLOADFILE_PATH + _fileName;	//ajoute le path des UPLOADFILE
+		Log::log(Log::INFO, "_filename:" + _fileName);
+		return true;
 	}
 	return false;
 }
 
-bool	FileManager::extractFileContent()
+bool	FileManager::extractBoundary()
 {
 	Log::debugFunc(__FUNCTION__);
-	std::istringstream	iss(_body);
-	std::string			line;
-	_fileContent = "";
-	std::string			boundary;
-
-	while (std::getline(iss, line) && line.find("--") == std::string::npos);
-
-	if (line.find("--") != std::string::npos)
-			boundary = line.substr(0, line.length() - 1);
-	else
-		return false;
-
-	Log::log(Log::INFO, "boundary:" + boundary);
-
-	while (std::getline(iss, line) && line != "\r");
-	
-	while (std::getline(iss, line) && line.find(boundary) == std::string::npos)
+	_boundary = extractHeaderInfo("boundary=");
+	if (_boundary != "")
 	{
-		_fileContent += line + "\n";
-		Log::log(Log::INFO, "line:" + line);
-	}
-
-	if (_fileContent.length() > 1)
-	{
-		_fileContent = _fileContent.substr(0, _fileContent.length() - 1);
-		Log::log(Log::INFO, "_fileContent:\n" + _fileContent);
+		Log::log(Log::INFO, "_boundary:" + _boundary);
 		return true;
 	}
-	_fileContent = "";
 	return false;
 }
 
 bool	FileManager::saveFile()
 {
 	Log::debugFunc(__FUNCTION__);
-	if (extractFilename() && extractFileContent())
+
+	if (extractor() == true)
 	{
-		std::ofstream	uploadFile(_fileName, std::ios::trunc);
-		uploadFile << _fileContent;
-		uploadFile.close();
+		writeUpload();
 		return true;
 	}
+	Log::log(Log::ERROR, "File not uploaded");
 	return false;
 }
-	
+
+void	FileManager::writeUpload()
+{
+	Log::debugFunc(__FUNCTION__);
+	const int	fileLen = endPos() - startPos();
+	std::ofstream	uploadFile(_fileName, std::ios::out | std::ios::binary);
+	uploadFile.write(_request_str.substr(startPos(), fileLen).c_str(), fileLen);
+	uploadFile.close();
+}
+
+//1) search boundary.2) from this position, search \r\n\r\n 3) add 4
+int	FileManager::startPos()
+{
+	Log::debugFunc(__FUNCTION__);
+	return _request_str.find("\r\n\r\n", _request_str.find(_boundary, _request_str.find("/r/n/r/n"))) + 4;
+}
+
+int	FileManager::endPos()
+{
+	Log::debugFunc(__FUNCTION__);
+	return (_request_str.find_last_of(_boundary) - 2);
+}
+
 bool	FileManager::deleteFile()
 {
 	Log::debugFunc(__FUNCTION__);

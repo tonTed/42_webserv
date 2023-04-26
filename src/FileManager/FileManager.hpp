@@ -8,24 +8,31 @@
 
 class FileManager {
 private:
-	const std::string	_body;
-	std::string	_fileName;
-	std::string	_fileContent;
+	std::string			_request_str;
+	std::string			_fileName;
+	std::string			_boundary;
 
 public:
 
-	FileManager(const std::string &body);
+	FileManager(const std::string& request_str);
 	~FileManager();
 
-	bool	saveFile();
-	bool	deleteFile();
+	bool				saveFile();
+	bool				deleteFile();
 
-	bool	extractFilename();
-	bool	extractFileContent();
+	bool				extractor();
+	bool				reqToStr();	
+	bool				extractFilename();
+	bool				extractBoundary();
+	const std::string	extractHeaderInfo(const std::string& title);
+	int					startPos();
+	int					endPos();
+	void				writeUpload();
 
-	const std::string&	getBody() const;
+	const int&			getClientFd() const;
+	const std::string&	getResquestStr() const;
 	const std::string&	getFileName() const;
-	const std::string&	getContent() const;
+	const std::string&	getBoundary() const;
 
 };
 
