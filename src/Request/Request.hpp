@@ -56,8 +56,10 @@ public:
 	startLine							_startLine;
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;
-
 	std::string 						_root;
+
+	char								*_buffer;
+	std::string 						_bufferString;
 
 	int 								_client;
 	int 								_serverId;

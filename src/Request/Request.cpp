@@ -51,20 +51,24 @@ Request::~Request() {}
 void	Request::_readSocketData() {
 	Log::debugFunc(__FUNCTION__);
 
-	char	*buffer;
-
-	buffer = new char[MAX_REQUEST_SIZE + 1];
+	_buffer = new char[MAX_REQUEST_SIZE + 1];
 
 	ssize_t	ret;
 
-	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
+	ret = read(_client, _buffer, MAX_REQUEST_SIZE + 1);
+	Log::log(Log::DEBUG, "Char read: " + std::to_string(ret));
+
 	if (ret == -1)
 		throw RequestException::ReadError();
 	if (ret > MAX_REQUEST_SIZE)
 		throw RequestException::MaxSize();
-	buffer[ret] = '\0';
+	_buffer[ret] = '\0';
 
-	_rawRequest << buffer;
+	_bufferString.append(_buffer, ret);
+
+//	std::cout << MAGENTA << _bufferString << RESET << std::endl;
+
+	_rawRequest << _buffer;
 }
 
 void	Request::_parseStartLine() {
@@ -310,7 +314,7 @@ void	Request::initRequest() {
 	{
 		Log::log(Log::INFO, "UPLOAD");
 
-		FileManager fileManager(_body);
+		FileManager fileManager(_bufferString);
 		if (fileManager.saveFile())
 			_status = 200;
 		else
