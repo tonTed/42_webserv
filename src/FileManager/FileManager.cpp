@@ -84,7 +84,7 @@ bool	FileManager::extractContentLength()
 	std::string	contentLength_str = extractHeaderInfo("Content-Length:");
 	if (contentLength_str != "")
 	{
-		_contentLength = atoi(contentLength_str.c_str());
+		_contentLength = std::stoi(contentLength_str.c_str());
 		Log::log(Log::INFO, "contentlength_str:" + contentLength_str + " _contentLength:" + std::to_string(_contentLength));
 		return true;
 	}
@@ -188,4 +188,5 @@ void	recordSocket()
 	bufferBlock.push_back(buffer);
 	bufferBlockLen = bufferBlock.size() * 1024 + nbrecv;
 	lastBlockLen = nbrecv;
+	
 }
