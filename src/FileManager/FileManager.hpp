@@ -8,15 +8,13 @@
 
 class FileManager {
 private:
-	int					_clientFd;
 	std::string			_request_str;
 	std::string			_fileName;
-	int					_contentLength;
 	std::string			_boundary;
 
 public:
 
-	FileManager(const int& clientFd);
+	FileManager(const std::string& request_str);
 	~FileManager();
 
 	bool				saveFile();
@@ -26,15 +24,14 @@ public:
 	bool				reqToStr();	
 	bool				extractFilename();
 	bool				extractBoundary();
-	bool				extractContentLength();
 	const std::string	extractHeaderInfo(const std::string& title);
 	int					startPos();
+	int					endPos();
 	void				writeUpload();
 
 	const int&			getClientFd() const;
 	const std::string&	getResquestStr() const;
 	const std::string&	getFileName() const;
-	const int&			getContentLength() const;
 	const std::string&	getBoundary() const;
 
 };
