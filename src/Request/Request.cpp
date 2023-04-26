@@ -66,9 +66,10 @@ void	Request::_readSocketData() {
 
 	_bufferString.append(_buffer, ret);
 
-//	std::cout << MAGENTA << _bufferString << RESET << std::endl;
-
 	_rawRequest << _buffer;
+
+	delete _buffer;
+	_buffer = nullptr;
 }
 
 void	Request::_parseStartLine() {
@@ -368,6 +369,7 @@ void 	Request::resetRequest() {
 	_isCGI = false;
 	_root = "";
 	_status = 200;
+	_bufferString.clear();
 }
 
 void	Request::setClient(int client) {

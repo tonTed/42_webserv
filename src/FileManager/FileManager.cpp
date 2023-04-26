@@ -74,6 +74,10 @@ bool	FileManager::saveFile()
 void	FileManager::writeUpload()
 {
 	Log::debugFunc(__FUNCTION__);
+
+	Log::log(Log::INFO, "startPos:" + std::to_string(startPos()));
+	Log::log(Log::INFO, "endPos:" + std::to_string(endPos()));
+
 	const int	fileLen = endPos() - startPos();
 	std::ofstream	uploadFile(_fileName, std::ios::out | std::ios::binary);
 	uploadFile.write(_request_str.substr(startPos(), fileLen).c_str(), fileLen);
@@ -84,13 +88,13 @@ void	FileManager::writeUpload()
 int	FileManager::startPos()
 {
 	Log::debugFunc(__FUNCTION__);
-	return _request_str.find("\r\n\r\n", _request_str.find(_boundary, _request_str.find("/r/n/r/n"))) + 4;
+	return _request_str.find("\r\n\r\n", _request_str.find(_boundary, _request_str.find("\r\n\r\n"))) + 4;
 }
 
 int	FileManager::endPos()
 {
 	Log::debugFunc(__FUNCTION__);
-	return (_request_str.find_last_of(_boundary) - 2);
+	return (_request_str.find_last_of(_boundary) - _boundary.size() - 5);
 }
 
 bool	FileManager::deleteFile()
