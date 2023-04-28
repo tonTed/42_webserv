@@ -21,6 +21,19 @@ SRC_TEST := $(filter-out $(SRCDIR)/main.cpp, $(SRC_TEST))
 # Define objects for all sources
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
 
+TESTER_DIRS	= 	YoupiBanane \
+				YoupiBanane/nop \
+				YoupiBanane/Yeah
+
+TESTER_FILES =	YoupiBanane/youpi.bad_extension \
+				YoupiBanane/youpi.bla \
+				YoupiBanane/nop/other.pouic \
+				YoupiBanane/nop/youpi.bad_extension \
+				YoupiBanane/Yeah/not_happy.bad_extension
+
+TESTER_TOOLS = 	tester \
+				cgi_tester
+
 # Name the compiler & flags
 CC = c++
 #TODO PUT BACK FLAG WITH C++98
@@ -45,6 +58,8 @@ clean		:
 
 fclean		: clean
 	$(HIDE)rm -f $(NAME)
+	$(HIDE)rm -rf $(TESTER_TOOLS)
+	$(HIDE)rm -rf $(TESTER_DIRS)
 
 re			: fclean all
 
@@ -54,6 +69,13 @@ utest		: buildrepo
 	@printf $(GREEN)"[$@] program created\n"$(RESET)
 	./utest
 	rm -f utest
+
+tester:
+	$(HIDE) mkdir -p $(TESTER_DIRS)
+	$(HIDE) touch $(TESTER_FILES)
+	$(HIDE) cp test/tester_tools/tester tester
+	$(HIDE) cp test/tester_tools/cgi_tester cgi_tester
+	./tester http://localhost:8080
 
 print		:
 	@#echo $(SRCS)
@@ -74,7 +96,7 @@ pdf			:
 buildrepo	:
 	$(HIDE)$(call make-repo)
 
-.PHONY		: all clean fclean re print run buildrepo $(NAME)
+.PHONY		: all clean fclean re print run buildrepo $(NAME) tester
 
 define make-repo
 	$(HIDE)mkdir -p $(OBJDIR)
