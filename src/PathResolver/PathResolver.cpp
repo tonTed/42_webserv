@@ -96,7 +96,7 @@ bool 		PathResolver::isRootValid() { 	Log::debugFunc(__FUNCTION__);
 void 		PathResolver::addIndex(bool hasLocation, std::string location) {	Log::debugFunc(__FUNCTION__);
 	std::string index;
 
-	if (hasLocation)
+	if (hasLocation && !_serverData._locations[location].index.empty())
 		index = _serverData._locations[location].index[0];
 	else
 		index = _serverData._index[0];
