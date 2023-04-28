@@ -24,7 +24,7 @@ struct ServerData
 	// The key is the location, the value is the path to the file
 	std::vector<std::string> _root;	 
 	std::vector<std::string> _index; 
-	std::vector<std::string> bodySize;
+	int bodySize;
 	// std::string _root;
 
 	// The key is the error code, the value is the path to the file
@@ -103,7 +103,7 @@ public:
 	std::vector<std::string> getDirectiveVal(const std::string &configStr, std::string directive);
 	std::vector<std::string> getHosts(const std::string &configStr);
 	std::vector<int> getPorts(const std::string &configStr);
-	std::map<int, std::string> getErrorPages(const std::string &configStr);
+	std::map<int, std::string> getErrorPages(std::string &configStr);
 
 	Locations settingLocation(ServerLocation &locStruct, ServerData &serverBlock);
 	void setServerBlocks();
@@ -128,6 +128,7 @@ bool isrealspace(char c);
 bool validBraces(const string &str);
 void exit_error(string str, string err);
 void validBodySize(std::string &input);
+void erasePart(std::string &configStr, std::string toErase);
 
 //  HOST PART
 bool validHost(std::string host);

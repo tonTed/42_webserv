@@ -213,7 +213,7 @@ std::vector<string> ConfigServer::getServerBlocksData(const std::string &configS
 	std::vector<string> serverBlocks;
 	string::size_type pos = 0;
 	if (!validBraces(configStr))
-		exit_error("Error: braces not even! |", "");
+		exit_error("Error: braces not even! |", "| Check the closing ';' ");
 	while ((pos = configStr.find("server {", pos)) != string::npos)
 	{
 		string::size_type bracePos = configStr.find("{", pos);
@@ -239,7 +239,7 @@ std::vector<string> ConfigServer::getServerBlocksData(const std::string &configS
 			}
 		}
 		else
-			exit_error("Error: opening brace not found! ", "");
+			exit_error("Error: opening brace not found! ", " Check the closing ';' ");
 	}
 	return (serverBlocks);
 }
@@ -310,14 +310,13 @@ std::vector<std::string> ConfigServer::getDirective(std::string &configStr, std:
 			std::string directivesStr = configStr.substr(pos, endPos - pos + 1);
 			directives.push_back(directivesStr);
 			configStr.erase(pos, endPos - pos + 1);
-			// continue;
 		}
 		else
-			exit_error("Error: ; not found! |", "");
+			exit_error("Error: ; not found! |", "| Check the closing ';' ");
 		present++;
 	}
 	if (present && directives.empty())
-		exit_error("Error: Directive: " + directive + " present but value is empty!", "");
+		exit_error("Error: Directive: " + directive + " present but value is empty!", " Check the closing ';' ");
 	return directives;
 }
 
@@ -350,22 +349,22 @@ std::vector<std::string> ConfigServer::getDirectiveVal(const std::string &config
 		present++;
 	}
 	if (present && valList.empty())
-		exit_error("Error: Directive:   |" + directive + "|   present but value is empty!", "");
+		exit_error("Error: Directive:   |" + directive + "|   present but value is empty!", "| Check the closing ';' ");
 	if (directive == " root ")
 	{
 		if (valList.size() != 1)
-			exit_error("Error: Too many or no root |", "|");
+			exit_error("Error: Too many or no root |", "| Check the closing ';' ");
 		valList.at(0) = format_string(valList.at(0));
 	}
 	if (directive == " body_size ")
 	{
 		if (valList.size() != 1)
-			exit_error("Error: Too many or no body_size value |", "|");
+			exit_error("Error: Too many or no body_size value |", "| Check the closing ';' ");
 	}
 	if (directive == " autoindex " && present)
 	{
 		if (valList.size() != 1 || !validAutoindex(valList.at(0)))
-			exit_error("Error: Bad or no autoIndex |", valList.at(0) + "|");
+			exit_error("Error: Bad or no autoIndex |", valList.at(0) + "| Check the closing ';' ");
 	}
 	return valList;
 }
@@ -389,7 +388,7 @@ std::vector<std::string> ConfigServer::getHosts(const std::string &configStr)
 		{
 			std::string host = token.substr(0, colonPos);
 			if (!validHost(host))
-				exit_error("Error: Invalid Host |", host + "|");
+				exit_error("Error: Invalid Host |", host + "| Check the closing ';' ");
 			hosts.push_back(host);
 		}
 	}
@@ -418,7 +417,7 @@ std::vector<int> ConfigServer::getPorts(const std::string &configStr)
 			std::string port_str = token.substr(colon_pos + 1);
 			int port = atoi(port_str.c_str());
 			if (!validPort(port))
-				exit_error("Error: Invalid Port |", port_str + "|");
+				exit_error("Error: Invalid Port |", port_str + "| Check the closing ';' ");
 			ports.push_back(port);
 		}
 		else if (isdigit(token[0]))
@@ -426,7 +425,7 @@ std::vector<int> ConfigServer::getPorts(const std::string &configStr)
 			// Token is a standalone port number
 			int port = atoi(token.c_str());
 			if (!validPort(port))
-				exit_error("Error: Invalid Port |", token + "|");
+				exit_error("Error: Invalid Port |", token + "| Check the closing ';' ");
 			ports.push_back(port);
 		}
 	}
@@ -439,7 +438,7 @@ std::vector<int> ConfigServer::getPorts(const std::string &configStr)
  * @param configStr the string where the directive line is saved
  * @return std::map<int, std::string> the map of error codes and error pages
  */
-std::map<int, std::string> ConfigServer::getErrorPages(const std::string &configStr)
+std::map<int, std::string> ConfigServer::getErrorPages(std::string &configStr)
 {
 	std::map<int, std::string> errorPages;
 	std::istringstream iss(configStr);
@@ -464,6 +463,8 @@ std::map<int, std::string> ConfigServer::getErrorPages(const std::string &config
 				}
 				// exit_error("Error: Invalid Error Code |", std::to_string(errorCode) + "|");
 				errorPages[errorCode] = errorPage;
+				erasePart(configStr, errorPage);
+				erasePart(configStr, std::to_string(errorCode));
 			}
 		}
 	}
@@ -507,7 +508,6 @@ Locations ConfigServer::settingLocation(ServerLocation &locStruct, ServerData &s
 		std::vector<std::string> autoIndex = getDirectiveVal(locStruct._autoindex[j], " autoindex ");
 		if (!autoIndex.empty())
 			location.autoindex = autoIndex[0];
-		
 	}
 
 	// // REDIRECTION
@@ -575,17 +575,19 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 		// LISTEN:: GET HOSTS AND PORTS
 		for (int j = 0; j < static_cast<int>(blocks[i]._listen.size()); j++)
 		{
-			// std::cout << "Listen: " << blocks[i]._listen[j] << std::endl;
 			std::vector<std::string> hosts = getHosts(blocks[i]._listen[j]);
 			for (int n = 0; n < static_cast<int>(hosts.size()); n++)
 			{
 				servers[i]._hosts.push_back(hosts[n]);
+				erasePart(blocks[i]._listen[j], hosts[n]);
 			}
 			std::vector<int> ports = getPorts(blocks[i]._listen[j]);
 			for (int x = 0; x < static_cast<int>(ports.size()); x++)
 			{
 				servers[i]._serverPorts.push_back(ports[x]);
+				erasePart(blocks[i]._listen[j], std::to_string(ports[x]));
 			}
+			validRemaining(blocks[i]._listen[j]);
 		}
 
 		// SERVER NAMES
@@ -595,7 +597,9 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			for (int n = 0; n < static_cast<int>(serverNames.size()); n++)
 			{
 				servers[i]._serverNames.push_back(serverNames[n]);
+				erasePart(blocks[i]._serverNames[j], serverNames[n]);
 			}
+			validRemaining(blocks[i]._serverNames[j]);
 		}
 
 		// ROOT
@@ -605,8 +609,12 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			for (int n = 0; n < static_cast<int>(roots.size()); n++)
 			{
 				servers[i]._root.push_back(roots[n]);
+				erasePart(blocks[i]._root[j], roots[n]);
 			}
+			validRemaining(blocks[i]._root[j]);
 		}
+		if (servers[i]._root.empty())
+			exit_error("Error: No ROOT!! |", "| Check the closing ';' ");
 
 		// INDEXES
 		for (int j = 0; j < static_cast<int>(blocks[i]._index.size()); j++)
@@ -616,7 +624,9 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			{
 				validIndex(indexes[n], servers[i]._root[0]);
 				servers[i]._index.push_back(indexes[n]);
+				erasePart(blocks[i]._index[j], indexes[n]);
 			}
+			validRemaining(blocks[i]._index[j]);
 		}
 
 		// BODY_SIZE
@@ -626,8 +636,10 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			for (int n = 0; n < static_cast<int>(body.size()); n++)
 			{
 				validBodySize(body[n]);
-				servers[i].bodySize.push_back(body[n]);
+				servers[i].bodySize = atoi(body[n].c_str()); // cast bodySize into an int
+				erasePart(blocks[i].bodySize[j], body[n]);
 			}
+			validRemaining(blocks[i].bodySize[j]);
 		}
 
 		// METHODS
@@ -645,6 +657,7 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			{
 				servers[i]._errorPages.insert(*it);
 			}
+			validRemaining(blocks[i]._errorPages[j]);
 		}
 
 		// SETTING LOCATIONS
@@ -653,7 +666,7 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 		{
 			paths.push_back(blocks[i]._locations[j]._path);
 			if (pathDup(paths))
-				exit_error("Error: Duplicate Path |", blocks[i]._locations[j]._path + "|");
+				exit_error("Error: Duplicate Path |", blocks[i]._locations[j]._path + "| Check the closing ';' ");
 			servers[i]._locations[blocks[i]._locations[j]._path] = settingLocation(blocks[i]._locations[j], servers[i]);
 		}
 
@@ -662,13 +675,8 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 		{
 			std::stringstream ss;
 			ss << servers[i]._serverPorts[0];
-			exit_error("Error: Invalid Error Code |", ss.str() + "|");
-			// exit_error("Error: Duplicate Port |", std::to_string(servers[i]._serverPorts[0]) + "|");
+			exit_error("Error: Invalid Error Code |", ss.str() + "| Check the closing ';' ");
 		}
-
-		// if(!validFilePath(servers[i]._root[0] + "/" + servers[i]._index[0])) // TODO to fix find a better way
-		// 	exit_error("Error: Invalid File Path |",
-		// 	servers[i]._root[0] + "/" + servers[i]._index[0] + "|");
 	}
 	this->_serversData = servers;
 }
@@ -846,4 +854,3 @@ void ConfigServer::printServersData(std::vector<ServerData> &data)
 		std::cout << std::endl;
 	}
 }
-

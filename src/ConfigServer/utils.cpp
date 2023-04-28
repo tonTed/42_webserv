@@ -74,7 +74,7 @@ bool validBraces(const string &str)
 void exit_error(string str, string err)
 {
     std::cout << BOLD_RED << str << err << RESET << std::endl;
-    exit(1); // TODO fix the error!
+    exit(1); 
 }
 
 /**
@@ -147,9 +147,6 @@ bool validRoot(std::string input)
         return false;
     while (i < input.size())
     {
-        //TODO Hafid: why only alpha? cgi is not alpha
-		if (!std::isalpha(input[i]) && input[i] != '/')
-            return false;
         if (input[i] == '/' && input[i + 1] == '/')
             return false;
         i++;
@@ -258,7 +255,6 @@ bool pathDup(std::vector<std::string> seq)
  */
 bool lactionPathValid(string &path)
 {
-//    int i = 1;
     if (path.size() < 1)
         return false;
     if (path[0] != '/')
@@ -372,6 +368,17 @@ void validRemaining(std::string &str)
             --i; // Decrement i to account for the erased character
         }
     }
-    if(str != "server{}" && str != "location{}")
-        exit_error("Error: Invalid remaining: |", str + "|");
+    if(str != "server{}" && str != "location{}" && str != "listen:;" && str != "listen:" && str != "listen"
+        && str != "listen;" && str != "server_name;" && str != "server_name" && str != "root" && str != "root;"
+        && str != "index;" && str != "index" && str != "body_size;" && str != "body_size"  && str != "error_page;" 
+        && str != "error_page" )
+        exit_error("Error: Invalid remaining: |", str + "| Check the closing ';' ");
+}
+
+
+void erasePart(std::string &configStr, std::string toErase)
+{
+    std::string::size_type pos = configStr.find(toErase);
+    if (pos != std::string::npos)
+        configStr.erase(pos, toErase.size());
 }
