@@ -620,7 +620,7 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 		}
 
 		// BODY_SIZE
-		for (int j = 0; j < static_cast<int>(blocks[i]._index.size()); j++)
+		for (int j = 0; j < static_cast<int>(blocks[i].bodySize.size()); j++)
 		{
 			std::vector<std::string> body = getDirectiveVal(blocks[i].bodySize[j], " body_size ");
 			for (int n = 0; n < static_cast<int>(body.size()); n++)
