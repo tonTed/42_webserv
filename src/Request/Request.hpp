@@ -68,6 +68,7 @@ public:
 	int 								_status;
 	int 								_cgiFd[2];
 	bool 								_isCGI;
+	bool								_autoIndex;
 
 private:
 

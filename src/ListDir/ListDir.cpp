@@ -5,6 +5,9 @@ ListDir::~ListDir() {}
 
 const std::string	ListDir::ListDirectory(const std::string& dirName) const
 {
+	Log::debugFunc(__FUNCTION__);
+	Log::log(Log::DEBUG, "dirName: " + dirName);
+
 	DIR*	dir = opendir(dirName.c_str());
 	if (dir != nullptr)
 	{
@@ -17,7 +20,8 @@ const std::string	ListDir::ListDirectory(const std::string& dirName) const
 		}
 		closedir(dir);
 		std::stringstream	req;
-		req << "Content-Type: text/html\r\n"
+		req << "HTTP/1.1 200 OK\r\n"
+			<< "Content-Type: text/html\r\n"
 			<< "HTTP/1.1 200 OK\r\n"
     		<< "\r\n"
     		<< "<html><body>"

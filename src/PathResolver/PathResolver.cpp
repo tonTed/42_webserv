@@ -78,6 +78,10 @@ bool 		PathResolver::setRoot(const std::string &location) {	Log::debugFunc(__FUN
 	// set the root to the location root if it exists
 	if (_existsInMap(_serverData._locations, location))
 	{
+		//check autoindex
+		if (_serverData._locations[location].autoindex == "ON")
+			_request._autoIndex = true;
+
 		//check allowed methods
 		if (isAllowedMethod(_serverData._locations[location].methods) == false)
 		{
@@ -88,6 +92,7 @@ bool 		PathResolver::setRoot(const std::string &location) {	Log::debugFunc(__FUN
 		_root += _request._startLine.path.substr(location.length());
 		return true;
 	}
+
 	//check allowed methods
 	if (isAllowedMethod(_serverData._methods) == false)
 	{

@@ -20,6 +20,17 @@ Response::Response(const Request &request) :	_request(request),
 	}
 	else if (_request._status != 200)
 	{
+		if (_request._autoIndex)
+		{
+			ListDir listDir;
+			_response = listDir.ListDirectory("data" + _request._startLine.path);
+
+			std::cout << RED << _response << RESET << std::endl;
+
+			sendResponse();
+			_response.clear();
+			return;
+		}
 		manageErrorResponse();
 	}
 	else if (_request.isCGI())

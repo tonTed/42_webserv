@@ -44,7 +44,7 @@ std::string Request::getPath(const std::string &uri) {
 	return path;
 }
 
-Request::Request() : _client(-1), _serverId(-1), _status(200), _isCGI(false){ _cgiFd[PIPE_READ] = -1; _cgiFd[PIPE_WRITE] = -1; }
+Request::Request() : _client(-1), _serverId(-1), _status(200), _isCGI(false), _autoIndex(false) { _cgiFd[PIPE_READ] = -1; _cgiFd[PIPE_WRITE] = -1; }
 
 Request::~Request() {}
 
