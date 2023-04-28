@@ -318,6 +318,8 @@ std::vector<std::string> ConfigServer::getDirective(std::string &configStr, std:
 	}
 	if (present && directives.empty())
 		exit_error("Error: Directive: " + directive + " present but value is empty!", "");
+	if (directive == " body_size " && !present)
+		exit_error("Error: Directive: " + directive + " not found!", "");
 	return directives;
 }
 
