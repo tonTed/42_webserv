@@ -26,6 +26,7 @@
 # include <errno.h>			//errno for poll
 # include <csignal>
 # include <cstdio>
+#include <dirent.h>			//DIR
 
 typedef std::string string;
 
