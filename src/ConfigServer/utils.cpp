@@ -270,7 +270,6 @@ bool lactionPathValid(string &path)
             return (false);
     return true;
 }
-
 /**
  * @brief Get the Location Path object from the location block
  *
@@ -330,6 +329,22 @@ void validIndex(std::string &input, std::string &root)
         path = root + "/";
     if (!validFilePath(path + input))
         exit_error("Error: index path: |", (path + input) + "| not valid");
+}
+
+/**
+ * @brief check if the indexes are valid
+ *
+ * @param input The list of indexes
+ * @return true if valid
+ * @return false if not valid
+ */
+void validBodySize(std::string &input)
+{
+    for (size_t i = 0; i < input.size(); i++)
+    {
+        if (!std::isdigit(input[i]))
+            exit_error("Error: body size must be a number: |", input);
+    }
 }
 
 /**
