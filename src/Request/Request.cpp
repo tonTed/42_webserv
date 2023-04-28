@@ -1,90 +1,92 @@
-// #include <unordered_map>
+#include <unordered_map>
 #include "Request.hpp"
 #include "unistd.h"
+
+#include "../Response/Response.hpp"
+#include "../PathResolver/PathResolver.hpp"
+#include "../CGI/Cgi.hpp"
+#include "../Utils/FT.hpp"
+#include "../FileManager/FileManager.hpp"
 
 bool	isAllowedMethod(const eRequestType method) {
 	return (method == GET || method == POST || method == DELETE);
 }
 
-std::string getPath(const std::string &uri, const eRequestType method) {
-	(void)uri;
-	(void)method;
-	if (uri == "/" || uri == "/index.html")
-		return "./data/www/index.html";
-	return "";
-}
-
-Request::Request(const int client) : _client(client) {}
-
-/**
- * @brief	Initialise the request.
- * 			- Read the client socket and store the resources in _rawRequest.
- * 			- Parse the first line of the request.
- * 			- Parse the headers of the request.
- * 			- Parse the body of the request.
- *
- * 	@note if an error occurs, the server will send an error to the client.
- *
- */
-void	Request::_init() {
-	try {
-		_readSocketData();
-		_parseStartLine();
-		_parseHeaders();
-		_parseBody();
-	} catch (RequestException::ReadError &e) {
-		//TODO: send[500] error to client
-	} catch (RequestException::MaxSize &e) {
-		//TODO: send[494] error to client
-	} catch (RequestException::NoCRLF &e) {
-		//TODO: send[400] error to client
-	} catch (RequestException::StartLine::InvalidMethod &e) {
-		//TODO: send[400] error to client
-	} catch (RequestException::StartLine::InvalidVersion &e) {
-		//TODO: send[505] error to client
-	} catch (RequestException::InvalidLine &e) {
-		//TODO: send[400] error to client
-	} catch (RequestException::Header::DuplicateKey &e) {
-		//TODO: send[400] error to client
-	} catch (RequestException::Header::InvalidKey &e) {
-		//TODO: send[400] error to client
-	} catch (RequestException::Header::InvalidValue &e) {
-		//TODO: send[400] error to client
-	} catch (RequestException::StartLine::NotAllowedMethod &e) {
-		//TODO: send[405] error to client
-	} catch (RequestException::StartLine::InvalidURI &e) {
-		//TODO: send[404] error to client
+void	Request::_setQueryString(std::string &path) {	Log::debugFunc(__FUNCTION__);
+	size_t i = path.find('?');
+	if (i != std::string::npos) {
+		_startLine.queryString = path.substr(i + 1);
+		path.erase(i);
 	}
 }
 
-/**
- * @brief	Get the raw resources from the client.
- * 			Read the client socket and store the resources in _rawRequest.
- *
- */
-void	Request::_readSocketData() {
-	char	buffer[MAX_REQUEST_SIZE + 1];
-	int 	ret;
+void	Request::_setPathInfo(std::string &path) {	Log::debugFunc(__FUNCTION__);
 
-	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
-	if (ret == -1)
-		throw RequestException::ReadError();
-	if (ret > MAX_REQUEST_SIZE)
-		throw RequestException::MaxSize();
-	buffer[ret] = '\0';
-
-	_rawRequest << buffer;
+	size_t i = path.find(".py");
+	if (i != std::string::npos) {
+		size_t j = path.find('/', i);
+		if (j != std::string::npos)
+		{
+			_startLine.pathInfo = path.substr(j + 1);
+			path.erase(j);
+		}
+	}
 }
 
-/**
- * @brief	Parse the first line of the request.
- * 			Store the type, path and version in _startLine.
- *
- * @source	https://www.rfc-editor.org/rfc/rfc9112.html#section-3
- * @note	request-line = method SP request-target SP HTTP-version CRLF
- *
- */
+// TODO set a path or throw, .., ., //, etc
+std::string Request::getPath(const std::string &uri) {
+
+	std::string path = uri;
+
+	_setQueryString(path);
+	_setPathInfo(path);
+
+	return path;
+}
+
+Request::Request() : _client(-1), _serverId(-1), _status(200), _isCGI(false){ _cgiFd[PIPE_READ] = -1; _cgiFd[PIPE_WRITE] = -1; }
+
+Request::~Request() {}
+
+void	Request::_readSocketData() {
+	Log::debugFunc(__FUNCTION__);
+
+	char *buffer = new char[MAX_REQUEST_SIZE + 1];
+
+	ssize_t	ret;
+
+	//TODO: sleep for 1ms to wait for the client to send the data ???
+	usleep(1000);
+
+	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
+	Log::log(Log::DEBUG, "Char read: " + std::to_string(ret));
+
+	if (ret == -1)
+	{
+		delete[] buffer;
+		buffer = nullptr;
+		throw RequestException::ReadError();
+	}
+	if (ret > MAX_REQUEST_SIZE)
+	{
+		delete[] buffer;
+		buffer = nullptr;
+		throw RequestException::MaxSize();
+	}
+	buffer[ret] = '\0';
+
+	_bufferString.append(buffer, ret);
+
+	_rawRequest << buffer;
+
+	delete[] buffer;
+	buffer = nullptr;
+}
+
 void	Request::_parseStartLine() {
+
+	Log::debugFunc(__FUNCTION__);
+	std::cout << _rawRequest.str() << std::endl;
 
 	// Check if the line ends with CRLF
 	std::string line;
@@ -123,6 +125,9 @@ void	Request::_parseStartLine() {
 }
 
 void	Request::_setType(std::string &type) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	if (type.empty())
 		throw RequestException::InvalidLine();
 	else if (type == "GET")
@@ -150,38 +155,24 @@ void	Request::_setType(std::string &type) {
 	type.clear();
 }
 
-/**
- * @brief	Set the path of the request.
- * 			Store the path in _startLine.
- *
- * @param path The path of the request
- *
- * @throw RequestException::InvalidLine if the path is empty
- *
- * @todo	Check here if the path is valid?
- */
 void	Request::_setPath(std::string &path) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	if (path.empty())
 		throw RequestException::InvalidLine();
 	if (path[0] != '/')
 		throw RequestException::StartLine::InvalidURI();
-	_startLine.path = getPath(path, _startLine.type);
+	_startLine.path = getPath(path);
 	if (_startLine.path.empty())
 		throw RequestException::StartLine::InvalidURI();
 	path.clear();
 }
 
-/**
- * @brief	Set the version of the request.
- * 			Store the version in _startLine.
- *
- * @param version The version of the request
- *
- * @throw RequestException::InvalidLine if the version is empty
- * @throw RequestException::FirstLine::InvalidVersion if the version is not HTTP/1.1
- *
- */
 void	Request::_setVersion(std::string &version) {
+
+	Log::debugFunc(__FUNCTION__);
+
 	if (version.empty())
 		throw RequestException::InvalidLine();
 	_startLine.version = version;
@@ -190,49 +181,16 @@ void	Request::_setVersion(std::string &version) {
 	version.clear();
 }
 
-void print_map(std::map<std::string, std::string> &m) {
-	std::map<std::string, std::string>::iterator it = m.begin();
-	while (it != m.end()) {
-		std::cout << it->first << " : " << it->second << std::endl;
-		it++;
-	}
-}
-
-/**
- * @brief	Parse the headers of the request.
- * 			Store the headers in _headers.
- *
- * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
- * @source	https://www.rfc-editor.org/rfc/rfc7230#section-3.2
- *
- * @note	header-field	= field-name ":" OWS field-value OWS
- *     		field-name     = token
- *     		field-value    = *( field-content / obs-fold )
- *     		field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
- *     		field-vchar    = VCHAR / obs-text
- *     		obs-fold       = CRLF 1*( SP / HTAB )
- *     						; obsolete line folding
- *
- *     		OWS     : *( SP / HTAB ) ; optional whitespace
- *			RWS     :1*( SP / HTAB ) ; required whitespace
- *			BWS		: OWS ; bad whitespace
- *     		OWS		: Optional whitespace
- *     		RWS		: Required whitespace
- *     		BWS		: Bad whitespace
- *     		SP		: Space
- *     		HTAB	: Horizontal tab
- *     		VCHAR	: Visible characters
- *
- * @note	case-insensitive
- *
- * @throw RequestException::NoCRLF if the line doesn't end with CRLF
- *
- */
 void	Request::_parseHeaders() {
+
+	Log::debugFunc(__FUNCTION__);
+
 	std::string line;
 	std::string key;
 	std::string value;
 	unsigned long i;
+
+	std::getline(_rawRequest, line);
 
 	while (std::getline(_rawRequest, line)) {
 
@@ -256,8 +214,8 @@ void	Request::_parseHeaders() {
 		key = line.substr(0, i);
 
 		// Check if the key as white spaces
-		// if (std::any_of(key.begin(), key.end(), ::isspace))
-		// 	throw RequestException::Header::InvalidKey();
+		if (std::any_of(key.begin(), key.end(), ::isspace))
+			throw RequestException::Header::InvalidKey();
 
 		// Uppercase the key
 		std::transform(key.begin(), key.end(), key.begin(), ::toupper);
@@ -284,34 +242,197 @@ void	Request::_parseHeaders() {
 	}
 }
 
+void	Request::_parseBody() {
 
-/**
- * @brief	Parse the body of the request.
- * 			Store the body in _body.
- *
- * @source	https://www.rfc-editor.org/rfc/rfc9110#section-5.5
- * @note	Content-Length is mandatory
- * @note	Content-Type is mandatory
- * @note	Transfer-Encoding is not supported
- *
- */
- void	Request::_parseBody() {
+	Log::debugFunc(__FUNCTION__);
+
 	std::string line;
 
 	// Check if the Content-Length header is present
+	//TODO: Needs Content-Length to be mandatory?
 	if (_headers.find("CONTENT-LENGTH") == _headers.end())
+	{
+		return;
 		throw RequestException::Header::MissingHeader();
+	}
 
-// 	int contentLength;
-// 	try { contentLength = std::stoi(_headers["CONTENT-LENGTH"]); }
-// 	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
+	int contentLength;
+	try { contentLength = FT::atoi(_headers["CONTENT-LENGTH"]); }
+	catch (std::exception &e) { throw RequestException::Header::InvalidValue(); }
 
-// 	// Read the body
-// 	while (std::getline(_rawRequest, line)) {
-// 		_body += line;
-// 	}
-// 	if (_body.size() > static_cast<unsigned long>(contentLength))
-// 		_body.erase(contentLength, _body.size() - contentLength);
- }
+	//Skip the Headers
+//	while (std::getline(_rawRequest, line) && !line.empty());
 
-Request::~Request() {}
+	// Read the body
+	while (std::getline(_rawRequest, line)) {
+		_body += line + "\n";
+	}
+	if (_body.size() > static_cast<unsigned long>(contentLength))
+		_body.erase(contentLength, _body.size() - contentLength);
+
+	std::cout << YELLOW << _body << RESET << std::endl;
+}
+
+void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
+
+	//Upload
+	if (_startLine.path == "/upload" && _headers.find("REFERER") != _headers.end()
+		&& _headers["REFERER"].find("televerser.html") != std::string::npos) {
+
+		Log::log(Log::INFO, "UPLOAD");
+
+		FileManager fileManager(_bufferString);
+		if (fileManager.saveFile())
+			_status = 200;
+		else
+			_status = 500;
+
+		_startLine.path = "/uploaded.html";
+		PathResolver pathResolver(*this);
+	}
+	else if (_root.find("/cgi/") != std::string::npos)
+	{
+		Log::log(Log::INFO, "CGI");
+		Log::log(Log::DEBUG, "Root: " + _startLine.path);
+
+		_isCGI = true;
+		CGI cgi(*this);
+		cgi.executeCgi();
+	} else if (_startLine.path == "/delete" && _headers.find("REFERER") != _headers.end()
+			   && _headers["REFERER"].find("televerser.html") != std::string::npos) {
+
+		Log::log(Log::INFO, "DELETE");
+
+		FileManager fileManager(_bufferString);
+
+		std::string filename = _startLine.queryString.substr(_startLine.queryString.find('=') + 1);
+
+		Log::log(Log::DEBUG, "Filename: " + filename);
+
+		if (fileManager.deleteFile(filename))
+			_status = 200;
+		else
+			_status = 500;
+
+		_startLine.path = "/uploaded.html";
+		PathResolver pathResolver(*this);
+	}
+}
+
+void 	Request::_manageRequest() {	Log::debugFunc(__FUNCTION__);
+
+	PathResolver pathResolver(*this);
+
+	_manageOurTrigger();
+
+	if (isCGI())
+		return ;
+
+	Response response(*this);
+	response.sendResponse();
+}
+
+void	Request::initRequest() {
+	Log::debugFunc(__FUNCTION__);
+
+	try {
+		_readSocketData();
+		_parseStartLine();
+		_parseHeaders();
+		_parseBody();
+	} catch (RequestException::ReadError &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()) + " client:" + std::to_string(_client));
+		_status = 500;
+	} catch (RequestException::MaxSize &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 413;
+	} catch (RequestException::NoCRLF &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::StartLine::InvalidMethod &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::StartLine::InvalidVersion &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 505;
+	} catch (RequestException::InvalidLine &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::Header::DuplicateKey &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::Header::InvalidKey &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::Header::InvalidValue &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	} catch (RequestException::StartLine::NotAllowedMethod &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 405;
+	} catch (RequestException::StartLine::InvalidURI &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	}  catch (RequestException::Header::MissingHeader &e) {
+		Log::log(Log::DEBUG ,std::string(e.what()));
+		_status = 400;
+	}
+
+	_manageRequest();
+}
+
+void 	Request::resetRequest() {
+	_rawRequest.str("");
+	_rawRequest.clear();
+	_startLine.type = UNKNOWN;
+	_startLine.path = "";
+	_startLine.version = "";
+	_startLine.queryString = "";
+	_startLine.pathInfo = "";
+	_headers.clear();
+	_body.clear();
+	_serverId = -1;
+	_client = -1;
+	_cgiFd[0] = -1;
+	_cgiFd[1] = -1;
+	_isCGI = false;
+	_root = "";
+	_status = 200;
+	_bufferString.clear();
+}
+
+void	Request::setClient(int client) {
+
+	Log::debugFunc(__FUNCTION__);
+
+	_client = client;
+}
+
+void	Request::setServerId(int serverId) {
+
+	Log::debugFunc(__FUNCTION__);
+
+	_serverId = serverId;
+}
+
+void	Request::setCGIFd(int cgiFd[2]) {
+
+	Log::debugFunc(__FUNCTION__);
+
+	_cgiFd[PIPE_READ] = cgiFd[PIPE_READ];
+	_cgiFd[PIPE_WRITE] = cgiFd[PIPE_WRITE];
+}
+
+int		Request::getClient() const{
+
+	Log::debugFunc(__FUNCTION__);
+
+	return _client;
+}
+
+bool	Request::isCGI() const {
+
+	Log::debugFunc(__FUNCTION__);
+
+	return _isCGI;
+}

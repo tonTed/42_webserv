@@ -523,6 +523,10 @@ Locations ConfigServer::settingLocation(ServerLocation &locStruct, ServerData &s
 		std::vector<std::string> methods = getDirectiveVal(locStruct._methods[j], " methods ");
 		location.methods = validMethods(methods);
 	}
+
+	if (location.methods.empty())
+		location.methods = serverBlock._methods;
+
 	return location;
 }
 

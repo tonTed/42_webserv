@@ -23,6 +23,10 @@
 # include <netdb.h>			//struct sockaddr_in
 # include <arpa/inet.h>		//htons
 # include <unistd.h>		//close
+# include <errno.h>			//errno for poll
+# include <csignal>
+# include <cstdio>
+#include <dirent.h>			//DIR
 
 typedef std::string string;
 
@@ -37,6 +41,22 @@ enum eRequestType
 	OPTIONS,
 	TRACE,
 	PATCH,
+	UNKNOWN
+};
+
+enum eOriginFD
+{
+	FROM_PORT,
+	FROM_CGI,
+	FROM_CLIENT,
+	SIGNAL_NOT_IN_POLLFDS = -1,
+	SIGNAL_NOT_POLLIN = -2
+};
+
+enum ePipeDir
+{
+	PIPE_READ,
+	PIPE_WRITE,
 };
 
 # define EXIT_SUCCESS 0
@@ -47,6 +67,7 @@ enum eRequestType
 # include "colors.hpp"
 
 # include "../src/ConfigServer/ConfigServer.hpp"
+# include "../src/ListDir/ListDir.hpp"
 
 // TODO: remove this
 # include "hafid.hpp"

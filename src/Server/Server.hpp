@@ -2,67 +2,107 @@
 # define SERVER_HPP
 
 # include "../../includes/webserv.hpp"
+# include "../Request/Request.hpp"
+# include "../Response/Response.hpp"
+# include "../Response/DefaultHtml.hpp"
 # include "ServerException.hpp"
-# include "PollQueue.hpp"
 
-
-#define CONFIG_POLLTIMEOUT -1
-#define CONFIG_MAX_CLIENT 100
-#define LISTEN_BACKLOG 100
 
 //SERVER ERROR MESSAGES (SERR = SERVER ERROR) -> should never happen
 # define SERR_POLLINDEXSIGNAL "Server error: poll trigger but index signal not found"
 
-//Structure pour obtenir de l'information sur un index de _pollFds
-typedef struct indexInfo_s
+# define POLLFD_LIMIT 50
+# define LISTEN_BACKLOG 50
+# define POLL_TIMEOUT -1
+# define UNSET -1
+
+typedef struct	indexInfo_s
 {
-	int					serverNo; 		//0 >= serverNo <0 = client
-	bool				isServer;		//true if its a socket from socket/bind/listen
-	uint16_t			port;			//Structure pour bind et accept
-	int					portBacklog;	//Pour la function listen, le nombre de backlog par port (config?)
-	int					fd;				//le fd qui sera inserer dans pollFds
-}						indexInfo_t;
+	int		serverNum;
+	int		CGIReadIndex;
+	int		clientIndex;
+	int		reqIndex;
+}				indexInfo_t;
 
-//TYPEDEF ITERATOR INDEXINFO
-typedef std::map<unsigned int, indexInfo_t*>::iterator indexInfo_it;
+class Request;
 
-class Server: public PollQueue
+class Server
 {
 private:
-	pollfd*									_pollFds; 		//pour poll
-	std::map<unsigned int, indexInfo_t*>	_indexInfo;		//information sur chaque index de pollFds
-	int										_pollTimeOut;	//Sait pas encore si fourni par config
-	int										_nbFdServer;	//Nombre total de fd pour les servers (si index au dessus = client)
+	pollfd			_pollFds[POLLFD_LIMIT]; 		//pour poll
+	int				_nbfdPort;	//Nombre total de fd pour les servers (si index au dessus = client)
+	indexInfo_s		_indexInfo[POLLFD_LIMIT];
+	Request*		_reqs;
+	static bool		_SIGINT;
 
 public:
-						Server();
-	virtual				~Server();
+					Server();
+	virtual			~Server();
 
-	void				configToServer();
+//*****************************SET/GET/TERS*************************************
+	void			setNbFdPort(const int& nbPort);
+	int				getNbFdPort() const;
+	//II -> IndexInfo
+	void			setIIServerNum(const int& index, const int& serverNum);
+	int				getIIServerNum(const int& index) const;
+	void			setIICGIReadIndex(const int& index, const int& CGIReadIndex);
+	int				getIICGIReadIndex(const int& index) const;
+	void			setIIClientIndex(const int& index, const int& ClientIndex);
+	int				getIIClientIndex(const int& index) const;
+	//PF -> pollFds
+	void			setPFFd(const int& index, const int& fd);
+	int				getPFFd(const int& index) const;
+	void			setPFEvents(const int& index, const int& events);
+	int				getPFEvents(const int& index) const;
+	void			setPFRevents(const int& index, const int& revents);
+	int				getPFRevents(const int& index) const;
+	
 
-	void				routine();
+//*****************************BOOTING SERVER***********************************
 
-	//BOOTING SERVER FCT---------------------------------------
+	void			booting();
+	void			pollFdsInit();
+	void			pollFdsReset(const int& index);
+	void			recordPort(uint16_t port[POLLFD_LIMIT]);
+	void			setPortSocket(const uint16_t port[POLLFD_LIMIT]);
+	void			bootSocket(const int& iSocket);
+	void			bootSetSockOpt(const int& iSocket);
+	void			bootBind(const int& iSocket, const uint16_t port[POLLFD_LIMIT]);
+	void			setAddrServer(sockaddr_in& addr, uint16_t port);
+	void			bootListen(const int& iSocket);
 
-	void				ServerBooting();
-	void				bootingSocket(const int& iSocket);
-	void				bootingSetSockOpt(const int& iSocket);
-	void				bootingBind(const int& iSocket);
-	void				setAddrServer(sockaddr_in& addr, uint16_t port);
-	void				bootingListen(const int& iSocket);
+//*****************************OPERATING SERVER*********************************
 
-	//POLL LOOP------------------------------------------------
+	void			serverRoutine();
+	void			operating();
+	int				pollIndexSignal();
+	int				indexOrigin(const int& signalIndex) const;
+	
+//*****************************REQUEST******************************************
 
-	void				ServerPollLoop();
-	int					pollIndexSignal();
+	void			callRequest(const int& clientIndex);
+	bool			setRequest(const int& signalIndex);
+	void			acceptClient(const int& signalIndex);
+	bool			pollFdsAvailable(int nbFdRequire) const;
+	int				setPollFds(const int& fd);
+	int				reqAvailIndex() const;
 
-	int					addNewClient(const int& signalIndex);
-	void				closeClient(const int& signalIndex);
+//****************************INDEXINFO*****************************************
 
-	indexInfo_it		indexInfoIt(const int& pollIndex);
-	void				indexInfoInsert(const int& pollIndex);
-	void				AddFdIndexInfo();
+	void			indexInfoInit();
+	void			resetIndexInfo(const int& index);
+	void			setIndexInfo(const int& clientIndex, const int& CGIReadIndex, const int& serverNum);
+
+//****************************CLOSE CONNECTION**********************************
+	void			smartConnectionCloser(const int& signalIndex);
+	void			closeReqCGI(const int& signalIndex);
+	void			safeClose(int& fdSource);
+	void			closePollFds();
+	void			closeRemainingCGIWrite();
+
+	static void		signal_handler(int signal);
 
 };
+
 
 #endif

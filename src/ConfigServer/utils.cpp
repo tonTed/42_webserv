@@ -147,7 +147,8 @@ bool validRoot(std::string input)
         return false;
     while (i < input.size())
     {
-        if (!std::isalpha(input[i]) && input[i] != '/')
+        //TODO Hafid: why only alpha? cgi is not alpha
+		if (!std::isalpha(input[i]) && input[i] != '/')
             return false;
         if (input[i] == '/' && input[i + 1] == '/')
             return false;
@@ -164,7 +165,9 @@ bool validRoot(std::string input)
  */
 std::string format_string(const std::string &str)
 {
-    if (!validRoot(str))
+    Log::log(Log::DEBUG, "format_string: " + str);
+
+	if (!validRoot(str))
         exit_error("Error: Bad Root |", str + "|");
 
     std::string result = str;
