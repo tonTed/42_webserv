@@ -51,6 +51,9 @@ Request::~Request() {}
 void	Request::_readSocketData() {
 	Log::debugFunc(__FUNCTION__);
 
+	Log::log(Log::INFO, "Reading socket data from client: " + std::to_string(_client));
+
+
 	char *buffer = new char[MAX_REQUEST_SIZE + 1];
 
 	ssize_t	ret;
@@ -86,11 +89,13 @@ void	Request::_readSocketData() {
 void	Request::_parseStartLine() {
 
 	Log::debugFunc(__FUNCTION__);
-	std::cout << _rawRequest.str() << std::endl;
 
 	// Check if the line ends with CRLF
 	std::string line;
 	std::getline(_rawRequest, line);
+
+	Log::log(Log::INFO, "Request: " + line);
+
 	unsigned long i;
 
 	if ((i = line.find('\r')) == static_cast<unsigned long>(std::string::npos) || _rawRequest.eof())
@@ -269,8 +274,6 @@ void	Request::_parseBody() {
 	}
 	if (_body.size() > static_cast<unsigned long>(contentLength))
 		_body.erase(contentLength, _body.size() - contentLength);
-
-	std::cout << YELLOW << _body << RESET << std::endl;
 }
 
 void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
@@ -287,8 +290,10 @@ void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
 		else
 			_status = 500;
 
+		std::cout << RED << "Status: " << _status <<  RESET << std::endl;
 		_startLine.path = "/uploaded.html";
 		PathResolver pathResolver(*this);
+		std::cout << MAGENTA << "Status: " << _status <<  RESET << std::endl;
 	}
 	else if (_root.find("/cgi/") != std::string::npos)
 	{
@@ -321,12 +326,17 @@ void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
 
 void 	Request::_manageRequest() {	Log::debugFunc(__FUNCTION__);
 
+	int status = _status;
+
 	PathResolver pathResolver(*this);
 
 	_manageOurTrigger();
 
 	if (isCGI())
 		return ;
+
+	if (status != 200)
+		_status = status;
 
 	Response response(*this);
 	response.sendResponse();

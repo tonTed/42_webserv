@@ -5,9 +5,11 @@ Server::Server():_reqs(NULL) {serverRoutine();}
 Server::~Server()
 {
 	closePollFds();
-	closeRemainingCGIWrite();
 	if (_reqs != NULL)
+	{
+		closeRemainingCGIWrite();
 		delete [] _reqs;
+	}
 }
 
 //*****************************SET/GET/TERS*************************************
@@ -163,7 +165,7 @@ void	Server::operating()
 	while (1)
 	{
 		if (poll(_pollFds, POLLFD_LIMIT, POLL_TIMEOUT) < 0)
-			Log::log(Log::ERROR, "poll return < 0: should never append");
+			Log::log(Log::DEBUG, "poll return < 0: should never append");
 
 		if ((signalIndex = pollIndexSignal()) == SIGNAL_NOT_IN_POLLFDS 
 			|| _SIGINT == true)
@@ -173,14 +175,14 @@ void	Server::operating()
 		{
 			case FROM_PORT:
 			{
-				Log::log(Log::DEBUG, "Port signal" );
+				Log::log(Log::INFO, "Port signal" );
 
 				acceptClient(signalIndex);
 				break;
 			}
 			case FROM_CLIENT:
 			{
-				Log::log(Log::DEBUG, "Client signal" );
+				Log::log(Log::INFO, "Client signal" );
 
 				callRequest(signalIndex);
 				break;
@@ -189,7 +191,7 @@ void	Server::operating()
 			{
 				Request&	req = _reqs[_indexInfo[signalIndex].reqIndex];
 
-				Log::log(Log::DEBUG, "CGI signal" );
+				Log::log(Log::INFO, "CGI signal" );
 				Log::log(Log::DEBUG, "Request:\n" + req._rawRequest.str());
 
 				Response	respond(req);

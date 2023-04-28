@@ -87,7 +87,7 @@ void	CGI::executeCgi() { Log::debugFunc(__FUNCTION__);
 	}
 	else if (pid == 0) {
 
-		Log::log(Log::DEBUG,"Executing CGI script.");
+		Log::log(Log::INFO,"Executing CGI script.");
 
 		dup2(_request._cgiFd[PIPE_WRITE], 1);
 		close(_request._cgiFd[PIPE_READ]);

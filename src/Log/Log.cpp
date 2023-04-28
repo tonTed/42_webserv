@@ -17,7 +17,7 @@ void		Log::log(std::string type, std::string message) {
 //	std::cout << "[" << getTime() << "]";
 
 	if (type == Log::DEBUG)
-		std::cerr << BLUE << "[" << type << "] " RESET;
+		;//std::cerr << BLUE << "[" << type << "] " RESET;
 	else if (type == Log::INFO)
 		std::cerr << GREEN << "[" << type << "] " RESET;
 	else if (type == Log::WARNING)
@@ -25,7 +25,8 @@ void		Log::log(std::string type, std::string message) {
 	else if (type == Log::ERROR)
 		std::cerr << RED << "[" << type << "] " RESET;
 
-	std::cerr << message << std::endl;
+	if (type != Log::DEBUG)
+		std::cerr << message << std::endl;
 }
 
 std::string Log::getTime()

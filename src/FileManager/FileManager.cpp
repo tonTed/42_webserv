@@ -22,7 +22,7 @@ const std::string	FileManager::extractHeaderInfo(const std::string& title)
 {
 	Log::debugFunc(__FUNCTION__);
 	size_t	position = _request_str.find(title);
-	Log::log(Log::INFO, "position:" + std::to_string(position));
+	Log::log(Log::DEBUG, "position:" + std::to_string(position));
 	if (position != std::string::npos) // filename=" trouvé
 	{
 		position += title.size();
@@ -40,7 +40,7 @@ bool	FileManager::extractFilename()
 	if (_fileName != "")
 	{
 		_fileName = UPLOADFILE_PATH + _fileName;	//ajoute le path des UPLOADFILE
-		Log::log(Log::INFO, "_filename:" + _fileName);
+		Log::log(Log::DEBUG, "_filename:" + _fileName);
 		return true;
 	}
 	return false;
@@ -52,7 +52,7 @@ bool	FileManager::extractBoundary()
 	_boundary = extractHeaderInfo("boundary=");
 	if (_boundary != "")
 	{
-		Log::log(Log::INFO, "_boundary:" + _boundary);
+		Log::log(Log::DEBUG, "_boundary:" + _boundary);
 		return true;
 	}
 	return false;
@@ -64,6 +64,7 @@ bool	FileManager::saveFile()
 
 	if (extractor() == true)
 	{
+		Log::log(Log::INFO, "File uploaded");
 		writeUpload();
 		return true;
 	}
@@ -75,8 +76,8 @@ void	FileManager::writeUpload()
 {
 	Log::debugFunc(__FUNCTION__);
 
-	Log::log(Log::INFO, "startPos:" + std::to_string(startPos()));
-	Log::log(Log::INFO, "endPos:" + std::to_string(endPos()));
+	Log::log(Log::DEBUG, "startPos:" + std::to_string(startPos()));
+	Log::log(Log::DEBUG, "endPos:" + std::to_string(endPos()));
 
 	const int	fileLen = endPos() - startPos();
 	std::ofstream	uploadFile(_fileName, std::ios::out | std::ios::binary);
@@ -104,6 +105,10 @@ bool	FileManager::deleteFile(std::string fileName)
 	_fileName = UPLOADFILE_PATH + fileName;
 
 	if (std::remove(_fileName.c_str()) == 0)
+	{
+		Log::log(Log::INFO, "File deleted");
 		return true;
+	}
+	Log::log(Log::ERROR, "File not deleted");
 	return false;
 }
