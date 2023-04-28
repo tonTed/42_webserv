@@ -55,6 +55,9 @@ void	Request::_readSocketData() {
 
 	ssize_t	ret;
 
+	//TODO: sleep for 1ms to wait for the client to send the data ???
+	usleep(1000);
+
 	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
 	Log::log(Log::DEBUG, "Char read: " + std::to_string(ret));
 
@@ -270,6 +273,55 @@ void	Request::_parseBody() {
 	std::cout << YELLOW << _body << RESET << std::endl;
 }
 
+void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
+
+
+	//Upload
+	if (_startLine.path == "/upload" && _headers.find("REFERER") != _headers.end()
+		&& _headers["REFERER"].find("televerser.html") != std::string::npos) {
+		Log::log(Log::INFO, "UPLOAD");
+
+		FileManager fileManager(_bufferString);
+		if (fileManager.saveFile())
+			_status = 200;
+		else
+			_status = 500;
+
+		_startLine.path = "/uploaded.html";
+		PathResolver pathResolver(*this);
+	}
+	else if (_root.find("/cgi/") != std::string::npos)
+	{
+		Log::log(Log::INFO, "CGI");
+		Log::log(Log::DEBUG, "Root: " + _startLine.path);
+
+		_isCGI = true;
+		CGI cgi(*this);
+		cgi.executeCgi();
+	}
+}
+
+void 	Request::_manageRequest() {	Log::debugFunc(__FUNCTION__);
+
+	PathResolver pathResolver(*this);
+
+	_manageOurTrigger();
+
+	if (isCGI())
+		return ;
+	if (_status != 200)
+	{
+		Response response(*this);
+		response.sendResponse();
+		return ;
+	}
+
+	Log::log(Log::INFO, "GET or POST");
+
+	Response response(*this);
+	response.sendResponse();
+}
+
 void	Request::initRequest() {
 	Log::debugFunc(__FUNCTION__);
 
@@ -316,48 +368,7 @@ void	Request::initRequest() {
 		_status = 400;
 	}
 
-
-	//check if file ends with .py
-	//TODO find a way to trigger only our request from form
-	if (_startLine.path == "/upload" && _startLine.type == POST)
-	{
-		Log::log(Log::INFO, "UPLOAD");
-
-		FileManager fileManager(_bufferString);
-		if (fileManager.saveFile())
-			_status = 200;
-		else
-			_status = 500;
-
-		_startLine.path = "/uploaded.html";
-	}
-	PathResolver pathResolver(*this);
-	if (_status != 200)
-	{
-		Response response(*this);
-		response.sendResponse();
-		return ;
-	}
-	else if (_root.find(".py") != std::string::npos)
-	{
-		Log::log(Log::INFO, "Python file");
-		Log::log(Log::DEBUG, "Root: " + _startLine.path);
-
-		_isCGI = true;
-		CGI cgi(*this);
-		cgi.executeCgi();
-	}
-	else if (_startLine.type == GET || _startLine.type == POST)
-	{
-		Log::log(Log::INFO, "GET or POST");
-
-		Response response(*this);
-		response.sendResponse();
-	}
-	else if (_startLine.type == DELETE)
-	{
-		//manage delete
-	}
+	_manageRequest();
 }
 
 void 	Request::resetRequest() {

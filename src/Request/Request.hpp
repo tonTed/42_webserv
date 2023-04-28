@@ -52,6 +52,9 @@ public:
 
 	void _parseBody();
 
+	void	_manageRequest();
+		void _manageOurTrigger();
+
 	std::stringstream 					_rawRequest;
 	startLine							_startLine;
 	std::map<std::string, std::string>	_headers;
