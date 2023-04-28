@@ -62,6 +62,8 @@ print		:
 run			: all
 	./$(NAME)
 
+rrun		: re run
+
 mock		: all
 	./$(NAME) -m
 
