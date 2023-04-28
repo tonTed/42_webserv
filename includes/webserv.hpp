@@ -67,6 +67,7 @@ enum ePipeDir
 # include "colors.hpp"
 
 # include "../src/ConfigServer/ConfigServer.hpp"
+# include "../src/ListDir/ListDir.hpp"
 
 // TODO: remove this
 # include "hafid.hpp"
