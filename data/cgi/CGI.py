@@ -7,7 +7,7 @@ form = cgi.FieldStorage()
 print("Content-type: text/html\n")
 print('<html><head>')
 print('<meta charset="UTF-8">')
-print('<title>CGI Response</title>')
+print('<title>CGI Response Python</title>')
 print('<style>')
 print('.navbar .active > a {')
 print('    background-color: #343a40;')
@@ -39,7 +39,7 @@ print("<h1>Test CGI</h1>")
 print("<p>Hello World!</p>")
 if "name" in form:
     print("<p>Your name is: {}</p>".format(form["name"].value))
-if "name" in form:
+if "login" in form:
     print("<p>Your login is: {}</p>".format(form["login"].value))
 
 print("<h3>Environments variables:</h3>")
