@@ -51,25 +51,33 @@ Request::~Request() {}
 void	Request::_readSocketData() {
 	Log::debugFunc(__FUNCTION__);
 
-	_buffer = new char[MAX_REQUEST_SIZE + 1];
+	char *buffer = new char[MAX_REQUEST_SIZE + 1];
 
 	ssize_t	ret;
 
-	ret = read(_client, _buffer, MAX_REQUEST_SIZE + 1);
+	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
 	Log::log(Log::DEBUG, "Char read: " + std::to_string(ret));
 
 	if (ret == -1)
+	{
+		delete[] buffer;
+		buffer = nullptr;
 		throw RequestException::ReadError();
+	}
 	if (ret > MAX_REQUEST_SIZE)
+	{
+		delete[] buffer;
+		buffer = nullptr;
 		throw RequestException::MaxSize();
-	_buffer[ret] = '\0';
+	}
+	buffer[ret] = '\0';
 
-	_bufferString.append(_buffer, ret);
+	_bufferString.append(buffer, ret);
 
-	_rawRequest << _buffer;
+	_rawRequest << buffer;
 
-	delete _buffer;
-	_buffer = nullptr;
+	delete[] buffer;
+	buffer = nullptr;
 }
 
 void	Request::_parseStartLine() {

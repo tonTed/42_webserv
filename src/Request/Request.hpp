@@ -58,7 +58,6 @@ public:
 	std::string							_body;
 	std::string 						_root;
 
-	char								*_buffer;
 	std::string 						_bufferString;
 
 	int 								_client;
