@@ -75,6 +75,7 @@ tester:
 	$(HIDE) touch $(TESTER_FILES)
 	$(HIDE) cp test/tester_tools/tester tester
 	$(HIDE) cp test/tester_tools/cgi_tester cgi_tester
+	@printf $(RED)"[$@] \n\n\n*** AVANT DE CONTINUER LE TEST, LANCER LE SERVER AVEC make run_tester ***\n\n\n"$(RESET)
 	./tester http://localhost:8080
 
 print		:
