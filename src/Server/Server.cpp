@@ -5,9 +5,11 @@ Server::Server():_reqs(NULL) {serverRoutine();}
 Server::~Server()
 {
 	closePollFds();
-	closeRemainingCGIWrite();
 	if (_reqs != NULL)
+	{
+		closeRemainingCGIWrite();
 		delete [] _reqs;
+	}
 }
 
 //*****************************SET/GET/TERS*************************************
