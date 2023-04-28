@@ -155,7 +155,7 @@ TEST_CASE("ConfigServer class")
 {
     ConfigServer::getInstance()->setConfigServer("test/test_config.conf");
     ConfigServer *cs = ConfigServer::getInstance();
-    std::vector<ServerData> serversData;
+    
     std::vector<ServerLocation> locations;
 
     SUBCASE("getConfigString")
@@ -164,18 +164,21 @@ TEST_CASE("ConfigServer class")
         CHECK_FALSE(confStr.empty());
     }
 
+    std::string confString  = cs->getConfigString();
+    CHECK_FALSE(confString.empty());
+
+    std::vector<std::string> blocks = cs->getServerBlocksData(confString);
+    CHECK(blocks.size() == 2);
+
+    std::vector<ServerBlocks> serverBlocks(blocks.size());
+    CHECK(serverBlocks.size() == 2);
+
+    std::vector<ServerData> serversData(blocks.size());
+    CHECK(serversData.size() == 2);
+
     SUBCASE("getServerBlocksData")
     {
-        std::string confString  = cs->getConfigString();
-        CHECK_FALSE(confString.empty());
-
-        std::vector<std::string> blocks = cs->getServerBlocksData(confString);
-        CHECK(blocks.size() == 2);
-
-        std::vector<ServerBlocks> serverBlocks(blocks.size());
-        CHECK(serverBlocks.size() == 2);
-
-        for (size_t i = 0; i < blocks.size(); i++)
+        for (size_t i = 0; i < serverBlocks.size(); i++)
         {
             std::string confStr = blocks[i];
             std::vector<std::string> locationBlocks = cs->getLocationBlocks(confStr);
@@ -206,8 +209,10 @@ TEST_CASE("ConfigServer class")
             validRemaining(confStr); // Validate that all that's remaining is: "server{}"
 
             CHECK(confStr == "server{}");
+
         }
     }
+    // std::cout << " Root! " << &serverBlocks[0]._locations[0]._root[0] << std::endl;
     
     SUBCASE("Locations ")
     {
@@ -218,7 +223,93 @@ TEST_CASE("ConfigServer class")
             CHECK(locations[i]._index.size() == 1);
             CHECK(locations[i]._autoindex.size() == 1);
             CHECK(locations[i]._redirection.size() == 1);
+        } 
+    }
+
+    SUBCASE("SETTING LOCATIONS")
+    {
+
+        // // SETTING LOCATIONS        
+        for (size_t i = 0; i < serverBlocks.size(); i++)
+        {
+            std::vector<std::string> locationBlocks = cs->getLocationBlocks(blocks[i]);
+            CHECK(locationBlocks.size() == 3);
+
+            serverBlocks[i]._locations = cs->getLocationPart(locationBlocks);
+            CHECK(serverBlocks[i]._locations.size() == 3);
+
+            std::vector<std::string> paths;
+            for (size_t j = 0; j < serverBlocks[i]._locations.size(); j++)
+            {
+                paths.push_back(serverBlocks[i]._locations[j]._path);
+                CHECK_FALSE(pathDup(paths));
+                serversData[i]._locations[serverBlocks[i]._locations[j]._path]
+                = cs->settingLocation(serverBlocks[i]._locations[j], serversData[i]);
+            }
+        
         }
+        /* FIRST SERVER BLOCK */
+        // CHECK ROOTS
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[0]._path].root == "data");
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[1]._path].root == "data/www");
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[2]._path].root == "data/www");
+
+        // CHECK INDEXES
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[0]._path].index[0] == "index.html");
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[1]._path].index[0] == "index.html");
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[2]._path].index[0] == "ours.html");
+
+        // CHECK METHODS
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[0]._path].methods[0] == 0);
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[0]._path].methods[1] == 1);
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[0]._path].methods[2] == 3);
+
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[1]._path].methods[0] == 0);
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[1]._path].methods[1] == 1);
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[1]._path].methods[2] == 3);
+
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[2]._path].methods[0] == 0);
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[2]._path].methods[1] == 1);
+
+
+        // CHECK AUTOINDEX
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[0]._path].autoindex == "OFF");
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[1]._path].autoindex == "ON");
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[2]._path].autoindex == "ON");
+
+         // CHECK REDIRECTIONS
+        CHECK( serversData[0]._locations[serverBlocks[0]._locations[2]._path].redirection == "301 index.html");
+
+        /* SECOND SERVER BLOCK */
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[0]._path].root == "data/www");
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[1]._path].root == "data/www");
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[2]._path].root == "data/www");
+
+        // CHECK INDEXES
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[0]._path].index[0] == "about.html");
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[1]._path].index[0] == "contact.html");
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[1]._path].index[1] == "about.html");
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[2]._path].index[0] == "index.html");
+
+        // CHECK METHODS
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[0]._path].methods[0] == 0);
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[0]._path].methods[1] == 1);
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[0]._path].methods[2] == 3);
+
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[1]._path].methods[0] == 0);
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[1]._path].methods[1] == 1);
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[1]._path].methods[2] == 3);
+
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[2]._path].methods[0] == 0);
+        CHECK( serversData[1]._locations[serverBlocks[1]._locations[2]._path].methods[1] == 3);
+
+        // CHECK AUTOINDEX
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[0]._path].autoindex == "OFF");
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[1]._path].autoindex == "ON");
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[2]._path].autoindex == "OFF");
+
+        // CHECK REDIRECTIONS
+        CHECK( serversData[1]._locations[serverBlocks[0]._locations[2]._path].redirection == "301 home.html");
     }
     
 }

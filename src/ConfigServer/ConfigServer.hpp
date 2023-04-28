@@ -22,8 +22,9 @@ struct ServerData
 	std::vector<enum eRequestType> _methods;
 
 	// The key is the location, the value is the path to the file
-	std::vector<std::string> _root;	 // TODO make it a string
-	std::vector<std::string> _index; // TODO add index directive
+	std::vector<std::string> _root;	 
+	std::vector<std::string> _index; 
+	std::vector<std::string> bodySize;
 	// std::string _root;
 
 	// The key is the error code, the value is the path to the file
@@ -52,6 +53,7 @@ struct ServerBlocks
 	std::vector<std::string> _root;
 	std::vector<std::string> _methods;
 	std::vector<std::string> _index;
+	std::vector<std::string> bodySize;
 	std::vector<std::string> _errorPages;
 	std::vector<ServerLocation> _locations;
 };
@@ -125,6 +127,7 @@ std::string getline_with_newline(std::istream &input);
 bool isrealspace(char c);
 bool validBraces(const string &str);
 void exit_error(string str, string err);
+void validBodySize(std::string &input);
 
 //  HOST PART
 bool validHost(std::string host);

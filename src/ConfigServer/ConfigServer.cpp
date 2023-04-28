@@ -357,6 +357,11 @@ std::vector<std::string> ConfigServer::getDirectiveVal(const std::string &config
 			exit_error("Error: Too many or no root |", "|");
 		valList.at(0) = format_string(valList.at(0));
 	}
+	if (directive == " body_size ")
+	{
+		if (valList.size() != 1)
+			exit_error("Error: Too many or no body_size value |", "|");
+	}
 	if (directive == " autoindex " && present)
 	{
 		if (valList.size() != 1 || !validAutoindex(valList.at(0)))
@@ -548,6 +553,7 @@ void ConfigServer::setServerBlocks()
 		serverBlocks[i]._root = getDirective(confStr, " root ");
 		serverBlocks[i]._methods = getDirective(confStr, " methods ");
 		serverBlocks[i]._index = getDirective(confStr, " index ");
+		serverBlocks[i].bodySize = getDirective(confStr, " body_size ");
 		serverBlocks[i]._errorPages = getDirective(confStr, " error_page ");
 		validRemaining(confStr); // Validate that all that's remaining is: "server{}"
 	}
@@ -585,7 +591,7 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 		// SERVER NAMES
 		for (int j = 0; j < static_cast<int>(blocks[i]._serverNames.size()); j++)
 		{
-			std::vector<std::string> serverNames = getDirectiveVal(blocks[i]._serverNames[j], "server_name");
+			std::vector<std::string> serverNames = getDirectiveVal(blocks[i]._serverNames[j], " server_name ");
 			for (int n = 0; n < static_cast<int>(serverNames.size()); n++)
 			{
 				servers[i]._serverNames.push_back(serverNames[n]);
@@ -610,6 +616,17 @@ void ConfigServer::setServersData(std::vector<ServerBlocks> &serverBlocks)
 			{
 				validIndex(indexes[n], servers[i]._root[0]);
 				servers[i]._index.push_back(indexes[n]);
+			}
+		}
+
+		// BODY_SIZE
+		for (int j = 0; j < static_cast<int>(blocks[i]._index.size()); j++)
+		{
+			std::vector<std::string> body = getDirectiveVal(blocks[i].bodySize[j], " body_size ");
+			for (int n = 0; n < static_cast<int>(body.size()); n++)
+			{
+				validBodySize(body[n]);
+				servers[i].bodySize.push_back(body[n]);
 			}
 		}
 
