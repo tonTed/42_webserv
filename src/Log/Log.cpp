@@ -4,7 +4,7 @@
 
 #include "Log.h"
 
-#define DEBUG_ 1
+#define DEBUG_ 0
 
 void Log::debugFunc(std::string function) {
 
