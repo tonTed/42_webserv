@@ -44,10 +44,7 @@ void		PathResolver::resolvePath() {	Log::debugFunc(__FUNCTION__);
 		addIndex(hasLocation, location);
 		if (!isRootValid())
 		{
-			if (hasLocation)
-				_request._status = 500;
-			else
-				_request._status = 404;
+			_request._status = 404;
 		}
 	}
 }

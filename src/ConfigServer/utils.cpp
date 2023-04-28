@@ -258,16 +258,13 @@ bool pathDup(std::vector<std::string> seq)
  */
 bool lactionPathValid(string &path)
 {
-    int i = 1;
+//    int i = 1;
     if (path.size() < 1)
         return false;
     if (path[0] != '/')
         return false;
     if (path[1] == '/')
         return false;
-    while (path[i])
-        if (!std::isalpha(path[i++]))
-            return (false);
     return true;
 }
 
@@ -322,8 +319,8 @@ std::string getLocationPath(std::string &locationBlock)
 void validIndex(std::string &input, std::string &root)
 {
     std::string path = "";
-    if (input.size() < 6 || (input.substr(input.size() - 5) != ".html" && input.substr(input.size() - 4) != ".htm"))
-        exit_error("Error:: ", input + " is not a valid index!");
+//    if (input.size() < 6 || (input.substr(input.size() - 5) != ".html" && input.substr(input.size() - 4) != ".htm"))
+//        exit_error("Error:: ", input + " is not a valid index!");
     if (root == "/")
         path = "";
     else
