@@ -84,6 +84,9 @@ print		:
 run			: all
 	./$(NAME)
 
+run_tester			: all
+	./$(NAME) configFiles/tester.config
+
 rrun		: re run
 
 mock		: all
