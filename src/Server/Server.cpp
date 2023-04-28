@@ -35,6 +35,8 @@ void	Server::booting()
 {
 	uint16_t	port[POLLFD_LIMIT];
 
+	Log::log(Log::INFO, "Booting server");
+
 	indexInfoInit();
 	pollFdsInit();
 	recordPort(port);
