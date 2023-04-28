@@ -62,7 +62,9 @@ void	Request::_readSocketData() {
 	usleep(1000);
 
 	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
-	Log::log(Log::DEBUG, "Char read: " + std::to_string(ret));
+	Log::log(Log::INFO, "Char read: " + std::to_string(ret));
+
+	std::cout << YELLOW << "buffer: " << buffer << std::endl;
 
 	if (ret == -1)
 	{
@@ -326,12 +328,17 @@ void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
 
 void 	Request::_manageRequest() {	Log::debugFunc(__FUNCTION__);
 
+	int status = _status;
+
 	PathResolver pathResolver(*this);
 
 	_manageOurTrigger();
 
 	if (isCGI())
 		return ;
+
+	if (status != 200)
+		_status = status;
 
 	Response response(*this);
 	response.sendResponse();

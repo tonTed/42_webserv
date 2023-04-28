@@ -53,10 +53,6 @@ bool			PathResolver::isAllowedMethod(std::vector<enum eRequestType> vect) {	Log:
 
 	Log::log(Log::DEBUG, "Method: " + std::to_string(_request._startLine.type));
 
-	std::vector<ServerData> servers = ConfigServer::getInstance()->getServerData();
-
-	ConfigServer::getInstance()->printServersData(servers);
-
 	if (std::find(vect.begin(), vect.end(), _request._startLine.type) == vect.end())
 		return false;
 	return true;
