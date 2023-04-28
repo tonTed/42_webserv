@@ -97,9 +97,12 @@ int	FileManager::endPos()
 	return (_request_str.find_last_of(_boundary) - _boundary.size() - 5);
 }
 
-bool	FileManager::deleteFile()
+bool	FileManager::deleteFile(std::string fileName)
 {
 	Log::debugFunc(__FUNCTION__);
+
+	_fileName = UPLOADFILE_PATH + fileName;
+
 	if (std::remove(_fileName.c_str()) == 0)
 		return true;
 	return false;

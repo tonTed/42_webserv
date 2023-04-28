@@ -18,7 +18,7 @@ public:
 	~FileManager();
 
 	bool				saveFile();
-	bool				deleteFile();
+	bool				deleteFile(std::string fileName);
 
 	bool				extractor();
 	bool				reqToStr();	

@@ -275,10 +275,10 @@ void	Request::_parseBody() {
 
 void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
 
-
 	//Upload
 	if (_startLine.path == "/upload" && _headers.find("REFERER") != _headers.end()
 		&& _headers["REFERER"].find("televerser.html") != std::string::npos) {
+
 		Log::log(Log::INFO, "UPLOAD");
 
 		FileManager fileManager(_bufferString);
@@ -298,6 +298,24 @@ void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
 		_isCGI = true;
 		CGI cgi(*this);
 		cgi.executeCgi();
+	} else if (_startLine.path == "/delete" && _headers.find("REFERER") != _headers.end()
+			   && _headers["REFERER"].find("televerser.html") != std::string::npos) {
+
+		Log::log(Log::INFO, "DELETE");
+
+		FileManager fileManager(_bufferString);
+
+		std::string filename = _startLine.queryString.substr(_startLine.queryString.find('=') + 1);
+
+		Log::log(Log::DEBUG, "Filename: " + filename);
+
+		if (fileManager.deleteFile(filename))
+			_status = 200;
+		else
+			_status = 500;
+
+		_startLine.path = "/uploaded.html";
+		PathResolver pathResolver(*this);
 	}
 }
 
@@ -315,8 +333,6 @@ void 	Request::_manageRequest() {	Log::debugFunc(__FUNCTION__);
 		response.sendResponse();
 		return ;
 	}
-
-	Log::log(Log::INFO, "GET or POST");
 
 	Response response(*this);
 	response.sendResponse();
