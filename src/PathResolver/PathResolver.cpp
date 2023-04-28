@@ -52,6 +52,19 @@ void		PathResolver::resolvePath() {	Log::debugFunc(__FUNCTION__);
 	}
 }
 
+bool			PathResolver::isAllowedMethod(std::vector<enum eRequestType> vect) {	Log::debugFunc(__FUNCTION__);
+
+	Log::log(Log::DEBUG, "Method: " + std::to_string(_request._startLine.type));
+
+	std::vector<ServerData> servers = ConfigServer::getInstance()->getServerData();
+
+	ConfigServer::getInstance()->printServersData(servers);
+
+	if (std::find(vect.begin(), vect.end(), _request._startLine.type) == vect.end())
+		return false;
+	return true;
+}
+
 std::string	PathResolver::getLocation() {	Log::debugFunc(__FUNCTION__);
 
 	if (_request._startLine.path.find_first_of('/', 1) == std::string::npos)
@@ -66,24 +79,17 @@ bool 		PathResolver::setRoot(const std::string &location) {	Log::debugFunc(__FUN
 	if (_existsInMap(_serverData._locations, location))
 	{
 		//check allowed methods
-		if (!_serverData._locations[location].methods.empty() &&
-			std::find(_serverData._locations[location].methods.begin(),
-					  _serverData._locations[location].methods.end(),
-					  _request._startLine.type) == _serverData._locations[location].methods.end())
+		if (isAllowedMethod(_serverData._locations[location].methods) == false)
 		{
 			_request._status = 405;
 			return false;
 		}
-
 		_root = _serverData._locations[location].root;
 		_root += _request._startLine.path.substr(location.length());
 		return true;
 	}
 	//check allowed methods
-	if (!_serverData._locations[location].methods.empty() &&
-		std::find(_serverData._methods.begin(),
-				  _serverData._methods.end(),
-				  _request._startLine.type) == _serverData._methods.end())
+	if (isAllowedMethod(_serverData._methods) == false)
 	{
 		_request._status = 405;
 		return false;

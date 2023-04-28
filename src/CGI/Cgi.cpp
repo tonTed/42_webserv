@@ -52,7 +52,10 @@ std::string	CGI::_getHeader(std::string header) {	Log::debugFunc(__FUNCTION__ );
 void CGI::_setEnv() { Log::debugFunc(__FUNCTION__);
 
 	_env.push_back("SERVER_SOFTWARE=webserv/1.0");
-//	_env.push_back("SERVER_NAME=" + _serverData._serverNames[0]); TODO: error
+	if (_serverData._serverNames.size() > 0)
+		_env.push_back("SERVER_NAME=" + _serverData._serverNames[0]);
+	else
+		_env.push_back("SERVER_NAME=webserv");
 	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
 	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
