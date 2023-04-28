@@ -62,9 +62,7 @@ void	Request::_readSocketData() {
 	usleep(1000);
 
 	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
-	Log::log(Log::INFO, "Char read: " + std::to_string(ret));
-
-	std::cout << YELLOW << "buffer: " << buffer << std::endl;
+	Log::log(Log::DEBUG, "Char read: " + std::to_string(ret));
 
 	if (ret == -1)
 	{
