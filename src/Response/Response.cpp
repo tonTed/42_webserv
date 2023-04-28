@@ -111,8 +111,9 @@ void	Response::formatErrorDefaultResponse() {	Log::debugFunc(__FUNCTION__);
 
 void	Response::sendResponse() const {	Log::debugFunc(__FUNCTION__);
 
+
 	if (send(_request._client, _response.c_str(), _response.length(), MSG_DONTWAIT) != -1)
-		Log::log(Log::DEBUG , "Response sent");
+		Log::log(Log::INFO , "Response sent to client successfully");
 	else
 		Log::log(Log::WARNING , "Response not sent");
 }
