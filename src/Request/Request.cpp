@@ -54,14 +54,16 @@ void	Request::_readSocketData() {
 	Log::log(Log::INFO, "Reading socket data from client: " + std::to_string(_client));
 
 
-	char *buffer = new char[MAX_REQUEST_SIZE + 1];
+	int bufferSize = ConfigServer::getInstance()->getServerData()[_serverId].bodySize;
+
+	char *buffer = new char[bufferSize + 1];
 
 	ssize_t	ret;
 
 	//TODO: sleep for 1ms to wait for the client to send the data ???
 	usleep(1000);
 
-	ret = read(_client, buffer, MAX_REQUEST_SIZE + 1);
+	ret = read(_client, buffer, bufferSize + 1);
 	Log::log(Log::DEBUG, "Char read: " + std::to_string(ret));
 
 	if (ret == -1)
@@ -70,7 +72,7 @@ void	Request::_readSocketData() {
 		buffer = nullptr;
 		throw RequestException::ReadError();
 	}
-	if (ret > MAX_REQUEST_SIZE)
+	if (ret > bufferSize)
 	{
 		delete[] buffer;
 		buffer = nullptr;
@@ -303,7 +305,8 @@ void 	Request::_manageOurTrigger() {	Log::debugFunc(__FUNCTION__);
 		_isCGI = true;
 		CGI cgi(*this);
 		cgi.executeCgi();
-	} else if (_startLine.path == "/delete" && _headers.find("REFERER") != _headers.end()
+	}
+	else if (_startLine.path == "/delete" && _headers.find("REFERER") != _headers.end()
 			   && _headers["REFERER"].find("televerser.html") != std::string::npos) {
 
 		Log::log(Log::INFO, "DELETE");

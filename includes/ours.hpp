@@ -14,9 +14,6 @@
 
 # define HTTP_VERSION "HTTP/1.1"
 
-//Server limits
-# define MAX_REQUEST_SIZE 8192
-
 #include "../src/Log/Log.h"
 
 

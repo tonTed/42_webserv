@@ -14,7 +14,22 @@ Response::Response(const Request &request) :	_request(request),
 
 	_serverData = ConfigServer::getInstance()->getServerData()[_request._serverId];
 
-	if (_status == 301)
+	if (_request.isCGI()) {
+		int bufferSize = ConfigServer::getInstance()->getServerData()[_request._serverId].bodySize;
+		Log::log(Log::DEBUG, "CGI Response");
+		char buffer[bufferSize + 1];
+		size_t ret;
+
+		ret = read(_request._cgiFd[PIPE_READ], buffer, bufferSize + 1);
+		buffer[ret] = '\0';
+
+		_response = "HTTP/1.1 " + std::to_string(_status) + " " + CodeResponse::_codeResponse[_status] + "\r\n";
+		_response += buffer;
+
+		sendResponse();
+		return;
+	}
+	else if (_status == 301)
 	{
 		formatResponse();
 	}
@@ -32,21 +47,6 @@ Response::Response(const Request &request) :	_request(request),
 			return;
 		}
 		manageErrorResponse();
-	}
-	else if (_request.isCGI())
-	{
-		Log::log(Log::DEBUG ,"CGI Response");
-		char	buffer[MAX_REQUEST_SIZE + 1];
-		size_t 	ret;
-
-		ret = read(_request._cgiFd[PIPE_READ], buffer, MAX_REQUEST_SIZE + 1);
-		buffer[ret] = '\0';
-
-		_response = "HTTP/1.1 " + std::to_string(_status) + " " + CodeResponse::_codeResponse[_status] + "\r\n";
-		_response += buffer;
-
-		sendResponse();
-		return;
 	}
 	else
 	{
