@@ -26,6 +26,8 @@ void		PathResolver::resolvePath() {	Log::debugFunc(__FUNCTION__);
 
 	location = getLocation();
 	hasLocation = setRoot(location);
+	if (_request._status == 405)
+		return;
 	if (hasExtension(_root))
 	{
 		if (!isRootValid())
@@ -63,9 +65,28 @@ bool 		PathResolver::setRoot(const std::string &location) {	Log::debugFunc(__FUN
 	// set the root to the location root if it exists
 	if (_existsInMap(_serverData._locations, location))
 	{
+		//check allowed methods
+		if (!_serverData._locations[location].methods.empty() &&
+			std::find(_serverData._locations[location].methods.begin(),
+					  _serverData._locations[location].methods.end(),
+					  _request._startLine.type) == _serverData._locations[location].methods.end())
+		{
+			_request._status = 405;
+			return false;
+		}
+
 		_root = _serverData._locations[location].root;
 		_root += _request._startLine.path.substr(location.length());
 		return true;
+	}
+	//check allowed methods
+	if (!_serverData._locations[location].methods.empty() &&
+		std::find(_serverData._methods.begin(),
+				  _serverData._methods.end(),
+				  _request._startLine.type) == _serverData._methods.end())
+	{
+		_request._status = 405;
+		return false;
 	}
 	_root = _serverData._root[0];
 	if (_request._startLine.path.length() > 1)
