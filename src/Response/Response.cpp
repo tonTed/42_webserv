@@ -14,7 +14,11 @@ Response::Response(const Request &request) :	_request(request),
 
 	_serverData = ConfigServer::getInstance()->getServerData()[_request._serverId];
 
-	if (_request._status != 200)
+	if (_status == 301)
+	{
+		formatResponse();
+	}
+	else if (_request._status != 200)
 	{
 		manageErrorResponse();
 	}
@@ -85,6 +89,8 @@ void	Response::formatErrorDefaultResponse() {	Log::debugFunc(__FUNCTION__);
 
 		if (bodyLength > 0)
 			headers += "Content-Length: " + std::to_string(bodyLength) + "\r\n";
+		if (_status == 301)
+			headers += "Location: " + _request._startLine.path + "\r\n";
 
 		headers += "Connection: close\r\n";
 		headers += "\r\n";

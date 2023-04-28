@@ -327,12 +327,6 @@ void 	Request::_manageRequest() {	Log::debugFunc(__FUNCTION__);
 
 	if (isCGI())
 		return ;
-	if (_status != 200)
-	{
-		Response response(*this);
-		response.sendResponse();
-		return ;
-	}
 
 	Response response(*this);
 	response.sendResponse();

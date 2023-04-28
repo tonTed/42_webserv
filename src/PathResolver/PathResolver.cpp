@@ -33,6 +33,12 @@ void		PathResolver::resolvePath() {	Log::debugFunc(__FUNCTION__);
 	}
 	else //no extension
 	{
+		if (!_serverData._locations[location].redirection.empty())
+		{
+			_request._status = 301;
+			_request._startLine.path = _serverData._locations[location].redirection;
+			return;
+		}
 		addIndex(hasLocation, location);
 		if (!isRootValid())
 		{
